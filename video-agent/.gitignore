@@ -1,0 +1,18 @@
+node_modules/
+out/
+.cache/
+.env
+public/audio/
+public/assets/
+public/talkinghead/
+public/images/
+public/faces/
+*.log
+
+# Wav2Lip / Piper local (nặng, tái tạo bằng scripts/setup-*.ps1)
+tools/wav2lip-venv/
+tools/Wav2Lip/
+tools/piper/
+tools/*.jpg
+tools/*.png
+tools/*.mp4

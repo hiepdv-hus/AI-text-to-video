@@ -1,0 +1,39 @@
+{
+  "name": "video-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hệ thống tạo video ngắn tự động (1080x1920) điều khiển bằng tiếng Việt qua AI agent. Agent sinh VideoSpec JSON, pipeline deterministic render ra MP4.",
+  "type": "module",
+  "scripts": {
+    "video": "tsx cli.ts",
+    "web": "tsx watch server.ts",
+    "studio": "remotion studio",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test pipeline/*.test.ts"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.515",
+    "@remotion/captions": "4.0.515",
+    "@remotion/cli": "4.0.515",
+    "@remotion/fonts": "4.0.515",
+    "@remotion/google-fonts": "4.0.515",
+    "@remotion/install-whisper-cpp": "4.0.515",
+    "@remotion/media-utils": "4.0.515",
+    "@remotion/renderer": "4.0.515",
+    "@remotion/transitions": "4.0.515",
+    "@remotion/zod-types": "4.0.515",
+    "msedge-tts": "^2.0.7",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.515",
+    "shiki": "^4.4.3",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.5",
+    "@types/react": "19.0.2",
+    "tsx": "4.19.2",
+    "typescript": "5.7.2"
+  },
+  "packageManager": "pnpm@11.23.0"
+}

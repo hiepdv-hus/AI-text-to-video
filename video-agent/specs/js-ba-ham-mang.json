@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "title": "Ba hàm mảng thay vòng for",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.15,
+    "pitch": -1,
+    "pronunciations": { "map": "máp", "filter": "phiu tơ", "reduce": "ri điút", "console": "con sôn", "log": "lốc", "for": "pho" }
+  },
+  "captions": {
+    "style": "clean-minimal",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#61afef"
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "narration": "Còn dùng vòng lặp for để xử lý mảng à? Ba hàm này thay thế được hết, code ngắn hơn một nửa!",
+      "layout": "hook",
+      "icon": "🔥",
+      "heading": "ĐỪNG DÙNG FOR NỮA!",
+      "transitionIn": "fade"
+    },
+    {
+      "id": "intro",
+      "narration": "Tưởng tượng mảng của bạn đi qua ba cỗ máy: biến đổi, lọc, và gộp lại.",
+      "layout": "image",
+      "icon": "🧩",
+      "heading": "3 'cỗ máy' xử lý mảng",
+      "media": {
+        "kind": "generate",
+        "src": "three colorful machines on a conveyor belt processing numbered blocks, flat vector infographic, clean modern tech style, blue and orange, minimal"
+      },
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "map",
+      "narration": "Hàm map biến đổi từng phần tử. Đây mình nhân đôi mỗi số, trả về mảng mới.",
+      "layout": "code",
+      "icon": "🔄",
+      "heading": "map — biến đổi mỗi phần tử",
+      "codeTitle": "map.js",
+      "code": "const nums = [1, 2, 3];\nconst doubled = nums.map(n => n * 2);\nconsole.log(doubled);",
+      "codeHighlight": [2],
+      "output": "[ 2, 4, 6 ]",
+      "transitionIn": "slide-left"
+    },
+    {
+      "id": "filter",
+      "narration": "Hàm filter giữ lại phần tử thỏa điều kiện. Đây mình lọc ra các số chẵn.",
+      "layout": "code",
+      "icon": "🧹",
+      "heading": "filter — lọc phần tử",
+      "codeTitle": "filter.js",
+      "code": "const nums = [1, 2, 3, 4];\nconst even = nums.filter(n => n % 2 === 0);\nconsole.log(even);",
+      "codeHighlight": [2],
+      "output": "[ 2, 4 ]",
+      "transitionIn": "slide-left"
+    },
+    {
+      "id": "reduce",
+      "narration": "Hàm reduce gộp cả mảng thành một giá trị. Đây mình tính tổng, kết quả bằng mười.",
+      "layout": "code",
+      "icon": "➕",
+      "heading": "reduce — gộp thành 1 giá trị",
+      "codeTitle": "reduce.js",
+      "code": "const nums = [1, 2, 3, 4];\nconst sum = nums.reduce((a, b) => a + b, 0);\nconsole.log(sum);",
+      "codeHighlight": [2],
+      "output": "10",
+      "transitionIn": "slide-left"
+    },
+    {
+      "id": "cta",
+      "narration": "Lưu lại để nhớ, và theo dõi để xem tập sau về async await nhé!",
+      "layout": "cta",
+      "icon": "🔔",
+      "heading": "Lưu lại + Theo dõi 👇",
+      "transitionIn": "fade"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+  msedge-tts: false
+onlyBuiltDependencies:
+  - esbuild
+  - "@swc/core"

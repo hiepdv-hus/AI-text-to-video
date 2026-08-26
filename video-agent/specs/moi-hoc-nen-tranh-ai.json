@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "title": "Mới học nên tránh AI",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Mới học lập trình á? Mình khuyên bạn tránh dùng AI trong một, hai tháng đầu. Nghe vô lý đúng không? Nhưng đây là lý do.",
+      "layout": "hook",
+      "heading": "MỚI HỌC? TRÁNH AI 1–2 THÁNG ĐẦU",
+      "icon": "🚫",
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Chép code AI mà không hiểu gì, giống như xây nhà trên cát vậy.",
+      "layout": "image",
+      "heading": "Chép mà không hiểu?",
+      "icon": "🤔",
+      "media": {
+        "kind": "pexels",
+        "src": "frustrated programmer laptop",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s3",
+      "narration": "Thứ nhất, học lập trình là quá trình bộ não phải vật lộn với lỗi. AI làm hộ hết thì bạn chẳng nhớ được gì đâu.",
+      "layout": "bullet",
+      "heading": "Lý do 1 — Não cần 'vật lộn'",
+      "icon": "🧠",
+      "bullets": [
+        "🤖 AI làm hộ = bạn không tự nghĩ",
+        "😵 Không vật lộn = không nhớ",
+        "💡 Hiểu sâu từ việc tự giải"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s4",
+      "narration": "Thứ hai, người mới chưa đủ trình để biết lời giải mà AI đưa là đúng hay sai. Tin mù quáng là dễ toang lắm.",
+      "layout": "bullet",
+      "heading": "Lý do 2 — Không biết đúng/sai",
+      "icon": "❓",
+      "bullets": [
+        "⚠️ AI vẫn viết code sai",
+        "🙈 Người mới không nhận ra",
+        "🐛 Tin mù quáng → bug ẩn"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s5",
+      "narration": "Thứ ba, cứ chép bài từ AI thì bạn chẳng bao giờ học được cách tự sửa lỗi và đọc tài liệu — kỹ năng sống còn của lập trình viên.",
+      "layout": "bullet",
+      "heading": "Lý do 3 — Mất kỹ năng gốc",
+      "icon": "🐞",
+      "bullets": [
+        "🔧 Tự sửa lỗi (debug)",
+        "📖 Đọc tài liệu",
+        "🔍 Tự tìm kiếm đúng cách"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s6",
+      "narration": "Vậy khi nào dùng AI? Sau khi đã nắm chắc cơ bản, hãy coi AI như trợ lý để tăng tốc, chứ đừng để nó thay bạn suy nghĩ.",
+      "layout": "bullet",
+      "heading": "Vậy khi nào dùng AI?",
+      "icon": "✅",
+      "bullets": [
+        "1️⃣ Nắm chắc cơ bản trước",
+        "2️⃣ Rồi dùng AI để tăng tốc",
+        "🧑‍💻 AI là trợ lý, không phải bộ não"
+      ],
+      "transitionIn": "wipe",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s7",
+      "narration": "Bạn đồng ý hay phản đối? Bình luận cho mình biết, và theo dõi để học lập trình đúng cách nhé!",
+      "layout": "cta",
+      "heading": "Đồng ý không? Bình luận 👇",
+      "icon": "💬",
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.15,
+    "pitch": -1
+  },
+  "captions": {
+    "style": "tiktok-bold",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#ffd400"
+  }
+}

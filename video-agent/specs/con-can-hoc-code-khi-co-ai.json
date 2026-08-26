@@ -1,0 +1,143 @@
+{
+  "meta": {
+    "title": "Còn cần học code khi có AI",
+    "template": "ProductReview",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "aurora"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Một đoạn code 20 dòng, AI viết xong trong 10 giây. Vậy còn cần học lập trình nữa không? Câu trả lời sẽ khiến bạn bất ngờ.",
+      "layout": "hook",
+      "heading": "AI CODE 10 GIÂY — CÒN CẦN HỌC?",
+      "icon": "🤖",
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Sự thật ngược đời: càng có AI, người thật sự hiểu code lại càng có giá.",
+      "layout": "image",
+      "heading": "Sự thật ngược đời",
+      "icon": "💡",
+      "media": {
+        "kind": "pexels",
+        "src": "focused software developer working",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s3",
+      "narration": "AI viết được, nhưng ai biết code đó đúng hay sai? Ai sửa khi nó chạy hỏng? Chính là bạn.",
+      "layout": "bullet",
+      "heading": "AI viết — nhưng ai kiểm?",
+      "icon": "🧭",
+      "bullets": [
+        "✅ Biết code đúng hay sai",
+        "🔧 Sửa khi AI viết hỏng",
+        "🧠 Hiểu để kiểm soát"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s4",
+      "narration": "Code AI viết ra, bạn vẫn phải đọc và kiểm tra từng dòng một.",
+      "layout": "image",
+      "heading": "Đọc & kiểm từng dòng",
+      "icon": "🔍",
+      "media": {
+        "kind": "pexels",
+        "src": "programmer reviewing code on computer screen",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s5",
+      "narration": "AI chỉ là công cụ. Người điều khiển công cụ mới tạo ra giá trị. Mà muốn điều khiển thì phải hiểu.",
+      "layout": "bullet",
+      "heading": "Giá trị ở người điều khiển",
+      "icon": "🎮",
+      "bullets": [
+        "🛠️ AI là công cụ",
+        "🕹️ Hiểu = điều khiển được",
+        "🎯 Ra lệnh đúng cho AI"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s6",
+      "narration": "Bạn mới là người ra lệnh và điều khiển AI, chứ không phải ngược lại.",
+      "layout": "image",
+      "heading": "Bạn là người ra lệnh",
+      "icon": "🕹️",
+      "media": {
+        "kind": "pexels",
+        "src": "software developer multiple monitors workspace",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s7",
+      "narration": "Công việc thật không phải 20 dòng, mà là hệ thống lớn: kiến trúc, quyết định, tư duy. AI không thay được cái đầu của bạn.",
+      "layout": "bullet",
+      "heading": "Bài toán thật > 20 dòng",
+      "icon": "🏗️",
+      "bullets": [
+        "🏛️ Thiết kế hệ thống",
+        "🧩 Tư duy giải quyết vấn đề",
+        "⚖️ Ra quyết định kỹ thuật"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s8",
+      "narration": "Người hiểu code cộng với AI sẽ mạnh gấp bội. Còn người chỉ biết dựa dẫm AI sẽ bị thay thế đầu tiên.",
+      "layout": "bullet",
+      "heading": "Ai sẽ thắng cuộc?",
+      "icon": "🏆",
+      "bullets": [
+        "💪 Hiểu code + AI = bứt phá",
+        "⚠️ Chỉ dựa AI = bị thay thế"
+      ],
+      "transitionIn": "wipe",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s9",
+      "narration": "Còn bạn, bạn nghĩ sao? Bình luận và theo dõi để không bị AI bỏ lại phía sau nhé!",
+      "layout": "cta",
+      "heading": "Bạn nghĩ sao? Bình luận 👇",
+      "icon": "💬",
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.15,
+    "pitch": -1
+  },
+  "captions": {
+    "style": "tiktok-bold",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#ffd400"
+  }
+}

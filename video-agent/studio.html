@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Video Studio</title>
+<style>
+  :root {
+    --bg:#0e0f13; --panel:#171922; --panel2:#1f2230; --border:#2b2f3d;
+    --text:#e7e9ee; --muted:#9aa0b0; --accent:#61afef; --accent2:#39d98a; --danger:#ff5c5c;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text);
+    font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif; }
+  header { padding:18px 28px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:14px; position:sticky; top:0; background:var(--bg); z-index:10; }
+  header h1 { font-size:21px; margin:0; }
+  header .sub { color:var(--muted); font-size:13px; }
+
+  /* Bố cục 2 cột: trái = form (cuộn), phải = kết quả (dính) */
+  .layout { display:flex; gap:24px; max-width:1500px; margin:0 auto; align-items:flex-start; }
+  .col-left { flex:1.95; min-width:0; }
+  .col-right { flex:1; min-width:0; position:sticky; top:92px; }
+  @media (max-width:900px) { .layout { flex-direction:column; } .col-right { position:static; width:100%; } }
+
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    padding:18px; margin-bottom:16px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; }
+  .row > div { flex:1; min-width:140px; }
+  label { display:block; font-size:13px; color:var(--muted); margin:0 0 6px; }
+  input, select, textarea { width:100%; background:var(--panel2); color:var(--text);
+    border:1px solid var(--border); border-radius:9px; padding:10px 12px; font-size:15px; font-family:inherit; }
+  textarea { resize:vertical; }
+  textarea.code { font-family:"JetBrains Mono",ui-monospace,Consolas,monospace; font-size:14px; }
+  h2 { font-size:14px; margin:0 0 14px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .scene { border-left:3px solid var(--accent); }
+  .scene-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .scene-head .tag { background:var(--panel2); border:1px solid var(--border); border-radius:999px;
+    padding:3px 12px; font-size:12px; color:var(--muted); }
+  .spacer { flex:1; }
+  button { cursor:pointer; border:none; border-radius:9px; padding:10px 16px; font-size:14px;
+    font-weight:600; font-family:inherit; }
+  .btn-ghost { background:var(--panel2); color:var(--text); border:1px solid var(--border); }
+  .btn-primary { background:var(--accent); color:#08111e; }
+  .btn-add { background:transparent; color:var(--accent); border:1px dashed var(--accent); width:100%; padding:14px; }
+  .nav { background:transparent; color:var(--muted); border:1px solid var(--border); }
+  .nav.active { background:var(--panel2); color:var(--text); }
+  .librow { display:flex; align-items:center; gap:14px; }
+  .librow .title { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .icon-btn { background:var(--panel2); border:1px solid var(--border); color:var(--muted);
+    width:34px; height:34px; padding:0; border-radius:8px; font-size:15px; }
+  .icon-btn:hover { color:var(--text); }
+  .hidden { display:none !important; }
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+
+  /* Panel kết quả bên phải */
+  .result-panel { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:18px; }
+  .render-btn { width:100%; padding:15px; font-size:16px; }
+  .status { display:block; margin-top:12px; color:var(--muted); font-size:14px; min-height:20px; }
+  .spinner { width:16px; height:16px; border:3px solid var(--border); border-top-color:var(--accent);
+    border-radius:50%; animation:spin 1s linear infinite; display:inline-block; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .preview { margin-top:14px; }
+  video { width:100%; border-radius:12px; background:#000; display:block; }
+  .placeholder { margin-top:14px; border:1px dashed var(--border); border-radius:12px;
+    aspect-ratio:9/16; max-height:60vh; margin-left:auto; margin-right:auto; display:flex;
+    align-items:center; justify-content:center; text-align:center; color:var(--muted); font-size:14px; padding:20px; }
+  .hint { font-size:12px; color:var(--muted); margin-top:8px; }
+  .err { color:var(--danger); font-size:14px; white-space:pre-wrap; }
+  a.dl { color:var(--accent2); font-size:14px; }
+</style>
+</head>
+<body>
+<header>
+  <span style="font-size:24px">🎬</span>
+  <div>
+    <h1>Video Studio</h1>
+    <div class="sub">Điền nội dung bên trái → bấm Render → xem kết quả bên phải. Chạy local, miễn phí.</div>
+  </div>
+  <div class="spacer"></div>
+  <button id="navEditor" class="nav active" onclick="switchView('editor')">✏️ Tạo</button>
+  <button id="navManage" class="nav" onclick="switchView('manage')">🗂️ Quản lý</button>
+</header>
+
+<div id="viewEditor">
+<div class="layout">
+  <!-- CỘT TRÁI: form nội dung (cuộn) -->
+  <div class="col-left">
+    <div class="toolbar">
+      <button class="btn-ghost" onclick="exportJson()">⬇ Xuất JSON</button>
+      <select id="loadSelect" class="btn-ghost" style="width:auto" onchange="loadSpec(this.value)">
+        <option value="">📂 Nạp spec đã lưu…</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h2>Cài đặt chung</h2>
+      <div class="row">
+        <div style="flex:2">
+          <label>Tiêu đề video</label>
+          <input id="title" placeholder="VD: JS Tập 2 - async await" />
+        </div>
+        <div>
+          <label>Template</label>
+          <select id="template">
+            <option value="CodeExplainer">CodeExplainer (dạy code)</option>
+            <option value="StoryHook">StoryHook (kể chuyện)</option>
+            <option value="ProductReview">ProductReview (review SP)</option>
+            <option value="ListicleTop5">ListicleTop5 (top N)</option>
+          </select>
+        </div>
+        <div>
+          <label>Nền</label>
+          <select id="background">
+            <option value="tech">Tech (mưa nhị phân)</option>
+            <option value="aurora">Aurora (quầng sáng màu)</option>
+            <option value="solid">Solid (đen phẳng)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div>
+          <label>Giọng đọc</label>
+          <select id="voiceId">
+            <optgroup label="Edge — miễn phí, không key">
+              <option value="vi-VN-NamMinhNeural" data-provider="edge">Nam Bắc — NamMinh</option>
+              <option value="vi-VN-HoaiMyNeural" data-provider="edge">Nữ Bắc — HoaiMy</option>
+            </optgroup>
+            <optgroup label="Piper — miễn phí, offline, không key">
+              <option value="vi_VN-vais1000-medium" data-provider="piper">Piper — vais1000 (rõ nhất)</option>
+              <option value="vi_VN-25hours_single-low" data-provider="piper">Piper — 25hours (giọng khác)</option>
+              <option value="vi_VN-vivos-x_low#0" data-provider="piper">Piper — vivos #0</option>
+              <option value="vi_VN-vivos-x_low#10" data-provider="piper">Piper — vivos #10</option>
+              <option value="vi_VN-vivos-x_low#20" data-provider="piper">Piper — vivos #20</option>
+              <option value="vi_VN-vivos-x_low#30" data-provider="piper">Piper — vivos #30</option>
+              <option value="vi_VN-vivos-x_low#45" data-provider="piper">Piper — vivos #45</option>
+              <option value="vi_VN-vivos-x_low#60" data-provider="piper">Piper — vivos #60</option>
+            </optgroup>
+          </select>
+        </div>
+        <div>
+          <label>Tốc độ</label>
+          <input id="speed" type="number" step="0.01" value="1.15" />
+        </div>
+        <div>
+          <label>Cao độ</label>
+          <input id="pitch" type="number" step="1" value="-1" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div>
+          <label>Kiểu phụ đề</label>
+          <select id="capStyle">
+            <option value="clean-minimal">clean-minimal</option>
+            <option value="tiktok-bold">tiktok-bold</option>
+            <option value="outline-pop">outline-pop</option>
+          </select>
+        </div>
+        <div>
+          <label>Vị trí phụ đề</label>
+          <select id="capPos">
+            <option value="lower-third">lower-third</option>
+            <option value="center">center</option>
+            <option value="top">top</option>
+          </select>
+        </div>
+        <div>
+          <label>Màu nhấn</label>
+          <input id="capColor" type="color" value="#61afef" style="height:42px;padding:4px" />
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin:20px 0 12px">Các cảnh</h2>
+    <div id="scenes"></div>
+    <button class="btn-add" onclick="addScene()">➕ Thêm cảnh</button>
+  </div>
+
+  <!-- CỘT PHẢI: kết quả (dính) -->
+  <div class="col-right">
+    <div class="result-panel">
+      <h2>Kết quả</h2>
+      <button class="btn-primary render-btn" id="renderBtn" onclick="render()">🎬 Render video</button>
+      <span class="status" id="status"></span>
+      <div id="result">
+        <div class="placeholder">Video sẽ hiện ở đây sau khi Render.<br />Điền nội dung bên trái rồi bấm nút trên.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /viewEditor -->
+
+<!-- MÀN QUẢN LÝ: liệt kê + xóa video/spec -->
+<div id="viewManage" class="hidden">
+  <div style="max-width:1000px;margin:0 auto;padding:22px 20px 60px">
+    <div class="toolbar">
+      <button class="btn-ghost" onclick="loadLibrary()">🔄 Làm mới</button>
+      <button class="btn-ghost" style="color:var(--danger)" onclick="deleteSelected()">🗑 Xóa mục đã chọn</button>
+      <div class="spacer"></div>
+      <span id="libCount" class="hint"></span>
+    </div>
+    <div id="libList"></div>
+  </div>
+</div>
+
+<template id="sceneTpl">
+  <div class="card scene">
+    <div class="scene-head">
+      <span class="tag">Cảnh <span class="num"></span></span>
+      <select class="layout" style="width:auto" onchange="onLayout(this)">
+        <option value="hook">hook (chữ lớn)</option>
+        <option value="code">code (cửa sổ code)</option>
+        <option value="image">image (ảnh minh họa)</option>
+        <option value="bullet">bullet (gạch đầu dòng)</option>
+        <option value="product">product (ảnh nền/talking-head)</option>
+        <option value="compare">compare (so sánh)</option>
+        <option value="cta">cta (kêu gọi)</option>
+      </select>
+      <select class="trans" style="width:auto">
+        <option value="fade">fade</option>
+        <option value="slide-up">slide-up</option>
+        <option value="slide-left">slide-left</option>
+        <option value="wipe">wipe</option>
+        <option value="none">none</option>
+      </select>
+      <div class="spacer"></div>
+      <button class="icon-btn" title="Lên" onclick="moveScene(this,-1)">↑</button>
+      <button class="icon-btn" title="Xuống" onclick="moveScene(this,1)">↓</button>
+      <button class="icon-btn" title="Xóa" onclick="this.closest('.scene').remove();renumber()">✕</button>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Lời đọc (narration) — sẽ được đọc thành tiếng</label>
+      <textarea class="narration" rows="2" placeholder="VD: Hàm map biến đổi từng phần tử…"></textarea>
+    </div>
+
+    <div class="f-heading" style="margin-bottom:12px">
+      <div class="row">
+        <div style="flex:0 0 96px">
+          <label>Icon</label>
+          <input class="icon" placeholder="🚀" />
+        </div>
+        <div style="flex:2">
+          <label>Tiêu đề hiện trên màn (heading)</label>
+          <input class="heading" placeholder="VD: Bước 1 — Nền tảng Web" />
+        </div>
+      </div>
+    </div>
+
+    <div class="f-bullets hidden" style="margin-bottom:12px">
+      <label>Các gạch đầu dòng (mỗi dòng 1 ý; có thể mở đầu bằng emoji)</label>
+      <textarea class="bullets" rows="3" placeholder="🐳 Docker cơ bản&#10;🐙 Git và GitHub"></textarea>
+    </div>
+
+    <div class="f-code hidden">
+      <div class="row">
+        <div><label>Tên file</label><input class="codeTitle" placeholder="map.js" /></div>
+        <div><label>Dòng tô sáng (vd: 2 hoặc 2,3)</label><input class="codeHl" placeholder="2" /></div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Code (giữ ngắn ~6-9 dòng)</label>
+        <textarea class="code code" rows="5" placeholder="const nums = [1, 2, 3];&#10;const doubled = nums.map(n => n * 2);&#10;console.log(doubled);"></textarea>
+      </div>
+      <div style="margin-top:12px">
+        <label>Kết quả console (output)</label>
+        <textarea class="output code" rows="2" placeholder="[ 2, 4, 6 ]"></textarea>
+      </div>
+    </div>
+
+    <div class="f-media hidden" style="margin-top:12px">
+      <div class="row">
+        <div>
+          <label>Loại nền</label>
+          <select class="mediaKind">
+            <option value="pexels">📷 Ảnh thật Pexels (nhập từ khóa tiếng Anh)</option>
+            <option value="generate">🎨 AI tạo ảnh (nhập mô tả tiếng Anh)</option>
+            <option value="color">Màu</option>
+            <option value="image">Ảnh (URL/file)</option>
+            <option value="talkinghead">Ảnh biết nói (talking-head)</option>
+            <option value="video">Video</option>
+          </select>
+        </div>
+        <div style="flex:2">
+          <label>Nguồn (mã màu #..., URL ảnh, hoặc faces/ten.jpg)</label>
+          <input class="mediaSrc" placeholder="#1E2A4A hoặc faces/anh1.jpg" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+function onLayout(sel) {
+  const c = sel.closest('.scene');
+  const layout = sel.value;
+  const show = (cls, on) => c.querySelector(cls).classList.toggle('hidden', !on);
+  show('.f-heading', layout !== 'compare');
+  show('.f-bullets', layout === 'bullet' || layout === 'compare');
+  show('.f-code', layout === 'code');
+  show('.f-media', layout === 'product' || layout === 'image');
+}
+
+function renumber() { $$('.scene .num').forEach((n,i)=> n.textContent = i+1); }
+
+function addScene(data) {
+  const tpl = $('#sceneTpl').content.cloneNode(true);
+  $('#scenes').appendChild(tpl);
+  const c = $('#scenes').lastElementChild;
+  if (data) {
+    c.querySelector('.layout').value = data.layout || 'hook';
+    c.querySelector('.trans').value = data.transitionIn || 'fade';
+    c.querySelector('.narration').value = data.narration || '';
+    c.querySelector('.heading').value = data.heading || '';
+    c.querySelector('.icon').value = data.icon || '';
+    c.querySelector('.bullets').value = (data.bullets||[]).join('\n');
+    c.querySelector('.codeTitle').value = data.codeTitle || '';
+    c.querySelector('.codeHl').value = (data.codeHighlight||[]).join(',');
+    c.querySelector('.code').value = data.code || '';
+    c.querySelector('.output').value = data.output || '';
+    if (data.media) {
+      c.querySelector('.mediaKind').value = data.media.kind || 'color';
+      c.querySelector('.mediaSrc').value = data.media.src || '';
+    }
+  }
+  onLayout(c.querySelector('.layout'));
+  renumber();
+}
+
+function moveScene(btn, dir) {
+  const c = btn.closest('.scene');
+  if (dir<0 && c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling);
+  if (dir>0 && c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c);
+  renumber();
+}
+
+function collectSpec() {
+  const scenes = $$('.scene').map((c, i) => {
+    const layout = c.querySelector('.layout').value;
+    const s = {
+      id: 's' + (i+1),
+      narration: c.querySelector('.narration').value.trim(),
+      layout,
+      transitionIn: c.querySelector('.trans').value,
+    };
+    const heading = c.querySelector('.heading').value.trim();
+    if (heading) s.heading = heading;
+    const icon = c.querySelector('.icon').value.trim();
+    if (icon) s.icon = icon;
+    if (layout === 'bullet' || layout === 'compare') {
+      const b = c.querySelector('.bullets').value.split('\n').map(x=>x.trim()).filter(Boolean);
+      if (b.length) s.bullets = b;
+    }
+    if (layout === 'code') {
+      s.code = c.querySelector('.code').value;
+      const ct = c.querySelector('.codeTitle').value.trim(); if (ct) s.codeTitle = ct;
+      const out = c.querySelector('.output').value; if (out.trim()) s.output = out;
+      const hl = c.querySelector('.codeHl').value.split(',').map(x=>parseInt(x.trim(),10)).filter(n=>!isNaN(n));
+      if (hl.length) s.codeHighlight = hl;
+    }
+    if (layout === 'product' || layout === 'image') {
+      const kind = c.querySelector('.mediaKind').value;
+      const src = c.querySelector('.mediaSrc').value.trim();
+      if (src) s.media = { kind, src };
+    }
+    return s;
+  }).filter(s => s.narration);
+
+  return {
+    meta: {
+      title: $('#title').value.trim() || 'video',
+      template: $('#template').value,
+      width: 1080, height: 1920, fps: 30, locale: 'vi-VN',
+      background: $('#background').value,
+    },
+    voice: {
+      provider: ($('#voiceId').selectedOptions[0] || {}).dataset?.provider || 'edge',
+      voiceId: $('#voiceId').value,
+      speed: parseFloat($('#speed').value) || 1,
+      pitch: parseInt($('#pitch').value, 10) || 0,
+    },
+    captions: {
+      style: $('#capStyle').value,
+      position: $('#capPos').value,
+      maxWordsPerLine: 4,
+      highlightColor: $('#capColor').value,
+    },
+    scenes,
+  };
+}
+
+function setStatus(html) { $('#status').innerHTML = html; }
+
+async function render() {
+  const spec = collectSpec();
+  if (spec.scenes.length === 0) { setStatus('<span class="err">Cần ít nhất 1 cảnh có lời đọc.</span>'); return; }
+  $('#renderBtn').disabled = true;
+  setStatus('<span class="spinner"></span> Đang dựng video… (30–90s, cảnh talking-head lâu hơn)');
+  try {
+    const res = await fetch('/api/render', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(spec) });
+    const data = await res.json();
+    if (!data.ok) {
+      const extra = data.issues ? '\n' + data.issues.join('\n') : '';
+      setStatus('<span class="err">❌ ' + (data.error||'Lỗi') + extra + '</span>');
+    } else {
+      setStatus('✅ Xong — video ' + Math.round(data.durationSec) + 's');
+      $('#result').innerHTML =
+        '<div class="preview"><video controls autoplay muted src="'+data.videoUrl+'"></video>' +
+        '<div style="margin-top:10px"><a class="dl" href="'+data.videoUrl+'" download="'+data.slug+'.mp4">⬇ Tải MP4</a>' +
+        ' &nbsp; <span class="hint">Spec đã lưu: specs/'+data.specName+'</span></div></div>';
+    }
+  } catch (e) {
+    setStatus('<span class="err">❌ ' + e.message + '</span>');
+  } finally {
+    $('#renderBtn').disabled = false;
+  }
+}
+
+function exportJson() {
+  const blob = new Blob([JSON.stringify(collectSpec(), null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (($('#title').value.trim()||'video')) + '.json';
+  a.click();
+}
+
+async function loadSpecList() {
+  try {
+    const { specs } = await (await fetch('/api/specs')).json();
+    const sel = $('#loadSelect');
+    specs.forEach(f => { const o=document.createElement('option'); o.value=f; o.textContent=f; sel.appendChild(o); });
+  } catch {}
+}
+
+async function loadSpec(name) {
+  if (!name) return;
+  const spec = await (await fetch('/api/spec/'+encodeURIComponent(name))).json();
+  $('#title').value = spec.meta.title;
+  $('#template').value = spec.meta.template;
+  $('#background').value = spec.meta.background || 'solid';
+  $('#voiceId').value = spec.voice.voiceId || 'vi-VN-NamMinhNeural';
+  $('#speed').value = spec.voice.speed ?? 1.15;
+  $('#pitch').value = spec.voice.pitch ?? -1;
+  $('#capStyle').value = spec.captions.style;
+  $('#capPos').value = spec.captions.position;
+  $('#capColor').value = spec.captions.highlightColor || '#61afef';
+  $('#scenes').innerHTML = '';
+  spec.scenes.forEach(addScene);
+}
+
+/* ---- Màn quản lý ---- */
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtSize(b){ if(!b) return ''; const mb=b/1048576; return mb>=1 ? mb.toFixed(1)+' MB' : Math.round(b/1024)+' KB'; }
+
+function switchView(v){
+  $('#viewEditor').classList.toggle('hidden', v!=='editor');
+  $('#viewManage').classList.toggle('hidden', v!=='manage');
+  $('#navEditor').classList.toggle('active', v==='editor');
+  $('#navManage').classList.toggle('active', v==='manage');
+  if(v==='manage') loadLibrary();
+}
+
+async function loadLibrary(){
+  const list = $('#libList');
+  list.innerHTML = '<div class="hint">Đang tải…</div>';
+  try {
+    const { items } = await (await fetch('/api/library')).json();
+    $('#libCount').textContent = items.length + ' mục';
+    if(!items.length){ list.innerHTML = '<div class="hint">Chưa có video/spec nào.</div>'; return; }
+    list.innerHTML = items.map(it => `
+      <div class="card librow">
+        <input type="checkbox" class="libChk" value="${it.slug}" style="width:auto" />
+        <div style="flex:1;min-width:0">
+          <div class="title">${escapeHtml(it.title)}</div>
+          <div class="hint">${it.slug} · ${it.hasVideo ? '🎬 '+fmtSize(it.videoSize) : '⚠️ chưa render'}${it.hasSpec ? ' · 📄 spec' : ''}</div>
+        </div>
+        ${it.hasVideo ? `<button class="btn-ghost" onclick="window.open('/video/${it.slug}','_blank')">▶ Xem</button>` : ''}
+        ${it.hasSpec ? `<button class="btn-ghost" onclick="editItem('${it.slug}')">✏️ Sửa</button>` : ''}
+        <button class="btn-ghost" style="color:var(--danger)" onclick="deleteItem('${it.slug}', this)">🗑 Xóa</button>
+      </div>`).join('');
+    list.querySelectorAll('.librow').forEach((row,i)=> row.dataset.title = items[i].title);
+  } catch(e){ list.innerHTML = '<div class="err">Lỗi tải danh sách: '+e.message+'</div>'; }
+}
+
+async function deleteItem(slug, btn){
+  const title = btn.closest('.librow').dataset.title || slug;
+  if(!confirm('Xóa "'+title+'"?\n(Xóa cả video, audio và file spec — không khôi phục được)')) return;
+  await fetch('/api/item/'+encodeURIComponent(slug), { method:'DELETE' });
+  await loadLibrary();
+  refreshSpecDropdown();
+}
+
+async function deleteSelected(){
+  const slugs = $$('.libChk:checked').map(c=>c.value);
+  if(!slugs.length){ alert('Chưa chọn mục nào (tích ô vuông bên trái).'); return; }
+  if(!confirm('Xóa '+slugs.length+' mục đã chọn? Không khôi phục được.')) return;
+  for(const s of slugs){ await fetch('/api/item/'+encodeURIComponent(s), { method:'DELETE' }); }
+  await loadLibrary();
+  refreshSpecDropdown();
+}
+
+async function editItem(slug){
+  await loadSpec(slug + '.json');
+  switchView('editor');
+  window.scrollTo({ top:0 });
+}
+
+function refreshSpecDropdown(){
+  const sel = $('#loadSelect');
+  sel.innerHTML = '<option value="">📂 Nạp spec đã lưu…</option>';
+  loadSpecList();
+}
+
+// Khởi tạo: 3 cảnh mẫu cho video code
+addScene({ layout:'hook', icon:'🚀', heading:'ĐỪNG DÙNG FOR NỮA!', narration:'Còn dùng vòng lặp for à? Ba hàm này thay thế được hết!', transitionIn:'fade' });
+addScene({ layout:'code', heading:'map — biến đổi mỗi phần tử', codeTitle:'map.js',
+  code:'const nums = [1, 2, 3];\nconst doubled = nums.map(n => n * 2);\nconsole.log(doubled);',
+  codeHighlight:[2], output:'[ 2, 4, 6 ]', narration:'Hàm map biến đổi từng phần tử, trả về mảng mới.', transitionIn:'slide-up' });
+addScene({ layout:'cta', icon:'🔔', heading:'Theo dõi để xem tiếp 👇', narration:'Lưu lại và theo dõi để xem tập sau nhé!', transitionIn:'fade' });
+loadSpecList();
+</script>
+</body>
+</html>
