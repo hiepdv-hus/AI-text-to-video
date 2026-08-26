@@ -213,7 +213,7 @@
         <option value="code">code (cửa sổ code)</option>
         <option value="image">image (ảnh minh họa)</option>
         <option value="bullet">bullet (gạch đầu dòng)</option>
-        <option value="product">product (ảnh nền/talking-head)</option>
+        <option value="product">product (ảnh nền)</option>
         <option value="compare">compare (so sánh)</option>
         <option value="cta">cta (kêu gọi)</option>
       </select>
@@ -277,13 +277,12 @@
             <option value="generate">🎨 AI tạo ảnh (nhập mô tả tiếng Anh)</option>
             <option value="color">Màu</option>
             <option value="image">Ảnh (URL/file)</option>
-            <option value="talkinghead">Ảnh biết nói (talking-head)</option>
             <option value="video">Video</option>
           </select>
         </div>
         <div style="flex:2">
-          <label>Nguồn (mã màu #..., URL ảnh, hoặc faces/ten.jpg)</label>
-          <input class="mediaSrc" placeholder="#1E2A4A hoặc faces/anh1.jpg" />
+          <label>Nguồn (mã màu #..., URL ảnh, hoặc images/ten.jpg)</label>
+          <input class="mediaSrc" placeholder="#1E2A4A hoặc URL ảnh" />
         </div>
       </div>
     </div>
@@ -398,7 +397,7 @@ async function render() {
   const spec = collectSpec();
   if (spec.scenes.length === 0) { setStatus('<span class="err">Cần ít nhất 1 cảnh có lời đọc.</span>'); return; }
   $('#renderBtn').disabled = true;
-  setStatus('<span class="spinner"></span> Đang dựng video… (30–90s, cảnh talking-head lâu hơn)');
+  setStatus('<span class="spinner"></span> Đang dựng video… (30–90s)');
   try {
     const res = await fetch('/api/render', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(spec) });
     const data = await res.json();

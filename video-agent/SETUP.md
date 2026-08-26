@@ -36,13 +36,7 @@ powershell -ExecutionPolicy Bypass -File scripts\setup-piper.ps1
 ```
 Tải Piper + 3 giọng vi (~150MB) vào `tools/piper/` (không lên git).
 
-## 4. Ảnh biết nói — Wav2Lip (tùy chọn, MIỄN PHÍ, CPU chậm)
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\setup-wav2lip.ps1
-```
-Cài Python 3.10 + Wav2Lip + model (~2GB) vào `tools/` (không lên git).
-
-## 5. Studio web (giao diện điền form)
+## 4. Studio web (giao diện điền form)
 ```bash
 pnpm web        # tsx watch → tự nạp lại khi sửa code; mở http://localhost:4321
 ```
@@ -54,18 +48,17 @@ pnpm web        # tsx watch → tự nạp lại khi sửa code; mở http://loc
 |---|---|
 | `node_modules/` | `pnpm install` |
 | `.env` (API key) | tạo lại theo mục 2 |
-| `tools/` (Piper, Wav2Lip, ~2GB) | `scripts/setup-*.ps1` |
-| `out/`, `.cache/`, `public/audio\|assets\|images\|talkinghead/` | tự sinh khi render |
+| `tools/piper/` (Piper) | `scripts/setup-piper.ps1` |
+| `out/`, `.cache/`, `public/audio\|assets\|images/` | tự sinh khi render |
 
 ## Quirks / lỗi hay gặp (đọc để đỡ mất thời gian)
 - **Windows – pnpm "not recognized"**: pnpm ở `%APPDATA%\npm` chưa trên PATH. Chạy 1 lần:
   `[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:APPDATA\npm", "User")` rồi mở lại terminal.
 - **ffmpeg**: code TỰ DÒ (env `FFMPEG_BIN` → PATH → thư mục winget). Chỉ set `FFMPEG_BIN` khi tự dò trượt.
-- **Đường dẫn dự án có dấu tiếng Việt** (vd "Máy tính"): OpenCV/Piper không đọc được path tuyệt đối
-  non-ASCII → code đã truyền đường dẫn TƯƠNG ĐỐI cho piper/Wav2Lip. Đừng đổi cách đó.
+- **Đường dẫn dự án có dấu tiếng Việt** (vd "Máy tính"): Piper không đọc được path tuyệt đối
+  non-ASCII → code đã truyền đường dẫn TƯƠNG ĐỐI cho piper. Đừng đổi cách đó.
 - **Studio**: dùng `pnpm web` (watch). Nếu cổng 4321 kẹt (server cũ), server báo lỗi + cách diệt;
   hoặc: `Stop-Process -Id (Get-NetTCPConnection -LocalPort 4321).OwningProcess -Force`.
-- **Máy KHÔNG có GPU**: Wav2Lip chạy CPU nên chậm (~30–120s/scene). Piper/Edge thì nhanh.
 - **Bảng phát âm** (`voice.pronunciations`) PHÂN BIỆT hoa/thường: "AI" (viết tắt) khác "ai" (từ Việt).
 - **Windows-only hiện tại**: `scripts/*.ps1` là PowerShell, Piper là binary Windows. Mac/Linux cần chỉnh.
 

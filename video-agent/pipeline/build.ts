@@ -13,7 +13,6 @@ import { getProvider, getAudioDurationSec } from "./tts.ts";
 import { alignWords } from "./align.ts";
 import { cacheKey, readCache, writeCache } from "./cache.ts";
 import { downloadAsset } from "./assets.ts";
-import { generateTalkingHead } from "./talkinghead.ts";
 import { generateImage } from "./imagegen.ts";
 import { fetchStockImage } from "./stock.ts";
 import { highlightCode } from "./highlight.ts";
@@ -150,20 +149,6 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
       await fs.mkdir(path.dirname(abs), { recursive: true });
       await fs.copyFile(imgPath, abs);
       media = { kind: "image", src: rel, fit: media.fit, focus: media.focus };
-    } else if (media && media.kind === "talkinghead") {
-      // Ảnh chân dung + audio scene → video mặt biết nói (Wav2Lip local).
-      const imgRel = await downloadAsset(media.src, ".jpg");
-      if (imgRel.startsWith("data:")) {
-        throw new Error(`talkinghead không nhận data: URI, hãy dùng URL hoặc file trong public/`);
-      }
-      const imgAbs = path.join(PUBLIC_DIR, imgRel);
-      const thVideo = await generateTalkingHead(imgAbs, publicAbs, { fps: spec.meta.fps });
-      const thRel = `talkinghead/${slug}/${scene.id}.mp4`;
-      const thAbs = path.join(PUBLIC_DIR, thRel);
-      await fs.mkdir(path.dirname(thAbs), { recursive: true });
-      await fs.copyFile(thVideo, thAbs);
-      media = { kind: "video", src: thRel, fit: media.fit, focus: media.focus };
-      console.log(`[build]   scene "${scene.id}" → talking-head video`);
     } else if (media && media.kind !== "color") {
       const rel = await downloadAsset(media.src, media.kind === "video" ? ".mp4" : ".jpg");
       media = { ...media, src: rel };

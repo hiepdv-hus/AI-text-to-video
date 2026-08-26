@@ -45,10 +45,9 @@ export const transitionSchema = z.enum([
 export type TransitionKind = z.infer<typeof transitionSchema>;
 
 export const mediaSchema = z.object({
-  // "talkinghead": src là ẢNH CHÂN DUNG → Wav2Lip biến thành video mặt biết nói.
   // "generate": src là MÔ TẢ ẢNH (prompt) → pipeline tự sinh ảnh AI rồi thay bằng kind "image".
   // "pexels": src là TỪ KHÓA → tự tìm & tải ảnh thật từ Pexels rồi thay bằng kind "image".
-  kind: z.enum(["image", "video", "color", "talkinghead", "generate", "pexels"]),
+  kind: z.enum(["image", "video", "color", "generate", "pexels"]),
   /** URL/path/màu / mô tả ảnh (generate) / từ khóa tìm ảnh (pexels). */
   src: z.string(),
   fit: z.enum(["cover", "contain"]).default("cover"),

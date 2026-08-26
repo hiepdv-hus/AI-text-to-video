@@ -38,7 +38,7 @@ pnpm video serve          # rồi mở http://localhost:4321 trong trình duyệ
 ```
 Điền tiêu đề, chọn giọng/template, thêm các cảnh (hook/code/bullet/cta…), bấm **Render** →
 video hiện ngay trong trang để xem + tải. Spec tự lưu vào `specs/`. Nút "Nạp spec" để mở lại
-và sửa video cũ. (Với cảnh talking-head cần đã chạy setup Wav2Lip; xem mục dưới.)
+và sửa video cũ.
 
 ## Dùng CLI
 
@@ -111,30 +111,6 @@ out/                       props.json + final.mp4
 - **Render treo 0%** → `<Img>`/`<OffthreadVideo>` tự `delayRender`; Chrome do Remotion tự tải.
 - **Audio lệch phụ đề** → duration lấy từ file audio thật, không ước lượng theo ký tự.
 - **Dấu tiếng Việt lệch khi so khớp** → chuẩn hoá NFC ở cả 2 phía.
-
-## Ảnh biết nói (talking-head, Wav2Lip local — miễn phí)
-
-Biến một ảnh chân dung tĩnh thành video "mặt biết nói" khớp giọng đọc, chạy **local, miễn phí,
-không cần GPU** (CPU thì chậm hơn: ~30–120s mỗi scene).
-
-Cài một lần:
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\setup-wav2lip.ps1
-```
-Script cài Python 3.10 riêng + ffmpeg + Wav2Lip + checkpoints (~2GB), ghi `FFMPEG_BIN` vào `.env`.
-
-Dùng trong spec:
-```json
-{ "id": "talk", "layout": "product",
-  "narration": "Chào các bạn, mình là người dẫn ảo...",
-  "media": { "kind": "talkinghead", "src": "faces/host.jpg" } }
-```
-Đặt ảnh vào `public/faces/`. Pipeline sẽ tạo video từ ảnh + audio scene, thay `media` thành
-video rồi render như bình thường. Xem `specs/demo-talkinghead.json`.
-
-- Ảnh nên **chính diện, rõ mặt** (ảnh nghiêng cho kết quả kém). Nên dùng ảnh dọc 9:16 để đỡ bị crop.
-- Chất lượng vùng miệng của Wav2Lip khá thấp (đặc thù model) — đủ dùng cho short, không phải 4K.
-- Override đường dẫn qua env: `WAV2LIP_PYTHON`, `WAV2LIP_DIR`, `WAV2LIP_CHECKPOINT`, `FFMPEG_BIN`.
 
 ## Mở rộng
 

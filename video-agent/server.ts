@@ -113,13 +113,12 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { items });
     }
 
-    // Xóa 1 project: xóa out/<slug>, public/audio/<slug>, public/talkinghead/<slug>, specs/<slug>.json.
+    // Xóa 1 project: xóa out/<slug>, public/audio/<slug>, specs/<slug>.json.
     if (req.method === "DELETE" && pathname.startsWith("/api/item/")) {
       const slug = path.basename(pathname.slice("/api/item/".length));
       if (!slug) return sendJson(res, 400, { error: "thiếu slug" });
       await fs.rm(path.join(OUT_DIR, slug), { recursive: true, force: true });
       await fs.rm(path.join(ROOT, "public", "audio", slug), { recursive: true, force: true });
-      await fs.rm(path.join(ROOT, "public", "talkinghead", slug), { recursive: true, force: true });
       await fs.rm(path.join(SPECS_DIR, `${slug}.json`), { force: true });
       console.log(`[serve] đã xóa "${slug}"`);
       return sendJson(res, 200, { ok: true });

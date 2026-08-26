@@ -56,7 +56,7 @@ VideoSpec {
     layout: "hook"|"bullet"|"product"|"compare"|"cta"|"code",
     heading?, icon?,                     // icon = 1 emoji (vd "🚀","🤖") → huy hiệu cạnh tiêu đề
     bullets?: string[],                  // bullet có thể mở đầu bằng emoji, vd "🐳 Docker"
-    media?: { kind:"image"|"video"|"color"|"talkinghead"|"generate", src, fit?, focus? },
+    media?: { kind:"image"|"video"|"color"|"generate", src, fit?, focus? },
     emphasis?: string[],
     transitionIn?: "fade"|"slide-left"|"slide-up"|"wipe"|"none",
     tailPadSec?=0.35,
@@ -95,10 +95,6 @@ CODE (dạy lập trình): đặt `layout:"code"` với các field:
   tự viết `generate` prompt cho mỗi cảnh cần minh họa để ảnh khớp nội dung. Dùng với layout
   `image` (khung) hoặc `product` (nền toàn màn).
 
-ẢNH BIẾT NÓI (talking-head): đặt `media.kind: "talkinghead"`, `src` = ảnh CHÂN DUNG
-(nên chính diện, rõ mặt). Pipeline dùng Wav2Lip biến ảnh + giọng đọc scene thành video mặt
-mấp máy môi. Dùng với `layout:"product"` và KHÔNG đặt `heading` để mặt chiếm trọn khung.
-Cần đã chạy `scripts/setup-wav2lip.ps1` trước (máy không GPU vẫn chạy, chỉ chậm hơn).
 - `bullet`: `bullets[]` hiện lần lượt. 2–4 dòng, mỗi dòng ngắn.
 - `compare`: chia đôi trên/dưới, dùng `bullets[0]` vs `bullets[1]`.
 - `cta`: nút kêu gọi — `heading` có emoji càng tốt.
