@@ -4,6 +4,7 @@ import { promises as fs, createReadStream, statSync, existsSync } from "node:fs"
 import path from "node:path";
 import { buildSpec, slugify, OUT_DIR } from "./pipeline/build.ts";
 import { renderVideo } from "./pipeline/render.ts";
+import { buildCaption, buildHashtags, revealFile } from "./pipeline/publish.ts";
 import { videoSpecSchema } from "./src/schema.ts";
 
 /**
@@ -165,6 +166,48 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 500, { error: (err as Error).message });
       } finally {
         rendering = false;
+      }
+    }
+
+    // Chuẩn bị đăng TikTok: trả caption + hashtag + đường dẫn MP4 trên đĩa.
+    if (req.method === "GET" && pathname.startsWith("/api/publish/")) {
+      const slug = path.basename(pathname.slice("/api/publish/".length));
+      if (!slug) return sendJson(res, 400, { error: "thiếu slug" });
+      const videoPath = path.join(OUT_DIR, slug, "final.mp4");
+      const specPath = path.join(SPECS_DIR, `${slug}.json`);
+
+      let caption = "";
+      let hashtags: string[] = [];
+      let title = slug;
+      if (existsSync(specPath)) {
+        const parsed = videoSpecSchema.safeParse(JSON.parse(await fs.readFile(specPath, "utf8")));
+        if (parsed.success) {
+          caption = buildCaption(parsed.data);
+          hashtags = buildHashtags(parsed.data);
+          title = parsed.data.meta.title;
+        }
+      }
+      // Không có spec (vd video cũ) → vẫn cho đăng, chỉ là caption trống.
+      return sendJson(res, 200, {
+        ok: true,
+        slug,
+        title,
+        caption,
+        hashtags,
+        hasVideo: existsSync(videoPath),
+        videoPath,
+      });
+    }
+
+    // Mở thư mục chứa final.mp4 và bôi đen sẵn file (chỉ chạy được vì server là local).
+    if (req.method === "POST" && pathname.startsWith("/api/reveal/")) {
+      const slug = path.basename(pathname.slice("/api/reveal/".length));
+      const videoPath = path.join(OUT_DIR, slug, "final.mp4");
+      try {
+        revealFile(videoPath);
+        return sendJson(res, 200, { ok: true, videoPath });
+      } catch (err) {
+        return sendJson(res, 404, { error: (err as Error).message });
       }
     }
 

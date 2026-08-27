@@ -68,6 +68,28 @@
   .hint { font-size:12px; color:var(--muted); margin-top:8px; }
   .err { color:var(--danger); font-size:14px; white-space:pre-wrap; }
   a.dl { color:var(--accent2); font-size:14px; }
+
+  /* Modal đăng TikTok */
+  .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:50;
+    display:flex; align-items:center; justify-content:center; padding:20px; }
+  .modal { background:var(--panel); border:1px solid var(--border); border-radius:16px;
+    width:100%; max-width:560px; max-height:90vh; overflow:auto; padding:22px; }
+  .modal h3 { margin:0 0 4px; font-size:18px; }
+  .step { display:flex; gap:12px; align-items:flex-start; margin-top:16px; }
+  .step .no { flex:none; width:26px; height:26px; border-radius:50%; background:var(--panel2);
+    border:1px solid var(--border); color:var(--accent); font-size:13px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; }
+  .step .body { flex:1; min-width:0; }
+  .step .body button { margin-top:8px; }
+  .path { font-family:ui-monospace,Consolas,monospace; font-size:12px; color:var(--muted);
+    word-break:break-all; margin-top:6px; }
+  .btn-tiktok { background:#fe2c55; color:#fff; }
+  .tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .tagchip { display:inline-flex; align-items:center; gap:7px; background:var(--panel2);
+    border:1px solid var(--border); color:var(--text); border-radius:999px;
+    padding:6px 13px; font-size:13px; font-weight:600; }
+  .tagchip:hover { border-color:var(--accent); color:var(--accent); }
+  .tagchip .ico { font-size:12px; opacity:.75; }
 </style>
 </head>
 <body>
@@ -201,6 +223,48 @@
       <span id="libCount" class="hint"></span>
     </div>
     <div id="libList"></div>
+  </div>
+</div>
+
+<!-- MODAL ĐĂNG TIKTOK: chuẩn bị caption + mở thư mục + mở tab upload -->
+<div id="publishModal" class="modal-bg hidden" onclick="if(event.target===this) closePublish()">
+  <div class="modal">
+    <h3>📤 Đăng lên TikTok</h3>
+    <div class="hint" id="pubTitle"></div>
+
+    <div class="step">
+      <div class="no">1</div>
+      <div class="body">
+        <label>Caption + hashtag (sửa thoải mái)</label>
+        <textarea id="pubCaption" rows="9"></textarea>
+        <button class="btn-ghost" onclick="copyCaption()">📋 Copy caption</button>
+        <span id="pubCopyMsg" class="hint"></span>
+        <label style="margin-top:14px">Hashtag — bấm để copy từng cái</label>
+        <div class="tags" id="pubTags"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="no">2</div>
+      <div class="body">
+        <label>File video để kéo thả</label>
+        <button class="btn-ghost" onclick="revealVideo()">📁 Mở thư mục chứa MP4</button>
+        <span id="pubRevealMsg" class="hint"></span>
+        <div class="path" id="pubPath"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="no">3</div>
+      <div class="body">
+        <label>Mở trang upload rồi kéo file vào, dán caption</label>
+        <button class="btn-tiktok" onclick="openTikTokUpload()">🚀 Mở TikTok Upload</button>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:22px">
+      <button class="btn-ghost" onclick="closePublish()">Đóng</button>
+    </div>
   </div>
 </div>
 
@@ -470,7 +534,8 @@ async function render() {
       $('#result').innerHTML =
         '<div class="preview"><video controls autoplay muted src="'+data.videoUrl+'"></video>' +
         '<div style="margin-top:10px"><a class="dl" href="'+data.videoUrl+'" download="'+data.slug+'.mp4">⬇ Tải MP4</a>' +
-        ' &nbsp; <span class="hint">Spec đã lưu: specs/'+data.specName+'</span></div></div>';
+        ' &nbsp; <span class="hint">Spec đã lưu: specs/'+data.specName+'</span></div>' +
+        '<button class="btn-tiktok" style="width:100%;margin-top:10px" onclick="openPublish(\''+data.slug+'\')">📤 Đăng TikTok</button></div>';
     }
   } catch (e) {
     setStatus('<span class="err">❌ ' + e.message + '</span>');
@@ -538,6 +603,7 @@ async function loadLibrary(){
           <div class="hint">${it.slug} · ${it.hasVideo ? '🎬 '+fmtSize(it.videoSize) : '⚠️ chưa render'}${it.hasSpec ? ' · 📄 spec' : ''}</div>
         </div>
         ${it.hasVideo ? `<button class="btn-ghost" onclick="window.open('/video/${it.slug}','_blank')">▶ Xem</button>` : ''}
+        ${it.hasVideo ? `<button class="btn-tiktok" onclick="openPublish('${it.slug}')">📤 TikTok</button>` : ''}
         ${it.hasSpec ? `<button class="btn-ghost" onclick="editItem('${it.slug}')">✏️ Sửa</button>` : ''}
         <button class="btn-ghost" style="color:var(--danger)" onclick="deleteItem('${it.slug}', this)">🗑 Xóa</button>
       </div>`).join('');
@@ -567,6 +633,78 @@ async function editItem(slug){
   switchView('editor');
   window.scrollTo({ top:0 });
 }
+
+/* ---- Đăng TikTok (bán tự động: caption + file + tab upload) ---- */
+let pubSlug = null;
+
+async function openPublish(slug){
+  pubSlug = slug;
+  $('#pubCopyMsg').textContent = '';
+  $('#pubRevealMsg').textContent = '';
+  $('#pubCaption').value = 'Đang chuẩn bị…';
+  $('#pubPath').textContent = '';
+  $('#pubTags').innerHTML = '';
+  $('#publishModal').classList.remove('hidden');
+  try {
+    const res = await fetch('/api/publish/'+encodeURIComponent(slug));
+    if(!res.ok) throw new Error('server chưa có API đăng TikTok — chạy lại `pnpm web`');
+    const data = await res.json();
+    $('#pubTitle').textContent = data.title + (data.hasVideo ? '' : ' — ⚠️ chưa có file MP4, cần render trước');
+    $('#pubCaption').value = data.caption || '';
+    $('#pubPath').textContent = data.videoPath;
+    renderTagChips(data.hashtags || []);
+  } catch(e){
+    $('#pubCaption').value = '';
+    $('#pubTitle').innerHTML = '<span class="err">Lỗi tải caption: '+e.message+'</span>';
+  }
+}
+
+function renderTagChips(tags){
+  $('#pubTags').innerHTML = tags
+    .map(t => `<button class="tagchip" onclick="copyTag(this,'${t}')">#${escapeHtml(t)} <span class="ico">📋</span></button>`)
+    .join('');
+}
+
+async function copyTag(el, tag){
+  await copyText('#'+tag);
+  const ico = el.querySelector('.ico');
+  ico.textContent = '✅';
+  setTimeout(() => { ico.textContent = '📋'; }, 1200);
+}
+
+function closePublish(){ $('#publishModal').classList.add('hidden'); pubSlug = null; }
+
+async function copyText(text){
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // Trình duyệt chặn clipboard API → fallback textarea ẩn + execCommand.
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+}
+
+async function copyCaption(){
+  await copyText($('#pubCaption').value);
+  $('#pubCopyMsg').textContent = ' ✅ đã copy';
+}
+
+async function revealVideo(){
+  if(!pubSlug) return;
+  const res = await fetch('/api/reveal/'+encodeURIComponent(pubSlug), { method:'POST' });
+  const data = await res.json();
+  $('#pubRevealMsg').innerHTML = data.ok
+    ? ' ✅ đã mở thư mục'
+    : '<span class="err"> ' + data.error + '</span>';
+}
+
+function openTikTokUpload(){ window.open('https://www.tiktok.com/upload', '_blank', 'noopener'); }
 
 function refreshSpecDropdown(){
   const sel = $('#loadSelect');
