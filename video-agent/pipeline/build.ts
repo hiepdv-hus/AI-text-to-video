@@ -74,10 +74,12 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
 
   const provider = getProvider(spec.voice.provider);
 
-  console.log(`[build] ${slug}: ${spec.scenes.length} scene, provider=${provider.name}`);
+  // Concurrency theo provider (vd ElevenLabs free chỉ cho 2 request song song → 429 nếu hơn).
+  const concurrency = provider.maxConcurrency ?? 3;
+  console.log(`[build] ${slug}: ${spec.scenes.length} scene, provider=${provider.name}, song song=${concurrency}`);
 
-  // Bước 2-5: xử lý audio + timing từng scene (song song, giới hạn 3).
-  const perScene = await mapLimit(spec.scenes, 3, async (scene, idx) => {
+  // Bước 2-5: xử lý audio + timing từng scene (song song, giới hạn theo provider).
+  const perScene = await mapLimit(spec.scenes, concurrency, async (scene, idx) => {
     const normalized = normalizeVietnamese(scene.narration, {
       pronunciations: spec.voice.pronunciations,
     });
@@ -134,8 +136,8 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
     // Bước 6: xử lý media.
     let media = scene.media;
     if (media && (media.kind === "generate" || media.kind === "pexels")) {
-      // Ảnh dọc cho nền toàn màn (product), ngang cho khung minh họa (image).
-      const portrait = scene.layout === "product";
+      // Ảnh DỌC cho mọi nền toàn màn (hook/cta/product…); NGANG chỉ cho khung "image" gọn.
+      const portrait = scene.layout !== "image";
       let imgPath: string;
       if (media.kind === "generate") {
         imgPath = await generateImage(media.src, portrait ? { width: 896, height: 1216 } : { width: 1216, height: 832 });

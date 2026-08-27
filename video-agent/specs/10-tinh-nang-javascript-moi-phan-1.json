@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "title": "10 tính năng JavaScript mới - Phần 1",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Mười tính năng JavaScript hiện đại mà nhiều Dev kỳ cựu vẫn chưa dùng. Phần một, năm thứ đầu tiên sẽ giúp bạn viết code gọn hơn hẳn.",
+      "layout": "hook",
+      "heading": "JavaScript mới: 5 thứ Dev cũ chưa biết",
+      "media": {
+        "kind": "pexels",
+        "src": "javascript programming code on screen",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "Dev cũ chưa biết"
+      ],
+      "transitionIn": "glow",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Số một, optional chaining. Dấu chấm hỏi chấm giúp truy cập thuộc tính lồng nhau mà không văng lỗi khi giá trị là null hoặc undefined.",
+      "layout": "code",
+      "heading": "1. Optional chaining ?.",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "code": "const user = { name: \"An\" };\n// address chưa tồn tại\nconst city = user.address?.city;\nconsole.log(city);",
+      "codeTitle": "optional-chaining.js",
+      "codeHighlight": [
+        3
+      ],
+      "output": "undefined"
+    },
+    {
+      "id": "s3",
+      "narration": "Số hai, nullish coalescing. Toán tử hai dấu hỏi chỉ thay thế khi giá trị là null hoặc undefined, khác hẳn OR vốn nuốt luôn cả số không và chuỗi rỗng.",
+      "layout": "code",
+      "heading": "2. Nullish coalescing ??",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "code": "const input = 0;\nconst a = input || 100;  // 100 (sai)\nconst b = input ?? 100;  // 0 (đúng)\nconsole.log(a, b);",
+      "codeTitle": "nullish.js",
+      "codeHighlight": [
+        3
+      ],
+      "output": "100 0"
+    },
+    {
+      "id": "s4",
+      "narration": "Số ba, toán tử gán logic. Hai dấu hỏi bằng chỉ gán khi biến đang null hoặc undefined. Cực gọn để đặt giá trị mặc định mà không ghi đè dữ liệu đã có.",
+      "layout": "code",
+      "heading": "3. Logical assignment ??=",
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "code": "const config = { retries: 0 };\nconfig.timeout ??= 3000;  // gán mới\nconfig.retries ??= 5;    // giữ 0\nconsole.log(config);",
+      "codeTitle": "logical-assign.js",
+      "codeHighlight": [
+        2,
+        3
+      ],
+      "output": "{ retries: 0, timeout: 3000 }"
+    },
+    {
+      "id": "s5",
+      "narration": "Số bốn, phương thức at. Nó cho phép lấy phần tử bằng chỉ số âm. at trừ một là phần tử cuối, gọn hơn nhiều so với viết mảng chấm length trừ một.",
+      "layout": "code",
+      "heading": "4. Array.at()",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "code": "const arr = [10, 20, 30];\nconsole.log(arr.at(-1)); // cuối\nconsole.log(arr.at(-2)); // kế cuối",
+      "codeTitle": "array-at.js",
+      "codeHighlight": [
+        2,
+        3
+      ],
+      "output": "30\n20"
+    },
+    {
+      "id": "s6",
+      "narration": "Số năm, structuredClone. Đây là cách tạo bản sao sâu thật sự, kể cả object lồng nhau và mảng, khỏi cần JSON parse stringify hay thư viện bên ngoài.",
+      "layout": "code",
+      "heading": "5. structuredClone()",
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "code": "const a = { info: { ok: true } };\nconst b = structuredClone(a);\nb.info.ok = false;\nconsole.log(a.info.ok, b.info.ok);",
+      "codeTitle": "structured-clone.js",
+      "codeHighlight": [
+        2
+      ],
+      "output": "true false"
+    },
+    {
+      "id": "s7",
+      "narration": "Đó là năm tính năng đầu tiên. Lưu lại và xem tiếp phần hai để biết năm tính năng mạnh còn lại nhé!",
+      "layout": "cta",
+      "heading": "Xem tiếp Phần 2 👇",
+      "media": {
+        "kind": "pexels",
+        "src": "programmer working laptop code",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "Phần 2"
+      ],
+      "transitionIn": "glow",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.12,
+    "pitch": -1
+  },
+  "captions": {
+    "style": "chip-glow",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#b983ff"
+  }
+}

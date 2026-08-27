@@ -6,7 +6,7 @@
     "height": 1920,
     "fps": 30,
     "locale": "vi-VN",
-    "background": "tech"
+    "background": "spider"
   },
   "scenes": [
     {
@@ -41,8 +41,8 @@
     }
   ],
   "voice": {
-    "provider": "edge",
-    "voiceId": "vi-VN-NamMinhNeural",
+    "provider": "piper",
+    "voiceId": "vi_VN-vivos-x_low#20",
     "speed": 1.15,
     "pitch": -1
   },

@@ -76,6 +76,26 @@ function getPreset(style: Captions["style"]): PresetStyle {
         }),
         scaleActive: 1.16,
       };
+    case "chip-glow":
+      // "SpiderAI News": mỗi từ là 1 chip tối; từ đang đọc là chip tím phát sáng.
+      return {
+        container: {
+          fontWeight: tokens.weight.bold,
+          fontSize: tokens.size.caption,
+          gap: 14,
+        },
+        word: (active) => ({
+          color: "#fff",
+          background: active
+            ? `linear-gradient(180deg, ${tokens.neon.purpleBright}, ${tokens.neon.purple})`
+            : tokens.neon.chipBg,
+          border: `1px solid ${active ? "transparent" : tokens.neon.chipBorder}`,
+          borderRadius: 16,
+          padding: "10px 22px",
+          boxShadow: active ? tokens.neon.glowStrong : "none",
+        }),
+        scaleActive: 1.1,
+      };
     default: {
       const _e: never = style;
       throw new Error(`Preset không tồn tại: ${_e}`);
@@ -154,10 +174,24 @@ export const KaraokeCaption: React.FC<KaraokeCaptionProps> = ({
       >
         {line.words.map((w, i) => {
           const active = i === wi;
-          const enter = active
-            ? spring({ frame: frame - (line.startMs / 1000) * fps, fps, config: tokens.timing.springIn })
+          const spoken = i < wi;
+          // Nảy dứt khoát khi từ VỪA được đọc tới — key theo start của chính từ đó (không phải đầu dòng).
+          const wStart = (w.startMs / 1000) * fps;
+          const bounce = active
+            ? spring({ frame: frame - wStart, fps, config: { damping: 9, stiffness: 210, mass: 0.6 } })
             : 1;
-          const scale = active ? interpolate(enter, [0, 1], [1, preset.scaleActive]) : 1;
+          const scale = active
+            ? interpolate(bounce, [0, 1], [0.72, preset.scaleActive])
+            : spoken
+              ? 0.97
+              : 1;
+          const wStyle = preset.word(active, highlightColor);
+          // chip-glow: chip đang đọc phát sáng theo NHỊP (pulse) cho sinh động.
+          if (active && style === "chip-glow") {
+            const pulse = 0.5 + 0.5 * Math.sin((frame / fps) * Math.PI * 3.2);
+            wStyle.boxShadow =
+              `0 0 ${18 + pulse * 20}px rgba(139,92,246,${(0.55 + pulse * 0.4).toFixed(2)}), 0 0 12px rgba(185,131,255,0.95)`;
+          }
           return (
             <span
               key={`${i}-${w.text}`}
@@ -165,7 +199,7 @@ export const KaraokeCaption: React.FC<KaraokeCaptionProps> = ({
                 display: "inline-block",
                 transform: `scale(${scale})`,
                 transformOrigin: "center bottom",
-                ...preset.word(active, highlightColor),
+                ...wStyle,
               }}
             >
               {w.text}

@@ -19,7 +19,7 @@
 
   /* Bố cục 2 cột: trái = form (cuộn), phải = kết quả (dính) */
   .layout { display:flex; gap:24px; max-width:1500px; margin:0 auto; align-items:flex-start; }
-  .col-left { flex:1.95; min-width:0; }
+  .col-left { flex:2.75; min-width:0; }
   .col-right { flex:1; min-width:0; position:sticky; top:92px; }
   @media (max-width:900px) { .layout { flex-direction:column; } .col-right { position:static; width:100%; } }
 
@@ -112,6 +112,7 @@
         <div>
           <label>Nền</label>
           <select id="background">
+            <option value="spider">Spider (neon tím — SpiderAI News)</option>
             <option value="tech">Tech (mưa nhị phân)</option>
             <option value="aurora">Aurora (quầng sáng màu)</option>
             <option value="solid">Solid (đen phẳng)</option>
@@ -126,15 +127,13 @@
               <option value="vi-VN-NamMinhNeural" data-provider="edge">Nam Bắc — NamMinh</option>
               <option value="vi-VN-HoaiMyNeural" data-provider="edge">Nữ Bắc — HoaiMy</option>
             </optgroup>
-            <optgroup label="Piper — miễn phí, offline, không key">
-              <option value="vi_VN-vais1000-medium" data-provider="piper">Piper — vais1000 (rõ nhất)</option>
-              <option value="vi_VN-25hours_single-low" data-provider="piper">Piper — 25hours (giọng khác)</option>
-              <option value="vi_VN-vivos-x_low#0" data-provider="piper">Piper — vivos #0</option>
-              <option value="vi_VN-vivos-x_low#10" data-provider="piper">Piper — vivos #10</option>
-              <option value="vi_VN-vivos-x_low#20" data-provider="piper">Piper — vivos #20</option>
-              <option value="vi_VN-vivos-x_low#30" data-provider="piper">Piper — vivos #30</option>
-              <option value="vi_VN-vivos-x_low#45" data-provider="piper">Piper — vivos #45</option>
-              <option value="vi_VN-vivos-x_low#60" data-provider="piper">Piper — vivos #60</option>
+            <optgroup label="Piper — giọng của tôi, offline, không key">
+              <option value="maiphuong" data-provider="piper">Mai Phương (nữ)</option>
+              <option value="ngochuyen" data-provider="piper">Ngọc Huyền (nữ)</option>
+              <option value="ngochuyennew" data-provider="piper">Ngọc Huyền — bản mới (nữ)</option>
+              <option value="thanhphuong2" data-provider="piper">Thanh Phương</option>
+              <option value="tranthanh3870" data-provider="piper">Trấn Thành (nam)</option>
+              <option value="adam1" data-provider="piper">Adam (nam)</option>
             </optgroup>
           </select>
         </div>
@@ -151,6 +150,7 @@
         <div>
           <label>Kiểu phụ đề</label>
           <select id="capStyle">
+            <option value="chip-glow">chip-glow (SpiderAI — chip tím phát sáng)</option>
             <option value="clean-minimal">clean-minimal</option>
             <option value="tiktok-bold">tiktok-bold</option>
             <option value="outline-pop">outline-pop</option>
@@ -210,6 +210,7 @@
       <span class="tag">Cảnh <span class="num"></span></span>
       <select class="layout" style="width:auto" onchange="onLayout(this)">
         <option value="hook">hook (chữ lớn)</option>
+        <option value="graphic">graphic (đồ hoạ động)</option>
         <option value="code">code (cửa sổ code)</option>
         <option value="image">image (ảnh minh họa)</option>
         <option value="bullet">bullet (gạch đầu dòng)</option>
@@ -222,6 +223,9 @@
         <option value="slide-up">slide-up</option>
         <option value="slide-left">slide-left</option>
         <option value="wipe">wipe</option>
+        <option value="zoom">zoom</option>
+        <option value="blur">blur</option>
+        <option value="glow">glow</option>
         <option value="none">none</option>
       </select>
       <div class="spacer"></div>
@@ -244,6 +248,43 @@
         <div style="flex:2">
           <label>Tiêu đề hiện trên màn (heading)</label>
           <input class="heading" placeholder="VD: Bước 1 — Nền tảng Web" />
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Từ khoá tô sáng (emphasis) — cách nhau bằng dấu phẩy</label>
+        <input class="emphasis" placeholder="VD: đoạn nổi bật, bằng AI" />
+      </div>
+    </div>
+
+    <div class="f-graphic hidden" style="margin-bottom:12px">
+      <div class="row">
+        <div>
+          <label>Loại đồ hoạ (graphic.kind)</label>
+          <select class="graphicKind">
+            <option value="feature-cards">feature-cards (thẻ tính năng)</option>
+            <option value="highlight-timeline">highlight-timeline (dòng thời gian)</option>
+            <option value="device-editor">device-editor (laptop editor)</option>
+            <option value="bar-chart">bar-chart (biểu đồ cột)</option>
+            <option value="chat-ai">chat-ai (khung chat AI)</option>
+          </select>
+        </div>
+        <div style="flex:2">
+          <label>Phụ đề nhỏ dưới tiêu đề (subtitle)</label>
+          <input class="graphicSubtitle" placeholder="VD: Nhanh · Riêng tư" />
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Nhãn (labels) — mỗi dòng 1 mục. feature-cards: "🤖 Tự động" · bar-chart: "Tên:80" · chat-ai: "u:..." / "a:..."</label>
+        <textarea class="graphicLabels" rows="3" placeholder="✂️ Cắt tự động&#10;💬 Phụ đề AI"></textarea>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div>
+          <label>Mốc thời gian (timeline) — cách nhau bằng dấu phẩy</label>
+          <input class="graphicTimestamps" placeholder="0:05, 0:10, 0:15" />
+        </div>
+        <div>
+          <label>Timecode (device-editor)</label>
+          <input class="graphicTimecode" placeholder="00:02:17" />
         </div>
       </div>
     </div>
@@ -297,10 +338,12 @@ function onLayout(sel) {
   const c = sel.closest('.scene');
   const layout = sel.value;
   const show = (cls, on) => c.querySelector(cls).classList.toggle('hidden', !on);
-  show('.f-heading', layout !== 'compare');
+  show('.f-heading', true);
   show('.f-bullets', layout === 'bullet' || layout === 'compare');
   show('.f-code', layout === 'code');
-  show('.f-media', layout === 'product' || layout === 'image');
+  show('.f-graphic', layout === 'graphic');
+  // Ảnh nền dùng được cho MỌI cảnh (trừ code có cửa sổ riêng): hook/cta/bullet/graphic… đều có thể có ảnh nền.
+  show('.f-media', layout !== 'code');
 }
 
 function renumber() { $$('.scene .num').forEach((n,i)=> n.textContent = i+1); }
@@ -320,6 +363,14 @@ function addScene(data) {
     c.querySelector('.codeHl').value = (data.codeHighlight||[]).join(',');
     c.querySelector('.code').value = data.code || '';
     c.querySelector('.output').value = data.output || '';
+    c.querySelector('.emphasis').value = (data.emphasis||[]).join(', ');
+    if (data.graphic) {
+      c.querySelector('.graphicKind').value = data.graphic.kind || 'feature-cards';
+      c.querySelector('.graphicSubtitle').value = data.graphic.subtitle || '';
+      c.querySelector('.graphicLabels').value = (data.graphic.labels||[]).join('\n');
+      c.querySelector('.graphicTimestamps').value = (data.graphic.timestamps||[]).join(', ');
+      c.querySelector('.graphicTimecode').value = data.graphic.timecode || '';
+    }
     if (data.media) {
       c.querySelector('.mediaKind').value = data.media.kind || 'color';
       c.querySelector('.mediaSrc').value = data.media.src || '';
@@ -349,6 +400,16 @@ function collectSpec() {
     if (heading) s.heading = heading;
     const icon = c.querySelector('.icon').value.trim();
     if (icon) s.icon = icon;
+    const emphasis = c.querySelector('.emphasis').value.split(',').map(x=>x.trim()).filter(Boolean);
+    if (emphasis.length) s.emphasis = emphasis;
+    if (layout === 'graphic') {
+      const g = { kind: c.querySelector('.graphicKind').value };
+      const sub = c.querySelector('.graphicSubtitle').value.trim(); if (sub) g.subtitle = sub;
+      const labels = c.querySelector('.graphicLabels').value.split('\n').map(x=>x.trim()).filter(Boolean); if (labels.length) g.labels = labels;
+      const ts = c.querySelector('.graphicTimestamps').value.split(',').map(x=>x.trim()).filter(Boolean); if (ts.length) g.timestamps = ts;
+      const tc = c.querySelector('.graphicTimecode').value.trim(); if (tc) g.timecode = tc;
+      s.graphic = g;
+    }
     if (layout === 'bullet' || layout === 'compare') {
       const b = c.querySelector('.bullets').value.split('\n').map(x=>x.trim()).filter(Boolean);
       if (b.length) s.bullets = b;
@@ -360,7 +421,7 @@ function collectSpec() {
       const hl = c.querySelector('.codeHl').value.split(',').map(x=>parseInt(x.trim(),10)).filter(n=>!isNaN(n));
       if (hl.length) s.codeHighlight = hl;
     }
-    if (layout === 'product' || layout === 'image') {
+    if (layout !== 'code') {
       const kind = c.querySelector('.mediaKind').value;
       const src = c.querySelector('.mediaSrc').value.trim();
       if (src) s.media = { kind, src };

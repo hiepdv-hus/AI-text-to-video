@@ -5,6 +5,8 @@ import { tokens } from "../theme/tokens";
 import { SceneWrapper } from "../components/SceneWrapper";
 import { TechBackground } from "../components/TechBackground";
 import { AuroraBackground } from "../components/AuroraBackground";
+import { SpiderBackground } from "../components/SpiderBackground";
+import { BrandHeader } from "../components/BrandHeader";
 
 /**
  * VideoComposition — renderer chung cho mọi template (ProductReview/ListicleTop5/
@@ -19,6 +21,7 @@ export const VideoComposition: React.FC<BuiltProps> = ({ meta, scenes, captions,
       {/* Nền chung — hiện xuyên qua các scene không có media riêng. */}
       {meta.background === "tech" && <TechBackground />}
       {meta.background === "aurora" && <AuroraBackground />}
+      {meta.background === "spider" && <SpiderBackground />}
 
       {scenes.map((scene) => (
         <Sequence
@@ -30,6 +33,11 @@ export const VideoComposition: React.FC<BuiltProps> = ({ meta, scenes, captions,
           <SceneWrapper scene={scene} captions={captions} width={meta.width} height={meta.height} />
         </Sequence>
       ))}
+
+      {/* Thanh thương hiệu (overlay trên mọi scene) */}
+      {meta.brand && (
+        <BrandHeader name={meta.brand.name} logo={meta.brand.logo} hint={meta.brand.hint} height={meta.height} />
+      )}
 
       {music && <Audio src={staticFile(music.src)} volume={music.volume} loop />}
     </AbsoluteFill>

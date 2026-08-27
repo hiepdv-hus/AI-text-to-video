@@ -57,6 +57,40 @@ export const tokens = {
     // Dùng cho spring stiffness/damping mặc định.
     springIn: { damping: 18, stiffness: 140, mass: 0.9 },
   },
+
+  /**
+   * neon — bảng màu "SpiderAI News": nền tím-teal tối + neon tím phát sáng.
+   * Dùng cho background "spider", caption "chip-glow", các graphic minh hoạ và
+   * brand header. Tách riêng để không đụng bảng màu mặc định (tech/aurora).
+   */
+  neon: {
+    // Gradient nền chính (tối, hơi tím + teal).
+    bgTop: "#0B0A16",
+    bgMid: "#0E0A20",
+    bgBottom: "#080711",
+    // Quầng sáng.
+    glowPurple: "rgba(139,92,246,0.55)",
+    glowTeal: "rgba(45,212,191,0.28)",
+    glowPink: "rgba(217,110,255,0.30)",
+    // Tím nhấn — dùng cho chip active, keyword highlight, viền glow.
+    purple: "#8B5CF6",
+    purpleBright: "#B983FF",
+    purpleDeep: "#6D28D9",
+    // Chip phụ đề khi CHƯA đọc tới: nền tối trong, chữ trắng.
+    chipBg: "rgba(14,12,24,0.72)",
+    chipBorder: "rgba(148,120,255,0.22)",
+    // Text phụ (mô tả nhỏ dưới tiêu đề).
+    textSoft: "#C9BEEA",
+    // Bóng phát sáng tím quanh phần tử nổi bật.
+    glowSoft: "0 0 24px rgba(139,92,246,0.55)",
+    glowStrong: "0 0 36px rgba(139,92,246,0.85), 0 0 12px rgba(185,131,255,0.9)",
+
+    // "Card solid" — panel/biểu đồ đặc, viền neon rõ, bóng sâu → sắc nét, tương phản cao.
+    cardBg: "#150F26", // nền đặc (không trong suốt) để chữ/cạnh sắc nét
+    cardBg2: "#1C1440", // rãnh/ô con bên trong card
+    cardBorder: "rgba(163,135,255,0.55)", // viền neon rõ ~1.5px
+    cardShadow: "0 22px 54px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04)",
+  },
 } as const;
 
 export type Tokens = typeof tokens;

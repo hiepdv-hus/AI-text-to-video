@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Roadmap Fullstack 2026",
-    "template": "CodeExplainer",
+    "template": "StoryHook",
     "width": 1080,
     "height": 1920,
     "fps": 30,
@@ -120,15 +120,15 @@
     }
   ],
   "voice": {
-    "provider": "edge",
-    "voiceId": "vi-VN-NamMinhNeural",
-    "speed": 1.15,
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 2,
     "pitch": -1
   },
   "captions": {
     "style": "clean-minimal",
     "position": "lower-third",
     "maxWordsPerLine": 4,
-    "highlightColor": "#61afef"
+    "highlightColor": "#5f0665"
   }
 }

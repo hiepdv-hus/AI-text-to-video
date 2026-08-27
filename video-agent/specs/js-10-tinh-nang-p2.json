@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "title": "10 tính năng JavaScript mới - Phần 2",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Phần hai! Năm tính năng JavaScript hiện đại còn lại, giúp bạn xử lý mảng, gom nhóm và tập hợp cực mạnh.",
+      "layout": "hook",
+      "heading": "JavaScript mới: 5 thứ Dev cũ chưa biết — P2",
+      "emphasis": ["Dev cũ chưa biết"],
+      "media": { "kind": "pexels", "src": "javascript code editor screen dark" },
+      "transitionIn": "glow",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s2",
+      "narration": "Số sáu, findLast và findLastIndex. Chúng tìm từ CUỐI mảng, trả về phần tử hoặc chỉ số cuối cùng thoả điều kiện, khỏi phải đảo ngược mảng.",
+      "layout": "code",
+      "heading": "6. findLast() / findLastIndex()",
+      "code": "const nums = [1, 8, 3, 12, 5];\nconst x = nums.findLast(n => n > 4);\nconst i = nums.findLastIndex(n => n > 4);\nconsole.log(x, i);",
+      "codeTitle": "find-last.js",
+      "codeHighlight": [2, 3],
+      "output": "5 4",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s3",
+      "narration": "Số bảy, nhóm phương thức mảng bất biến. toSorted, toReversed, toSpliced và with tạo ra MẢNG MỚI, giữ nguyên mảng gốc — an toàn hơn sort hay reverse cũ.",
+      "layout": "code",
+      "heading": "7. Immutable Array methods",
+      "code": "const arr = [3, 1, 2];\nconst sorted = arr.toSorted();\nconsole.log(sorted); // mảng mới\nconsole.log(arr);    // gốc còn nguyên",
+      "codeTitle": "immutable-array.js",
+      "codeHighlight": [2],
+      "output": "[ 1, 2, 3 ]\n[ 3, 1, 2 ]",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s4",
+      "narration": "Số tám, Object chấm groupBy. Nó gom một mảng object thành các nhóm theo điều kiện và trả về một object, thay cho việc tự viết reduce dài dòng.",
+      "layout": "code",
+      "heading": "8. Object.groupBy()",
+      "code": "const users = [\n  { role: \"admin\" }, { role: \"user\" },\n  { role: \"admin\" },\n];\nconst g = Object.groupBy(users, u => u.role);\nconsole.log(g.admin.length, g.user.length);",
+      "codeTitle": "object-groupby.js",
+      "codeHighlight": [5],
+      "output": "2 1",
+      "transitionIn": "zoom",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s5",
+      "narration": "Số chín, Map chấm groupBy. Cũng gom nhóm giống trên nhưng trả về một Map, nên key có thể là bất kỳ kiểu dữ liệu nào, kể cả object.",
+      "layout": "code",
+      "heading": "9. Map.groupBy()",
+      "code": "const nums = [1, 2, 3, 4];\nconst m = Map.groupBy(nums,\n  n => n % 2 ? \"le\" : \"chan\");\nconsole.log(m.get(\"le\"), m.get(\"chan\"));",
+      "codeTitle": "map-groupby.js",
+      "codeHighlight": [2, 3],
+      "output": "[ 1, 3 ] [ 2, 4 ]",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s6",
+      "narration": "Số mười, các phương thức Set mới. union, intersection, difference và nhiều nữa cho phép làm toán tập hợp trực tiếp, khỏi phải tự viết bằng filter.",
+      "layout": "code",
+      "heading": "10. Set methods mới",
+      "code": "const a = new Set([1, 2, 3]);\nconst b = new Set([2, 3, 4]);\nconsole.log([...a.intersection(b)]);\nconsole.log([...a.difference(b)]);",
+      "codeTitle": "set-methods.js",
+      "codeHighlight": [3, 4],
+      "output": "[ 2, 3 ]\n[ 1 ]",
+      "transitionIn": "blur",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s7",
+      "narration": "Vậy là đủ mười tính năng JavaScript hiện đại. Theo dõi mình để không bỏ lỡ các mẹo lập trình tiếp theo nhé!",
+      "layout": "cta",
+      "heading": "Theo dõi để học tiếp 👇",
+      "emphasis": ["học tiếp"],
+      "media": { "kind": "pexels", "src": "software developer team working office" },
+      "transitionIn": "glow",
+      "tailPadSec": 0.45
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.12,
+    "pitch": -1
+  },
+  "captions": {
+    "style": "chip-glow",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#b983ff"
+  }
+}

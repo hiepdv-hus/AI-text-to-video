@@ -39,6 +39,8 @@ export interface TTSProvider {
   readonly name: string;
   /** Đuôi file audio provider ghi ra ("wav" | "mp3"). Quyết định cách lấy duration. */
   readonly audioFormat: "wav" | "mp3";
+  /** Số request TTS tối đa chạy SONG SONG (vd ElevenLabs free = 2). Bỏ trống = mặc định build. */
+  readonly maxConcurrency?: number;
   synthesize(text: string, opts: TTSOptions): Promise<TTSResult>;
 }
 
@@ -110,7 +112,31 @@ class MockProvider implements TTSProvider {
 class ElevenLabsProvider implements TTSProvider {
   readonly name = "elevenlabs";
   readonly audioFormat = "wav" as const;
+  /** Free/Starter: tối đa 2 request đồng thời. Build sẽ TTS ≤2 scene song song. */
+  readonly maxConcurrency = 2;
+
+  /** Bọc _once với tự-thử-lại khi bị giới hạn đồng thời (429 concurrent_limit_exceeded). */
   async synthesize(text: string, opts: TTSOptions): Promise<TTSResult> {
+    const maxAttempts = 5;
+    let lastErr: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await this._once(text, opts);
+      } catch (err) {
+        lastErr = err;
+        const msg = (err as Error).message;
+        // Chỉ thử lại khi vượt giới hạn đồng thời / rate limit; lỗi khác (401, sai voice…) ném luôn.
+        if (attempt < maxAttempts && /\b429\b|concurrent|rate_limit/i.test(msg)) {
+          await new Promise((r) => setTimeout(r, 700 * attempt));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastErr;
+  }
+
+  private async _once(text: string, opts: TTSOptions): Promise<TTSResult> {
     const apiKey = process.env.ELEVENLABS_API_KEY;
     if (!apiKey) throw new Error("Thiếu ELEVENLABS_API_KEY (xem .env.example).");
     await ensureDir(opts.outPath);

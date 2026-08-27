@@ -44,28 +44,41 @@ JSON rồi render lại — không đụng vào `src/`.
 
 ```
 VideoSpec {
-  meta: { title, template: "ProductReview"|"ListicleTop5"|"StoryHook",
-          width=1080, height=1920, fps=30, locale="vi-VN" }
+  meta: { title, template: "ProductReview"|"ListicleTop5"|"StoryHook"|"CodeExplainer",
+          width=1080, height=1920, fps=30, locale="vi-VN",
+          background?: "spider"|"tech"|"aurora"|"solid",   // "spider" = neon tím (khuyến nghị video công nghệ/AI)
+          brand?: { name, logo="🕷", hint? } }             // thanh thương hiệu trên + pill gợi ý dưới
   voice: { provider: "edge"|"piper"|"mock"|"elevenlabs"|"azure"|"google",
            voiceId, speed=1, pitch?, pronunciations?: {from: to} }
-  captions: { style: "tiktok-bold"|"clean-minimal"|"outline-pop",
+  captions: { style: "chip-glow"|"tiktok-bold"|"clean-minimal"|"outline-pop", // "chip-glow" = chip tím phát sáng (đi với "spider")
               position: "lower-third"|"center"|"top",
-              maxWordsPerLine=4, highlightColor="#FFD400" }
+              maxWordsPerLine=4, highlightColor="#B983FF" }
   scenes: [{
     id, narration,                       // narration = lời đọc, bắt buộc
-    layout: "hook"|"bullet"|"product"|"compare"|"cta"|"code",
+    layout: "hook"|"bullet"|"product"|"compare"|"cta"|"code"|"graphic"|"image",
     heading?, icon?,                     // icon = 1 emoji (vd "🚀","🤖") → huy hiệu cạnh tiêu đề
     bullets?: string[],                  // bullet có thể mở đầu bằng emoji, vd "🐳 Docker"
-    media?: { kind:"image"|"video"|"color"|"generate", src, fit?, focus? },
-    emphasis?: string[],
-    transitionIn?: "fade"|"slide-left"|"slide-up"|"wipe"|"none",
+    media?: { kind:"image"|"video"|"color"|"generate"|"pexels", src, fit?, focus? },
+    emphasis?: string[],                 // cụm từ khoá → tô tím phát sáng trong heading (hook/graphic)
+    transitionIn?: "fade"|"slide-left"|"slide-up"|"wipe"|"none"|"zoom"|"blur"|"glow", // zoom/blur/glow = điện ảnh
     tailPadSec?=0.35,
     // chỉ dùng khi layout="code":
-    code?, codeTitle?, codeLang?="javascript", codeHighlight?: number[], output?
+    code?, codeTitle?, codeLang?="javascript", codeHighlight?: number[], output?,
+    // chỉ dùng khi layout="graphic" (đồ hoạ neon khớp nội dung):
+    graphic?: { kind: "highlight-timeline"|"device-editor"|"feature-cards"|"bar-chart"|"chat-ai",
+                subtitle?, labels?: string[], timestamps?: string[], timecode? }
+    //   bar-chart: labels dạng "Tên:80" (tên:giá trị 0–100) — biểu đồ cột mọc + số đếm
+    //   chat-ai:   labels dạng "u:câu người dùng" / "a:câu trợ lý" — khung chat AI + chấm đang gõ
   }]
   music?: { src, volume=0.12 }
 }
 ```
+
+PHONG CÁCH "SpiderAI News" (mặc định cho video công nghệ/AI): đặt `meta.background:"spider"`,
+`meta.brand`, `captions.style:"chip-glow"`. Dùng `layout:"graphic"` để đồ hoạ khớp nội dung —
+`highlight-timeline` (AI nhận diện đoạn nổi bật), `device-editor` (xử lý/biên tập cục bộ),
+`feature-cards` (liệt kê tính năng). Đặt `heading` + `emphasis` để tô sáng từ khoá. Mẫu đầy đủ:
+`specs/spider-ai-news.json`.
 
 Quy ước layout:
 - `hook`: chữ lớn giữa màn — `heading` ngắn cực mạnh.

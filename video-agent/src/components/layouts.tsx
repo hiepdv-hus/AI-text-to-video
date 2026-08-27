@@ -2,12 +2,13 @@ import React from "react";
 import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import type { BuiltScene } from "../schema";
 import { tokens, safeArea } from "../theme/tokens";
-import { FONT_FAMILY } from "./fonts";
 import { EMOJI_FAMILY } from "./fontsEmoji";
 import { CodeLayout } from "./CodeLayout";
+import { GraphicLayout } from "./GraphicLayout";
+import { GlowHeading } from "./GlowHeading";
+import { TEXT_STACK } from "./textStack";
 
-/** Font-stack có emoji màu (dùng cho text có thể chứa icon). */
-export const TEXT_STACK = `${FONT_FAMILY}, ${EMOJI_FAMILY}`;
+export { TEXT_STACK };
 
 /** Huy hiệu icon: emoji lớn trong ô bo góc gradient. */
 const IconBadge: React.FC<{ icon: string; delay?: number }> = ({ icon, delay = 0 }) => {
@@ -21,7 +22,7 @@ const IconBadge: React.FC<{ icon: string; delay?: number }> = ({ icon, delay = 0
         width: 108,
         height: 108,
         borderRadius: tokens.radius.lg,
-        background: `linear-gradient(145deg, ${tokens.color.accent}, ${tokens.color.accent2})`,
+        background: `linear-gradient(145deg, ${tokens.neon.purpleBright}, ${tokens.neon.purpleDeep})`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -84,21 +85,29 @@ export const HookLayout: React.FC<LayoutProps> = ({ scene, height }) => {
   const s = spring({ frame, fps, config: { damping: 12, stiffness: 180, mass: 0.8 } });
   const scale = interpolate(s, [0, 1], [0.6, 1]);
   const rot = interpolate(s, [0, 1], [-4, 0]);
+  const text = scene.heading ?? scene.narration;
+  // Có emphasis → dùng GlowHeading (keyword tím phát sáng, không viết hoa toàn bộ).
+  const useGlow = (scene.emphasis?.length ?? 0) > 0;
 
   return (
     <SafeArea height={height}>
       {scene.icon && <IconBadge icon={scene.icon} />}
-      <div
-        style={{
-          transform: `scale(${scale}) rotate(${rot}deg)`,
-          fontSize: tokens.size.hook,
-          fontWeight: tokens.weight.black,
-          lineHeight: tokens.font.lineHeight,
-          textShadow: tokens.shadow.text,
-          textTransform: "uppercase",
-        }}
-      >
-        {scene.heading ?? scene.narration}
+      <div style={{ transform: `scale(${scale}) rotate(${rot}deg)` }}>
+        {useGlow ? (
+          <GlowHeading text={text} emphasis={scene.emphasis} size={tokens.size.hook} />
+        ) : (
+          <div
+            style={{
+              fontSize: tokens.size.hook,
+              fontWeight: tokens.weight.black,
+              lineHeight: tokens.font.lineHeight,
+              textShadow: tokens.shadow.text,
+              textTransform: "uppercase",
+            }}
+          >
+            {text}
+          </div>
+        )}
       </div>
     </SafeArea>
   );
@@ -199,50 +208,98 @@ export const ProductLayout: React.FC<LayoutProps> = ({ scene, height }) => {
 export const CompareLayout: React.FC<LayoutProps> = ({ scene, height }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const sa = safeArea(height);
+  const N = tokens.neon;
   const bullets = scene.bullets ?? [];
   const left = bullets[0] ?? "A";
   const right = bullets[1] ?? "B";
-  const eL = spring({ frame, fps, config: tokens.timing.springIn });
-  const eR = spring({ frame: frame - 8, fps, config: tokens.timing.springIn });
+  const eL = spring({ frame: frame - 4, fps, config: tokens.timing.springIn });
+  const eR = spring({ frame: frame - 12, fps, config: tokens.timing.springIn });
 
-  const panel = (text: string, color: string, e: number, from: number): React.CSSProperties => ({
-    flex: 1,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: tokens.size.heading,
-    fontWeight: tokens.weight.black,
-    color: tokens.color.text,
-    backgroundColor: color,
-    opacity: e,
-    transform: `translateY(${interpolate(e, [0, 1], [from, 0])}px)`,
-    padding: tokens.space.pagePadding,
-    textAlign: "center",
-  });
+  // Thẻ so sánh: card solid tối + viền neon màu (đỏ = xấu, xanh = tốt) — hợp tông SpiderAI.
+  const card = (text: string, accent: string, mark: string, e: number, from: number) => (
+    <div
+      style={{
+        opacity: e,
+        transform: `translateY(${interpolate(e, [0, 1], [from, 0])}px)`,
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        gap: 22,
+        padding: "32px 34px",
+        borderRadius: 22,
+        background: N.cardBg,
+        border: `2px solid ${accent}`,
+        boxShadow: `${N.cardShadow}, 0 0 30px ${accent}55`,
+      }}
+    >
+      <div
+        style={{
+          width: 64,
+          height: 64,
+          minWidth: 64,
+          borderRadius: 16,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 34,
+          fontWeight: 900,
+          background: `${accent}22`,
+          border: `2px solid ${accent}`,
+          color: accent,
+        }}
+      >
+        {mark}
+      </div>
+      <div style={{ fontSize: 46, fontWeight: tokens.weight.black, color: "#fff", lineHeight: 1.2, textAlign: "left" }}>
+        {text}
+      </div>
+    </div>
+  );
 
   return (
-    <AbsoluteFill style={{ fontFamily: TEXT_STACK, flexDirection: "column" }}>
-      <div style={panel(left, tokens.color.bad, eL, -80)}>{left}</div>
-      <div style={panel(right, tokens.color.good, eR, 80)}>{right}</div>
+    <AbsoluteFill
+      style={{
+        fontFamily: TEXT_STACK,
+        color: "#fff",
+        paddingTop: sa.top + Math.round(height * 0.02),
+        paddingBottom: Math.round(height * 0.26),
+        paddingLeft: tokens.space.pagePadding,
+        paddingRight: tokens.space.pagePadding,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 20,
+      }}
+    >
       {scene.heading && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%,-50%)",
-            fontSize: tokens.size.heading,
-            fontWeight: tokens.weight.black,
-            color: "#111",
-            backgroundColor: tokens.color.accent,
-            padding: "16px 28px",
-            borderRadius: tokens.radius.pill,
-            boxShadow: tokens.shadow.card,
-          }}
-        >
-          {scene.heading}
+        <div style={{ marginBottom: 6 }}>
+          <GlowHeading text={scene.heading} emphasis={scene.emphasis} size={72} />
         </div>
       )}
+      {card(left, tokens.color.bad, "✕", eL, -50)}
+      <div
+        style={{
+          width: 76,
+          height: 76,
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 30,
+          fontWeight: 900,
+          color: "#fff",
+          background: `linear-gradient(145deg, ${N.purpleBright}, ${N.purpleDeep})`,
+          boxShadow: N.glowStrong,
+          border: "2px solid rgba(255,255,255,0.16)",
+          margin: "-4px 0",
+          zIndex: 2,
+        }}
+      >
+        VS
+      </div>
+      {card(right, tokens.color.good, "✓", eR, 50)}
     </AbsoluteFill>
   );
 };
@@ -265,11 +322,12 @@ export const CtaLayout: React.FC<LayoutProps> = ({ scene, height }) => {
           transform: `scale(${interpolate(e, [0, 1], [0.7, 1]) * pulse})`,
           fontSize: tokens.size.cta,
           fontWeight: tokens.weight.black,
-          color: "#111",
-          backgroundColor: tokens.color.accent,
+          color: "#fff",
+          background: `linear-gradient(135deg, ${tokens.neon.purpleBright}, ${tokens.neon.purpleDeep})`,
           padding: "40px 56px",
           borderRadius: tokens.radius.lg,
-          boxShadow: tokens.shadow.card,
+          boxShadow: tokens.neon.glowStrong,
+          border: "2px solid rgba(255,255,255,0.16)",
           textTransform: "uppercase",
           textAlign: "center",
         }}
@@ -355,4 +413,5 @@ export const LAYOUTS: Record<BuiltScene["layout"], React.FC<LayoutProps>> = {
   cta: CtaLayout,
   code: CodeLayout,
   image: ImageLayout,
+  graphic: GraphicLayout,
 };

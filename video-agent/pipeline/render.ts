@@ -1,6 +1,6 @@
 import path from "node:path";
 import os from "node:os";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { cp } from "node:fs/promises";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
@@ -15,16 +15,37 @@ import { OUT_DIR } from "./build.ts";
  *   - xuất out/<slug>/final.mp4
  */
 
+/** mtime mới nhất của mọi file trong src/ — để biết code có đổi từ lần bundle trước không. */
+function latestSrcMtime(): number {
+  const root = path.resolve(process.cwd(), "src");
+  let max = 0;
+  const walk = (dir: string) => {
+    for (const name of readdirSync(dir)) {
+      const p = path.join(dir, name);
+      const st = statSync(p);
+      if (st.isDirectory()) walk(p);
+      else max = Math.max(max, st.mtimeMs);
+    }
+  };
+  if (existsSync(root)) walk(root);
+  return max;
+}
+
 let cachedBundle: string | null = null;
+let cachedSrcMtime = 0;
 
 async function getBundle(): Promise<string> {
-  if (cachedBundle) return cachedBundle;
+  const mtime = latestSrcMtime();
+  // Tái dùng bundle CHỈ KHI không có file src/ nào đổi từ lần bundle trước.
+  // (Server chạy dài như `pnpm web` sẽ tự bundle lại khi bạn sửa component → không dính bundle cũ.)
+  if (cachedBundle && mtime <= cachedSrcMtime) return cachedBundle;
   const entry = path.resolve(process.cwd(), "src", "index.ts");
-  process.stdout.write("[render] bundling…\n");
+  process.stdout.write(cachedBundle ? "[render] code đổi → bundle lại…\n" : "[render] bundling…\n");
   cachedBundle = await bundle({
     entryPoint: entry,
     // webpackOverride giữ mặc định.
   });
+  cachedSrcMtime = mtime;
   return cachedBundle;
 }
 

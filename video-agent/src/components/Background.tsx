@@ -16,6 +16,25 @@ function resolveSrc(src: string): string {
   return staticFile(src); // đường dẫn trong public/
 }
 
+/**
+ * CinematicScrim — lớp phủ tối kiểu điện ảnh trên ẢNH/VIDEO nền để chữ overlay đọc rõ
+ * và ăn nhập tông neon: tối dần xuống đáy (vùng caption) + vignette + ám tím nhẹ.
+ */
+const CinematicScrim: React.FC = () => (
+  <>
+    <AbsoluteFill
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(11,10,22,0.55) 0%, rgba(11,10,22,0.32) 36%, rgba(8,7,17,0.72) 78%, rgba(8,7,17,0.92) 100%)",
+      }}
+    />
+    <AbsoluteFill
+      style={{ background: "radial-gradient(ellipse at 50% 42%, transparent 34%, rgba(8,7,17,0.72) 100%)" }}
+    />
+    <AbsoluteFill style={{ background: "radial-gradient(circle at 50% 30%, rgba(139,92,246,0.14), transparent 60%)" }} />
+  </>
+);
+
 const focusToOrigin: Record<NonNullable<Media["focus"]>, string> = {
   center: "50% 50%",
   top: "50% 20%",
@@ -48,7 +67,7 @@ export const Background: React.FC<{
           muted
           style={{ width: "100%", height: "100%", objectFit: media.fit, objectPosition: origin }}
         />
-        {scrim && <AbsoluteFill style={{ backgroundColor: tokens.color.scrim }} />}
+        {scrim && <CinematicScrim />}
       </AbsoluteFill>
     );
   }

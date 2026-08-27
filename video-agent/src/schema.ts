@@ -28,8 +28,26 @@ export const layoutSchema = z.enum([
   "cta",
   "code", // cửa sổ code kiểu VS Code + panel console — dùng cho video lập trình
   "image", // ảnh minh họa khung gọn (sắc nét, không crop) + tiêu đề
+  "graphic", // đồ hoạ neon minh hoạ khớp nội dung (timeline highlight, laptop editor, thẻ tính năng)
 ]);
 export type Layout = z.infer<typeof layoutSchema>;
+
+/**
+ * graphicSchema — cấu hình cho layout "graphic". `kind` chọn widget đồ hoạ neon;
+ * các field còn lại là tham số tuỳ widget (đều optional, có mặc định đẹp).
+ */
+export const graphicSchema = z.object({
+  kind: z.enum(["highlight-timeline", "device-editor", "feature-cards", "bar-chart", "chat-ai"]),
+  /** Phụ đề nhỏ dưới tiêu đề (vd "Tích hợp sẵn · Không cần chỉnh thủ công"). */
+  subtitle: z.string().optional(),
+  /** Nhãn: cột (highlight-timeline) hoặc thẻ "🤖 Tự động" (feature-cards). */
+  labels: z.array(z.string()).optional(),
+  /** Mốc thước thời gian cho highlight-timeline (vd "0:05","0:10"). */
+  timestamps: z.array(z.string()).optional(),
+  /** Timecode hiển thị cho device-editor (vd "00:02:17"). */
+  timecode: z.string().optional(),
+});
+export type Graphic = z.infer<typeof graphicSchema>;
 
 /** 1 token đã tô màu (do shiki sinh ở pipeline). */
 export const codeTokenSchema = z.object({ text: z.string(), color: z.string() });
@@ -41,6 +59,9 @@ export const transitionSchema = z.enum([
   "slide-left",
   "slide-up",
   "wipe",
+  "zoom", // phóng to nhẹ dần vào — cảm giác điện ảnh
+  "blur", // mờ → nét, kèm fade
+  "glow", // bừng sáng + phóng nhẹ (flash brightness)
 ]);
 export type TransitionKind = z.infer<typeof transitionSchema>;
 
@@ -85,6 +106,10 @@ export const sceneSchema = z.object({
   codeHighlight: z.array(z.number().int().positive()).optional(),
   /** Kết quả console hiện ở panel dưới (vd output của console.log). */
   output: z.string().optional(),
+
+  /* --- Dành cho layout "graphic" --- */
+  /** Cấu hình widget đồ hoạ neon (bắt buộc khi layout="graphic"). */
+  graphic: graphicSchema.optional(),
 });
 export type Scene = z.infer<typeof sceneSchema>;
 
@@ -104,7 +129,7 @@ export type Voice = z.infer<typeof voiceSchema>;
 
 export const captionsSchema = z.object({
   style: z
-    .enum(["tiktok-bold", "clean-minimal", "outline-pop"])
+    .enum(["tiktok-bold", "clean-minimal", "outline-pop", "chip-glow"])
     .default("tiktok-bold"),
   position: z.enum(["center", "lower-third", "top"]).default("lower-third"),
   maxWordsPerLine: z.number().int().min(1).max(12).default(4),
@@ -127,8 +152,17 @@ export const metaSchema = z.object({
   height: z.number().int().positive().default(1920),
   fps: z.number().int().positive().default(30),
   locale: z.string().default("vi-VN"),
-  /** Nền chung: "solid" (phẳng), "tech" (mưa nhị phân), "aurora" (quầng sáng màu). */
-  background: z.enum(["solid", "tech", "aurora"]).default("solid"),
+  /** Nền chung: "solid" (phẳng), "tech" (mưa nhị phân), "aurora" (quầng sáng màu), "spider" (neon tím). */
+  background: z.enum(["solid", "tech", "aurora", "spider"]).default("solid"),
+  /** Thanh thương hiệu kiểu "SpiderAI News" (overlay trên mọi scene). Bỏ trống = không hiện. */
+  brand: z
+    .object({
+      name: z.string(),
+      logo: z.string().default("🕷"),
+      /** Pill gợi ý dưới cùng (vd "Kéo xuống để khoá tốc độ 2x"). */
+      hint: z.string().optional(),
+    })
+    .optional(),
 });
 export type Meta = z.infer<typeof metaSchema>;
 

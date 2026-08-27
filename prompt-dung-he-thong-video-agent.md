@@ -234,6 +234,48 @@ Trong SKILL.md ghi rõ schema và 2 ví dụ spec hoàn chỉnh để agent bắ
 
 ---
 
+## Phong cách "SpiderAI News" (neon tím) — DÙNG MẶC ĐỊNH cho video công nghệ/AI
+
+Đây là bộ nhận diện hình ảnh chuẩn để video "có phong cách" và **khớp hoàn hảo với nội
+dung** (nói tới ý nào thì hiện đúng đồ hoạ đó). Bật bằng cách đặt trong spec:
+
+```jsonc
+"meta": {
+  "background": "spider",                 // nền gradient tím-teal + quầng neon + lưới mờ
+  "brand": {                              // thanh thương hiệu trên cùng + pill gợi ý dưới
+    "name": "SpiderAI News",
+    "logo": "🕷",
+    "hint": "Kéo xuống để khóa tốc độ 2x"
+  }
+},
+"captions": {
+  "style": "chip-glow",                   // mỗi từ 1 chip tối; từ đang đọc là chip tím phát sáng
+  "highlightColor": "#B983FF"
+}
+```
+
+**Tiêu đề có keyword phát sáng:** đặt `heading` + `emphasis` (cụm từ khoá) — cụm trong
+`emphasis` sẽ được tô tím, gạch chân glow. Dùng cho cả `layout: "hook"` và `"graphic"`.
+
+**Layout `graphic` — đồ hoạ neon khớp nội dung.** Thêm `scene.graphic`:
+
+| `graphic.kind` | Dùng khi narration nói về… | Tham số riêng |
+|---|---|---|
+| `highlight-timeline` | AI nhận diện đoạn/khoảnh khắc nổi bật trong video | `labels[]` (nhãn cột), `timestamps[]` (thước) |
+| `device-editor` | xử lý/biên tập cục bộ trên máy, timeline dựng phim | `timecode` (vd "00:02:17") |
+| `feature-cards` | liệt kê tính năng/lợi ích (2–4 thẻ) | `labels[]` dạng `"✂️ Cắt tự động"` |
+| `bar-chart` | so sánh/thống kê (cột mọc dần + số đếm) | `labels[]` dạng `"Tên:80"` (tên : giá trị 0–100) |
+| `chat-ai` | chatbot/hỏi-đáp với trợ lý AI (bong bóng chat + chấm đang gõ) | `labels[]` dạng `"u:câu người dùng"` / `"a:câu trợ lý"` |
+
+Mỗi graphic đều nhận `subtitle` (dòng mô tả nhỏ dưới tiêu đề, vd `"Nhanh · Riêng tư"`).
+
+**Chuyển cảnh điện ảnh:** ngoài `fade/slide-left/slide-up/wipe/none`, có thêm `zoom` (phóng nhẹ vào), `blur` (mờ → nét), `glow` (bừng sáng) cho cảm giác hiện đại.
+
+**Nguyên tắc "kết hợp hoàn hảo":** mỗi scene chọn `graphic.kind` đúng với điều đang nói.
+Đừng dùng nền tĩnh chung chung khi có thể minh hoạ bằng đồ hoạ. Xem `specs/spider-ai-news.json`
+làm mẫu hoàn chỉnh. Muốn thêm loại đồ hoạ mới → tạo component trong `src/components/graphics/`
+và đăng ký ở `GRAPHICS` trong `GraphicLayout.tsx` + enum `graphicSchema.kind` trong `schema.ts`.
+
 ## Những chỗ dễ vỡ — nói trước với agent để đỡ mất thời gian
 
 | Vấn đề | Cách xử lý |

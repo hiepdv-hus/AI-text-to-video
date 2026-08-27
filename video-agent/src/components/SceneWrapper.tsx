@@ -15,24 +15,39 @@ import { KaraokeCaption } from "./KaraokeCaption";
  * (fade/slide/wipe vẫn có, xem enterStyle()).
  */
 
-const ENTER_FRAMES = 12;
+const ENTER_FRAMES = 16;
+
+/** smoothstep — làm mềm chuyển động vào/ra (đỡ cứng như tuyến tính). */
+const smooth = (p: number) => p * p * (3 - 2 * p);
 
 function enterStyle(kind: TransitionKind, frame: number): React.CSSProperties {
-  const p = interpolate(frame, [0, ENTER_FRAMES], [0, 1], {
+  const raw = interpolate(frame, [0, ENTER_FRAMES], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
+  const p = smooth(raw);
   switch (kind) {
     case "none":
       return {};
     case "fade":
       return { opacity: p };
+    // Trượt kèm fade + dịch một quãng ngắn (mượt, điện ảnh — không "đẩy" cả màn).
     case "slide-left":
-      return { transform: `translateX(${interpolate(p, [0, 1], [100, 0])}%)` };
+      return { opacity: p, transform: `translateX(${interpolate(p, [0, 1], [120, 0])}px)` };
     case "slide-up":
-      return { transform: `translateY(${interpolate(p, [0, 1], [100, 0])}%)` };
+      return { opacity: p, transform: `translateY(${interpolate(p, [0, 1], [120, 0])}px)` };
     case "wipe":
       return { clipPath: `inset(0 ${interpolate(p, [0, 1], [100, 0])}% 0 0)` };
+    case "zoom":
+      return { opacity: p, transform: `scale(${interpolate(p, [0, 1], [1.14, 1])})` };
+    case "blur":
+      return { opacity: p, filter: `blur(${interpolate(p, [0, 1], [22, 0])}px)` };
+    case "glow":
+      return {
+        opacity: p,
+        transform: `scale(${interpolate(p, [0, 1], [0.92, 1])})`,
+        filter: `brightness(${interpolate(p, [0, 1], [1.9, 1])})`,
+      };
     default: {
       const _e: never = kind;
       throw new Error(`Transition không tồn tại: ${_e}`);
@@ -48,10 +63,11 @@ export const SceneWrapper: React.FC<{
 }> = ({ scene, captions, height }) => {
   const frame = useCurrentFrame();
   const Layout = LAYOUTS[scene.layout];
-  const kenBurns = scene.layout === "product" && scene.media?.kind === "image";
-  // Scrim chỉ phủ lên ẢNH tĩnh cho dễ đọc chữ. KHÔNG phủ lên video (talking-head/
-  // b-roll) để không làm tối khuôn mặt.
-  const showScrim = scene.layout === "product" && scene.media?.kind === "image";
+  // Bất kỳ cảnh CHỮ nào (không phải layout "image" khung gọn) có ẢNH nền → coi như
+  // nền toàn màn: Ken Burns (zoom chậm) + scrim điện ảnh cho chữ overlay đọc rõ.
+  const hasImageBg = scene.media?.kind === "image" && scene.layout !== "image";
+  const kenBurns = hasImageBg;
+  const showScrim = hasImageBg;
 
   return (
     <AbsoluteFill style={enterStyle(scene.transitionIn, frame)}>

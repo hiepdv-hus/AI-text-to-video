@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "title": "10 tính năng JavaScript mới - Phần 2",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Phần hai! Năm tính năng JavaScript hiện đại còn lại, giúp bạn xử lý mảng, promise và object mượt hơn nhiều.",
+      "layout": "hook",
+      "heading": "JavaScript mới: 5 thứ Dev cũ chưa biết — P2",
+      "media": {
+        "kind": "pexels",
+        "src": "javascript code editor screen dark",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "Dev cũ chưa biết"
+      ],
+      "transitionIn": "glow",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Số sáu, Object chấm groupBy. Nó nhóm một mảng theo hàm phân loại và trả về object gồm các nhóm, thay cho việc tự viết reduce dài dòng.",
+      "layout": "code",
+      "heading": "6. Object.groupBy()",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "code": "const nums = [1, 2, 3, 4, 5];\nconst g = Object.groupBy(nums,\n  n => n % 2 ? \"le\" : \"chan\");\nconsole.log(g);",
+      "codeTitle": "group-by.js",
+      "codeHighlight": [
+        2,
+        3
+      ],
+      "output": "{ le: [ 1, 3, 5 ], chan: [ 2, 4 ] }"
+    },
+    {
+      "id": "s3",
+      "narration": "Số bảy, findLast. Nó tìm phần tử cuối cùng thoả điều kiện bằng cách duyệt từ phải sang trái, khỏi phải đảo ngược mảng rồi mới find.",
+      "layout": "code",
+      "heading": "7. Array.findLast()",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "code": "const nums = [1, 8, 3, 12, 5];\n// duyệt từ PHẢI sang\nconst x = nums.findLast(n => n > 4);\nconsole.log(x);",
+      "codeTitle": "find-last.js",
+      "codeHighlight": [
+        3
+      ],
+      "output": "5"
+    },
+    {
+      "id": "s4",
+      "narration": "Số tám, Promise chấm allSettled. Nó chờ tất cả promise chạy xong dù thành công hay thất bại, không dừng lại ngay khi một cái bị lỗi như Promise chấm all.",
+      "layout": "code",
+      "heading": "8. Promise.allSettled()",
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "code": "const res = await Promise.allSettled([\n  Promise.resolve(\"ok\"),\n  Promise.reject(\"lỗi\"),\n]);\nconsole.log(res.map(r => r.status));",
+      "codeTitle": "all-settled.js",
+      "codeHighlight": [
+        1
+      ],
+      "output": "[ 'fulfilled', 'rejected' ]"
+    },
+    {
+      "id": "s5",
+      "narration": "Số chín, replaceAll. Nó thay tất cả lần xuất hiện của một chuỗi con, khỏi cần viết regex kèm cờ g như cách cũ với replace.",
+      "layout": "code",
+      "heading": "9. String.replaceAll()",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "code": "const s = \"a-b-c-d\";\nconsole.log(s.replaceAll(\"-\", \"_\"));",
+      "codeTitle": "replace-all.js",
+      "codeHighlight": [
+        2
+      ],
+      "output": "a_b_c_d"
+    },
+    {
+      "id": "s6",
+      "narration": "Số mười, Object chấm hasOwn. Đây là cách mới và an toàn để kiểm tra một thuộc tính có phải của riêng object hay không, thay cho hasOwnProperty dễ lỗi.",
+      "layout": "code",
+      "heading": "10. Object.hasOwn()",
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "code": "const obj = { name: \"An\" };\nconsole.log(Object.hasOwn(obj, \"name\"));\nconsole.log(Object.hasOwn(obj, \"toString\"));",
+      "codeTitle": "has-own.js",
+      "codeHighlight": [
+        2,
+        3
+      ],
+      "output": "true\nfalse"
+    },
+    {
+      "id": "s7",
+      "narration": "Vậy là đủ mười tính năng JavaScript hiện đại. Theo dõi mình để không bỏ lỡ các mẹo lập trình tiếp theo nhé!",
+      "layout": "cta",
+      "heading": "Theo dõi để học tiếp 👇",
+      "media": {
+        "kind": "pexels",
+        "src": "software developer team working office",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "học tiếp"
+      ],
+      "transitionIn": "glow",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.12,
+    "pitch": -1
+  },
+  "captions": {
+    "style": "chip-glow",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#b983ff"
+  }
+}

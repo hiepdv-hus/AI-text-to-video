@@ -1,12 +1,12 @@
 {
   "meta": {
     "title": "Còn cần học code khi có AI",
-    "template": "ProductReview",
+    "template": "ListicleTop5",
     "width": 1080,
     "height": 1920,
     "fps": 30,
     "locale": "vi-VN",
-    "background": "aurora"
+    "background": "tech"
   },
   "scenes": [
     {
@@ -129,13 +129,13 @@
     }
   ],
   "voice": {
-    "provider": "edge",
-    "voiceId": "vi-VN-NamMinhNeural",
-    "speed": 1.15,
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.4,
     "pitch": -1
   },
   "captions": {
-    "style": "tiktok-bold",
+    "style": "chip-glow",
     "position": "lower-third",
     "maxWordsPerLine": 4,
     "highlightColor": "#ffd400"
