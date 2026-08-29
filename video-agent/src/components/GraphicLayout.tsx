@@ -43,13 +43,13 @@ export const GraphicLayout: React.FC<{ scene: BuiltScene; height: number }> = ({
         fontFamily: TEXT_STACK,
         color: tokens.color.text,
         paddingTop: sa.top + Math.round(height * 0.02),
-        paddingBottom: Math.round(height * 0.28),
+        paddingBottom: Math.round(height * 0.24),
         paddingLeft: tokens.space.pagePadding,
         paddingRight: tokens.space.pagePadding,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "flex-start",
+        justifyContent: "center",
         textAlign: "center",
         gap: 10,
       }}
@@ -83,8 +83,8 @@ export const GraphicLayout: React.FC<{ scene: BuiltScene; height: number }> = ({
         </div>
       )}
 
-      {/* Widget đồ hoạ — chiếm phần giữa */}
-      <div style={{ flex: 1, width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {/* Widget đồ hoạ — nằm ngay dưới tiêu đề, cả cụm được căn giữa dọc (không trôi lửng) */}
+      <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 10 }}>
         {Widget ? (
           <Widget labels={g?.labels} timestamps={g?.timestamps} timecode={g?.timecode} />
         ) : (

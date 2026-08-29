@@ -74,6 +74,12 @@ VideoSpec {
 }
 ```
 
+NGUYÊN TẮC THẺ/LIỆT KÊ (feature-cards) — tránh lỗi thiết kế:
+- **Song song**: mọi label trong 1 lưới phải cùng dạng (toàn câu hỏi "…?" HOẶC toàn cụm danh từ). Đừng trộn.
+- **Đừng trộn số liệu với punchline**: số đo ("17 file","3 API") để trong thẻ; câu chốt cảm xúc để lên `heading` (dùng `emphasis`), KHÔNG nhét thành 1 ô ngang hàng.
+- **Số lượng ô**: 4 hoặc 6 ô → tự xếp 2 cột; 1/2/3/5 ô → 1 cột (component lo, khỏi lo "ô mồ côi").
+- **Icon tiết chế**: chỉ thêm emoji khi nó MANG NGHĨA. Label không có emoji → thẻ tự dùng thanh nhấn tím (đẹp, giữ kỷ luật màu). Tránh emoji màu trang trí (bọ vàng, bia đỏ) đâm vào hệ tím–xanh.
+
 PHONG CÁCH "SpiderAI News" (mặc định cho video công nghệ/AI): đặt `meta.background:"spider"`,
 `meta.brand`, `captions.style:"chip-glow"`. Dùng `layout:"graphic"` để đồ hoạ khớp nội dung —
 `highlight-timeline` (AI nhận diện đoạn nổi bật), `device-editor` (xử lý/biên tập cục bộ),

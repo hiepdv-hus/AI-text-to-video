@@ -8,9 +8,86 @@
  *  - Tên tiếng Anh / thương hiệu hay bị đọc sai → cho phép bảng phát âm thay thế.
  */
 
+import type { WordTiming } from "../src/schema.ts";
+
+/**
+ * DEFAULT_PRONUNCIATIONS — bảng phát âm MẶC ĐỊNH áp cho MỌI video (kể cả khi render
+ * qua Studio). Đây là các từ viết tắt / loanword tiếng Anh mà TTS tiếng Việt (cả Edge
+ * lẫn Piper) đọc sai — vd "AI" đọc thành "ai". Respell thành âm tiếng Việt để đọc đúng;
+ * caption vẫn hiện chữ gốc nhờ restoreDisplayWords. Spec có thể GHI ĐÈ/BỔ SUNG qua
+ * voice.pronunciations. Phân biệt hoa/thường (whole-word).
+ */
+export const DEFAULT_PRONUNCIATIONS: Record<string, string> = {
+  AI: "Ây Ai",
+  API: "Ây Pi Ai",
+  CV: "Xi Vi",
+  IT: "Ai Ti",
+  UI: "Diu Ai",
+  UX: "Diu Ích",
+  GPT: "Gi Pi Ti",
+  ChatGPT: "Chát Gi Pi Ti",
+  HTML: "Ết Ti Em Eo",
+  CSS: "Xi Ét Ét",
+  bug: "bấc",
+  bugs: "bấc",
+  file: "phai",
+  files: "phai",
+  code: "cốt",
+  project: "prô giếc",
+  Junior: "Giu Ni Ơ",
+  junior: "giu ni ơ",
+};
+
+/** Gộp bảng mặc định với bảng của spec (spec ghi đè mặc định). */
+export function mergePronunciations(
+  user?: Record<string, string>,
+): Record<string, string> {
+  return { ...DEFAULT_PRONUNCIATIONS, ...(user ?? {}) };
+}
+
 /** Chuẩn hoá Unicode về NFC. Dùng ở CẢ 2 phía khi so khớp từ. */
 export function toNFC(s: string): string {
   return s.normalize("NFC");
+}
+
+/**
+ * restoreDisplayWords — KHÔI PHỤC chữ hiển thị cho caption sau khi TTS đã đọc theo
+ * bảng phát âm thay thế. Vd pronunciations {AI: "Ây Ai"} → TTS đọc "ây ai" (đúng),
+ * nhưng caption cần hiện lại "AI". Hàm ghép các word-timing liên tiếp khớp chuỗi
+ * phát âm thành 1 token mang chữ GỐC, giữ nguyên mốc thời gian.
+ */
+export function restoreDisplayWords(
+  words: WordTiming[],
+  table?: Record<string, string>,
+): WordTiming[] {
+  if (!table) return words;
+  const clean = (s: string) => toNFC(s).toLowerCase().replace(/[.,!?;:"']/g, "");
+  const entries = Object.entries(table)
+    .map(([display, phon]) => ({ display, toks: clean(phon).split(/\s+/).filter(Boolean) }))
+    .filter((e) => e.toks.length > 0)
+    // Khớp cụm dài trước để "ây pi ai" (API) không bị "ây ai" (AI) nuốt mất.
+    .sort((a, b) => b.toks.length - a.toks.length);
+
+  const out: WordTiming[] = [];
+  for (let i = 0; i < words.length; ) {
+    let matched = false;
+    for (const e of entries) {
+      if (
+        i + e.toks.length <= words.length &&
+        e.toks.every((t, k) => clean(words[i + k]!.text) === t)
+      ) {
+        out.push({ text: e.display, startMs: words[i]!.startMs, endMs: words[i + e.toks.length - 1]!.endMs });
+        i += e.toks.length;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      out.push(words[i]!);
+      i++;
+    }
+  }
+  return out;
 }
 
 const DIGITS = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
@@ -175,7 +252,7 @@ export function normalizeVietnamese(
   text: string,
   opts: { pronunciations?: Record<string, string> } = {},
 ): string {
-  const withPron = applyPronunciations(text, opts.pronunciations);
+  const withPron = applyPronunciations(text, mergePronunciations(opts.pronunciations));
   const nfc = toNFC(withPron);
   return expandNumbers(nfc);
 }

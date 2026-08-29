@@ -5,84 +5,96 @@ import { TEXT_STACK } from "../textStack";
 import { EMOJI_FAMILY } from "../fontsEmoji";
 
 /**
- * FeatureCards — lưới thẻ neon xuất hiện theo stagger, dùng cho các cảnh liệt kê
- * tính năng/lợi ích. Mỗi label dạng "🤖 Tự động" (emoji đầu, phần còn lại là chữ).
+ * FeatureCards — thẻ liệt kê ý/tính năng.
+ *
+ * Nguyên tắc thiết kế (rút từ review):
+ *  - Lưới THÔNG MINH: 4 hoặc 6 thẻ → 2 cột; còn lại (1,2,3,5) → 1 cột → không có "ô mồ côi".
+ *  - Card ĐẶC + viền neon rõ + bóng sâu → tách hẳn khỏi nền, không chìm.
+ *  - Chữ to, đậm, CĂN TRÁI nhất quán (icon/thanh nhấn bên trái, chữ căn trái).
+ *  - Entrance nhanh, opacity đạt 1 sớm (không đứng lửng ở ~50% trông như lỗi render).
+ *  - Icon KHÔNG bắt buộc: label không có emoji → dùng THANH NHẤN tím (giữ kỷ luật màu
+ *    tím–xanh, tránh emoji màu lạc quẻ). Chỉ hiện emoji khi label thực sự có.
+ *
+ * Label: "🤖 Tự động" (emoji đầu) hoặc "Phân tích yêu cầu" (không emoji → thanh nhấn).
  */
 
 const N = tokens.neon;
 
+// Nhận diện emoji THẬT ở đầu (Extended_Pictographic — KHÔNG dính chữ số như "17").
+const EMOJI_RE = /^(\p{Extended_Pictographic}️?)\s+(.*)$/u;
+
 export const FeatureCards: React.FC<{ labels?: string[] }> = ({ labels }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const t = frame / fps;
-  const items = labels && labels.length ? labels : ["🤖 Tự động", "⚡ Nhanh", "🔒 Riêng tư", "✨ Mượt"];
+  const items = labels && labels.length ? labels : ["Tự động", "Nhanh", "Riêng tư", "Mượt"];
+  const cols = items.length === 4 || items.length === 6 ? 2 : 1;
 
   return (
     <div
       style={{
         width: "100%",
         display: "grid",
-        gridTemplateColumns: items.length > 2 ? "1fr 1fr" : "1fr",
-        gap: 22,
+        gridTemplateColumns: cols === 2 ? "1fr 1fr" : "1fr",
+        gap: 20,
         fontFamily: TEXT_STACK,
       }}
     >
       {items.map((raw, i) => {
-        const e = spring({ frame: frame - (8 + i * 6), fps, config: tokens.timing.springIn });
-        const m = raw.match(/^(\p{Emoji}️?)\s*(.*)$/u);
+        const e = spring({ frame: frame - (5 + i * 4), fps, config: { damping: 16, stiffness: 220, mass: 0.6 } });
+        const op = interpolate(e, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
+        const m = raw.match(EMOJI_RE);
         const icon = m?.[1];
-        const text = m?.[2] ?? raw;
+        const text = (m?.[2] ?? raw).trim();
         return (
           <div
             key={i}
             style={{
-              position: "relative",
-              overflow: "hidden",
-              opacity: e,
-              transform: `translateY(${interpolate(e, [0, 1], [40, 0])}px) scale(${interpolate(e, [0, 1], [0.9, 1])})`,
+              opacity: op,
+              transform: `translateY(${interpolate(e, [0, 1], [32, 0])}px)`,
               display: "flex",
               alignItems: "center",
-              gap: 18,
-              padding: "26px 28px",
-              borderRadius: 20,
-              background: "rgba(18,15,32,0.72)",
-              border: "1px solid rgba(148,120,255,0.3)",
-              boxShadow: "inset 0 0 30px rgba(139,92,246,0.12)",
+              gap: 20,
+              padding: "28px 30px",
+              borderRadius: 18,
+              background: N.cardBg,
+              border: `1.5px solid ${N.cardBorder}`,
+              boxShadow: N.cardShadow,
+              textAlign: "left",
             }}
           >
-            {/* Vệt sáng quét chéo qua thẻ (lặp lại, lệch pha theo thẻ) */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                width: "40%",
-                left: `${(((t * 45 + i * 40) % 200) - 40)}%`,
-                background: "linear-gradient(105deg, transparent, rgba(185,131,255,0.18), transparent)",
-                transform: "skewX(-18deg)",
-                pointerEvents: "none",
-              }}
-            />
-            {icon && (
+            {icon ? (
               <div
                 style={{
-                  width: 68,
-                  height: 68,
-                  minWidth: 68,
-                  borderRadius: 16,
+                  width: 62,
+                  height: 62,
+                  minWidth: 62,
+                  borderRadius: 15,
                   background: `linear-gradient(145deg, ${N.purple}, ${N.purpleDeep})`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 36,
+                  fontSize: 34,
                   fontFamily: EMOJI_FAMILY,
                   boxShadow: N.glowSoft,
                 }}
               >
                 {icon}
               </div>
+            ) : (
+              <div
+                style={{
+                  width: 7,
+                  height: 48,
+                  minWidth: 7,
+                  borderRadius: 6,
+                  background: `linear-gradient(180deg, ${N.purpleBright}, ${N.purpleDeep})`,
+                  boxShadow: N.glowSoft,
+                }}
+              />
             )}
-            <div style={{ fontSize: 40, fontWeight: tokens.weight.bold, color: "#fff" }}>{text}</div>
+            <div style={{ fontSize: 44, fontWeight: tokens.weight.black, color: "#fff", lineHeight: 1.22 }}>
+              {text}
+            </div>
           </div>
         );
       })}

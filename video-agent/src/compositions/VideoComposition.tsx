@@ -1,45 +1,43 @@
 import React from "react";
 import { AbsoluteFill, Audio, Sequence, staticFile } from "remotion";
 import type { BuiltProps } from "../schema";
-import { tokens } from "../theme/tokens";
 import { SceneWrapper } from "../components/SceneWrapper";
 import { TechBackground } from "../components/TechBackground";
 import { AuroraBackground } from "../components/AuroraBackground";
 import { SpiderBackground } from "../components/SpiderBackground";
-import { BrandHeader } from "../components/BrandHeader";
+import { ClaudeBackground } from "../components/ClaudeBackground";
+import { ThemeContext, paletteFor } from "../theme/claude";
 
 /**
- * VideoComposition — renderer chung cho mọi template (ProductReview/ListicleTop5/
- * StoryHook). Template chỉ khác ở CÁCH agent viết scenes, không khác ở cách render.
- *
- * Mỗi scene bọc trong <Sequence from durationInFrames> — cả hai TÍNH TỪ audio thật
- * (pipeline/build.ts), không ước lượng.
+ * VideoComposition — renderer chung cho mọi template. Nền do meta.background quyết định.
+ * Nếu là nền Claude (claude-dark/claude-cream) → cấp Palette qua ThemeContext để mọi
+ * component tự đổi màu/cỡ chữ đồng bộ; nền khác → context = null (giữ đường neon cũ).
  */
 export const VideoComposition: React.FC<BuiltProps> = ({ meta, scenes, captions, music }) => {
+  const palette = paletteFor(meta.background);
+  const isClaudeBg = meta.background === "claude-dark" || meta.background === "claude-cream";
   return (
-    <AbsoluteFill style={{ backgroundColor: tokens.color.bg }}>
-      {/* Nền chung — hiện xuyên qua các scene không có media riêng. */}
-      {meta.background === "tech" && <TechBackground />}
-      {meta.background === "aurora" && <AuroraBackground />}
-      {meta.background === "spider" && <SpiderBackground />}
+    <ThemeContext.Provider value={palette}>
+      <AbsoluteFill style={{ backgroundColor: palette.bg }}>
+        {/* Backdrop tuỳ chọn — presentation (card/chữ) luôn theo style Claude bên trên. */}
+        {isClaudeBg && <ClaudeBackground palette={palette} />}
+        {meta.background === "tech" && <TechBackground />}
+        {meta.background === "aurora" && <AuroraBackground />}
+        {meta.background === "spider" && <SpiderBackground />}
 
-      {scenes.map((scene) => (
-        <Sequence
-          key={scene.id}
-          from={scene.fromFrame}
-          durationInFrames={scene.durationInFrames}
-          name={`${scene.layout}:${scene.id}`}
-        >
-          <SceneWrapper scene={scene} captions={captions} width={meta.width} height={meta.height} />
-        </Sequence>
-      ))}
+        {scenes.map((scene) => (
+          <Sequence
+            key={scene.id}
+            from={scene.fromFrame}
+            durationInFrames={scene.durationInFrames}
+            name={`${scene.layout}:${scene.id}`}
+          >
+            <SceneWrapper scene={scene} captions={captions} width={meta.width} height={meta.height} />
+          </Sequence>
+        ))}
 
-      {/* Thanh thương hiệu (overlay trên mọi scene) */}
-      {meta.brand && (
-        <BrandHeader name={meta.brand.name} logo={meta.brand.logo} hint={meta.brand.hint} height={meta.height} />
-      )}
-
-      {music && <Audio src={staticFile(music.src)} volume={music.volume} loop />}
-    </AbsoluteFill>
+        {music && <Audio src={staticFile(music.src)} volume={music.volume} loop />}
+      </AbsoluteFill>
+    </ThemeContext.Provider>
   );
 };

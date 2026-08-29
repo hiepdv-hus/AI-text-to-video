@@ -13,6 +13,21 @@ import { createHash } from "node:crypto";
  */
 
 const CACHE_DIR = path.join(process.cwd(), ".cache", "images");
+
+/** Khoá tuần tự: chỉ 1 lần SINH ảnh chạy tại một thời điểm (Pollinations free chỉ cho
+ * 1 request/IP). Các scene song song vẫn chờ nhau ở bước gọi mạng. */
+let genLock: Promise<void> = Promise.resolve();
+async function serialize<T>(fn: () => Promise<T>): Promise<T> {
+  const prev = genLock;
+  let release!: () => void;
+  genLock = new Promise<void>((r) => (release = r));
+  await prev;
+  try {
+    return await fn();
+  } finally {
+    release();
+  }
+}
 const DEFAULT_STYLE =
   ", flat vector illustration, clean modern design, vibrant colors, minimal, high detail, tech theme";
 
@@ -38,7 +53,9 @@ export async function generateImage(prompt: string, opts: ImageGenOptions): Prom
   }
 
   console.log(`[imagegen]   sinh ảnh (${provider})…`);
-  const buf = provider === "openai" ? await genOpenAI(styled, opts) : await genPollinations(styled, opts, key);
+  const buf = await serialize(() =>
+    provider === "openai" ? genOpenAI(styled, opts) : genPollinations(styled, opts, key),
+  );
   if (buf.length < 1000) throw new Error("Ảnh sinh ra rỗng/không hợp lệ.");
   await fs.writeFile(cachePath, buf);
   return cachePath;
@@ -49,9 +66,26 @@ async function genPollinations(prompt: string, opts: ImageGenOptions, key: strin
   const url =
     `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
     `?width=${opts.width}&height=${opts.height}&nologo=true&model=flux&seed=${seed}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Pollinations lỗi ${res.status}: ${await res.text().catch(() => "")}`);
-  return Buffer.from(await res.arrayBuffer());
+
+  // Free tier chỉ cho 1 request/đồng thời/IP → thử lại khi 429, có jitter (theo key)
+  // để nhiều ảnh không cùng nhịp mà tự giãn ra.
+  const jitter = parseInt(key.slice(0, 4), 16) % 900;
+  const maxAttempts = 7;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const res = await fetch(url);
+    if (res.ok) {
+      const buf = Buffer.from(await res.arrayBuffer());
+      if (buf.length >= 1000) return buf;
+    } else if (res.status === 429 && attempt < maxAttempts) {
+      await new Promise((r) => setTimeout(r, 1400 * attempt + jitter));
+      continue;
+    } else if (attempt >= maxAttempts) {
+      throw new Error(`Pollinations lỗi ${res.status} sau ${maxAttempts} lần.`);
+    } else {
+      await new Promise((r) => setTimeout(r, 900 * attempt));
+    }
+  }
+  throw new Error("Pollinations: không lấy được ảnh.");
 }
 
 async function genOpenAI(prompt: string, opts: ImageGenOptions): Promise<Buffer> {

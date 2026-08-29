@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "title": "Claude style demo",
+    "template": "StoryHook",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "claude-dark"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Ba thói quen nhỏ giúp bạn code hiệu quả hơn mỗi ngày.",
+      "layout": "hook",
+      "heading": "3 thói quen code hiệu quả",
+      "emphasis": ["hiệu quả"],
+      "media": { "kind": "pexels", "src": "clean developer workspace desk laptop" },
+      "transitionIn": "fade",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s2",
+      "narration": "Thứ nhất, viết test trước. Thứ hai, refactor thường xuyên. Thứ ba, đọc code của người khác.",
+      "layout": "graphic",
+      "heading": "Ba thói quen",
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Nhỏ nhưng thay đổi lớn",
+        "labels": ["Viết test trước", "Refactor thường xuyên", "Đọc code người khác"]
+      },
+      "transitionIn": "fade",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s3",
+      "narration": "Khác biệt nằm ở tư duy: code cho xong, hay code để dễ bảo trì về sau.",
+      "layout": "compare",
+      "heading": "Khác biệt ở đâu?",
+      "bullets": ["Code cho xong việc", "Code để dễ bảo trì"],
+      "transitionIn": "fade",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s4",
+      "narration": "Ví dụ, tách một hàm nhỏ, đặt tên rõ ràng, là đã dễ đọc hơn nhiều.",
+      "layout": "code",
+      "heading": "Tách hàm, đặt tên rõ",
+      "code": "function tinhGiam(gia, phanTram) {\n  return gia * (1 - phanTram / 100);\n}\nconst cuoi = tinhGiam(200, 25);\nconsole.log(cuoi);",
+      "codeTitle": "gia.js",
+      "codeHighlight": [1, 2],
+      "output": "150",
+      "transitionIn": "fade",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s5",
+      "narration": "Theo dõi mình để học thêm nhiều mẹo lập trình nhé!",
+      "layout": "cta",
+      "heading": "Theo dõi để học thêm 👇",
+      "emphasis": ["học thêm"],
+      "transitionIn": "fade",
+      "tailPadSec": 0.45
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.1,
+    "pitch": -1
+  },
+  "captions": {
+    "style": "claude",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#D97757"
+  }
+}

@@ -37,7 +37,7 @@ export type Layout = z.infer<typeof layoutSchema>;
  * các field còn lại là tham số tuỳ widget (đều optional, có mặc định đẹp).
  */
 export const graphicSchema = z.object({
-  kind: z.enum(["highlight-timeline", "device-editor", "feature-cards", "bar-chart", "chat-ai"]),
+  kind: z.enum(["highlight-timeline", "device-editor", "feature-cards", "bar-chart", "chat-ai", "steps"]),
   /** Phụ đề nhỏ dưới tiêu đề (vd "Tích hợp sẵn · Không cần chỉnh thủ công"). */
   subtitle: z.string().optional(),
   /** Nhãn: cột (highlight-timeline) hoặc thẻ "🤖 Tự động" (feature-cards). */
@@ -129,7 +129,7 @@ export type Voice = z.infer<typeof voiceSchema>;
 
 export const captionsSchema = z.object({
   style: z
-    .enum(["tiktok-bold", "clean-minimal", "outline-pop", "chip-glow"])
+    .enum(["tiktok-bold", "clean-minimal", "outline-pop", "chip-glow", "claude"])
     .default("tiktok-bold"),
   position: z.enum(["center", "lower-third", "top"]).default("lower-third"),
   maxWordsPerLine: z.number().int().min(1).max(12).default(4),
@@ -152,8 +152,10 @@ export const metaSchema = z.object({
   height: z.number().int().positive().default(1920),
   fps: z.number().int().positive().default(30),
   locale: z.string().default("vi-VN"),
-  /** Nền chung: "solid" (phẳng), "tech" (mưa nhị phân), "aurora" (quầng sáng màu), "spider" (neon tím). */
-  background: z.enum(["solid", "tech", "aurora", "spider"]).default("solid"),
+  /** Nền chung. claude-dark/claude-cream = style Claude (ấm, tối giản); còn lại là neon/tech. */
+  background: z
+    .enum(["claude-dark", "claude-cream", "solid", "tech", "aurora", "spider"])
+    .default("claude-dark"),
   /** Thanh thương hiệu kiểu "SpiderAI News" (overlay trên mọi scene). Bỏ trống = không hiện. */
   brand: z
     .object({

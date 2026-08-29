@@ -1,0 +1,224 @@
+{
+  "meta": {
+    "title": "Thời đại AI, học IT xin việc kiểu gì?",
+    "template": "StoryHook",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Thời đại AI rồi, học IT xin việc kiểu đéo gì? Câu này dạo này mình thấy rất nhiều bạn hỏi.",
+      "layout": "hook",
+      "heading": "Thời đại AI, học IT xin việc kiểu gì?",
+      "emphasis": [
+        "xin việc kiểu gì"
+      ],
+      "media": {
+        "kind": "generate",
+        "src": "a worried young programmer at a laptop while AI writes code on the screen, editorial vector illustration, warm muted earthy tones, minimal"
+      },
+      "transitionIn": "glow",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s2",
+      "narration": "Anh ơi, giờ AI code được hết rồi, em học lập trình để làm cái đéo gì?",
+      "layout": "graphic",
+      "heading": "Nhiều bạn đang hỏi",
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Câu hỏi rất thật",
+        "labels": [
+          "u:Giờ AI code được hết rồi, em học lập trình làm gì?"
+        ]
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s3",
+      "narration": "Ừ, câu hỏi cũng hợp lý. Nhưng AI code được không có nghĩa là AI hiểu công ty đang cần cái gì.",
+      "layout": "hook",
+      "heading": "AI code được, khác với hiểu công ty cần gì",
+      "emphasis": [
+        "hiểu công ty cần gì"
+      ],
+      "media": {
+        "kind": "generate",
+        "src": "a business team discussing product requirements in a meeting room, editorial vector illustration, warm muted earthy tones, minimal"
+      },
+      "transitionIn": "blur",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s4",
+      "narration": "Ví dụ sếp bảo: Em làm cho anh cái chức năng thanh toán. Và AI trả lời: Dạ được anh.",
+      "layout": "graphic",
+      "heading": "Sếp giao việc...",
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "AI nhận việc ngay",
+        "labels": [
+          "u:Em làm cho anh chức năng thanh toán",
+          "a:Dạ được anh 👍"
+        ]
+      },
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s5",
+      "narration": "Xong, năm phút sau nó đẻ ra mười bảy file, ba API, bốn bug, và một đống code nhìn muốn khóc.",
+      "layout": "graphic",
+      "heading": "5 phút sau: một mớ hỗn độn",
+      "emphasis": [
+        "hỗn độn"
+      ],
+      "graphic": {
+        "kind": "feature-cards",
+        "labels": [
+          "17 file",
+          "3 API",
+          "4 bug"
+        ]
+      },
+      "transitionIn": "zoom",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s6",
+      "narration": "Lúc này bạn mới hiểu. Công ty không cần một thằng biết gõ code. Công ty cần một thằng biết cái đống code này đang làm cái gì.",
+      "layout": "compare",
+      "heading": "Công ty thật ra cần gì?",
+      "bullets": [
+        "Chỉ biết gõ code",
+        "Hiểu đống code làm gì"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s7",
+      "narration": "Nên nếu bây giờ bạn là Junior. Đừng cố code nhanh hơn AI. Bạn code chậm hơn nó cũng được.",
+      "layout": "hook",
+      "heading": "Junior: đừng đua tốc độ với AI",
+      "emphasis": [
+        "đừng đua tốc độ"
+      ],
+      "media": {
+        "kind": "generate",
+        "src": "a junior developer calmly learning to code at a desk, editorial vector illustration, warm muted earthy tones, minimal"
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s8",
+      "narration": "Nhưng phải biết: AI đang làm gì? Tại sao nó làm thế? Sai thì sửa thế nào? Và quan trọng nhất, làm sao biến một yêu cầu của khách hàng thành sản phẩm chạy được?",
+      "layout": "graphic",
+      "heading": "Nhưng phải biết:",
+      "emphasis": [
+        "phải biết"
+      ],
+      "graphic": {
+        "kind": "steps",
+        "labels": [
+          "AI đang làm gì?",
+          "Tại sao làm vậy?",
+          "Sai thì sửa sao?",
+          "Biến yêu cầu thành sản phẩm?"
+        ]
+      },
+      "transitionIn": "blur",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s9",
+      "narration": "Cho nên thời AI, biết code thì vẫn phải học. Nhưng đừng học kiểu thuộc lòng từng dòng code.",
+      "layout": "hook",
+      "heading": "Vẫn phải học — nhưng đừng học vẹt",
+      "emphasis": [
+        "đừng học vẹt"
+      ],
+      "media": {
+        "kind": "generate",
+        "src": "a developer building a product together with a friendly AI assistant, editorial vector illustration, warm muted earthy tones, minimal"
+      },
+      "transitionIn": "glow",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s10",
+      "narration": "Hãy học để hiểu vấn đề, xây sản phẩm, và dùng AI để làm nhanh hơn.",
+      "layout": "graphic",
+      "heading": "Hãy học để:",
+      "graphic": {
+        "kind": "feature-cards",
+        "labels": [
+          "Hiểu vấn đề",
+          "Xây sản phẩm",
+          "Dùng AI để tăng tốc"
+        ]
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s11",
+      "narration": "Chứ không phải: ChatGPT ơi, làm giúp em cái project để em bỏ vào CV.",
+      "layout": "graphic",
+      "heading": "Chứ không phải:",
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Kiểu làm hộ cho có",
+        "labels": [
+          "u:ChatGPT ơi làm giúp em cái project để bỏ vào CV"
+        ]
+      },
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s12",
+      "narration": "Anh em tuyển dụng nhìn phát là biết AI đẻ CV hộ rồi.",
+      "layout": "cta",
+      "heading": "Nhà tuyển dụng nhìn phát biết ngay 💀",
+      "emphasis": [
+        "biết ngay"
+      ],
+      "media": {
+        "kind": "generate",
+        "src": "a recruiter reviewing a resume with a skeptical doubtful expression, editorial vector illustration, warm muted earthy tones, minimal"
+      },
+      "transitionIn": "glow",
+      "tailPadSec": 0.5
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.12,
+    "pitch": -1,
+    "pronunciations": {
+      "AI": "Ây Ai",
+      "API": "Ây Pi Ai",
+      "CV": "Xi Vi",
+      "ChatGPT": "Chát Gi Pi Ti",
+      "Junior": "Giu Ni Ơ",
+      "bug": "bấc",
+      "file": "phai",
+      "code": "cốt",
+      "project": "prô giếc"
+    }
+  },
+  "captions": {
+    "style": "chip-glow",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#b983ff"
+  }
+}

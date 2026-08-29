@@ -1,9 +1,8 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, staticFile, useCurrentFrame } from "remotion";
 import type { BuiltScene, Captions, TransitionKind } from "../schema";
-import { Background } from "./Background";
-import { LAYOUTS } from "./layouts";
 import { KaraokeCaption } from "./KaraokeCaption";
+import { CLAUDE_LAYOUTS } from "./claude/ClaudeLayouts";
 
 /**
  * SceneWrapper — ghép 1 scene: nền + foreground layout + audio + karaoke caption
@@ -62,22 +61,12 @@ export const SceneWrapper: React.FC<{
   height: number;
 }> = ({ scene, captions, height }) => {
   const frame = useCurrentFrame();
-  const Layout = LAYOUTS[scene.layout];
-  // Bất kỳ cảnh CHỮ nào (không phải layout "image" khung gọn) có ẢNH nền → coi như
-  // nền toàn màn: Ken Burns (zoom chậm) + scrim điện ảnh cho chữ overlay đọc rõ.
-  const hasImageBg = scene.media?.kind === "image" && scene.layout !== "image";
-  const kenBurns = hasImageBg;
-  const showScrim = hasImageBg;
+  // Style Claude cho MỌI nền: ảnh luôn ĐÓNG KHUNG trong layout (không tràn màn),
+  // nền (backdrop) giữ nguyên nền đã chọn.
+  const Layout = CLAUDE_LAYOUTS[scene.layout];
 
   return (
     <AbsoluteFill style={enterStyle(scene.transitionIn, frame)}>
-      <Background
-        // layout "image" tự vẽ ảnh khung → không dùng ảnh làm nền toàn màn.
-        media={scene.layout === "image" ? undefined : scene.media}
-        durationInFrames={scene.durationInFrames}
-        kenBurns={kenBurns}
-        scrim={showScrim}
-      />
       <Layout scene={scene} height={height} />
       <KaraokeCaption
         words={scene.words}

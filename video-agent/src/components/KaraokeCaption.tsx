@@ -4,6 +4,21 @@ import type { WordTiming, Captions } from "../schema";
 import { tokens } from "../theme/tokens";
 import { FONT_FAMILY } from "./fonts";
 import { chunkIntoLines, activeLineIndex, activeWordIndex } from "./captions";
+import { useTheme, CLAUDE_DARK, type Palette } from "../theme/claude";
+
+/** Preset caption cho style Claude: sạch, từ đang đọc tô CAM + đậm, không chip glow. */
+function claudePreset(p: Palette): PresetStyle {
+  return {
+    container: { fontWeight: 600, fontSize: p.size.caption, letterSpacing: -0.3 },
+    word: (active) => ({
+      color: active ? p.accent : p.text,
+      fontWeight: active ? 800 : 600,
+      padding: "2px 6px",
+      textShadow: p.isDark ? "0 1px 10px rgba(0,0,0,0.35)" : "none",
+    }),
+    scaleActive: 1.05,
+  };
+}
 
 /**
  * KaraokeCaption — phụ đề chia dòng, từ đang đọc thì nổi bật.
@@ -96,6 +111,10 @@ function getPreset(style: Captions["style"]): PresetStyle {
         }),
         scaleActive: 1.1,
       };
+    case "claude":
+      // Style "claude" thực tế lấy màu từ Palette (claudePreset). Ở đây chỉ là fallback
+      // khi dùng style claude trên nền không phải Claude.
+      return claudePreset(CLAUDE_DARK);
     default: {
       const _e: never = style;
       throw new Error(`Preset không tồn tại: ${_e}`);
@@ -125,6 +144,7 @@ export const KaraokeCaption: React.FC<KaraokeCaptionProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const theme = useTheme();
   const tMs = (frame / fps) * 1000;
 
   const lines = React.useMemo(
@@ -137,7 +157,7 @@ export const KaraokeCaption: React.FC<KaraokeCaptionProps> = ({
   const line = lines[li];
   if (!line) return null;
   const wi = activeWordIndex(line, tMs);
-  const preset = getPreset(style);
+  const preset = theme ? claudePreset(theme) : getPreset(style);
 
   // Dòng vừa xuất hiện thì trượt lên nhẹ + mờ dần vào (theo frame, không transition).
   const lineAgeMs = tMs - line.startMs;
@@ -186,8 +206,8 @@ export const KaraokeCaption: React.FC<KaraokeCaptionProps> = ({
               ? 0.97
               : 1;
           const wStyle = preset.word(active, highlightColor);
-          // chip-glow: chip đang đọc phát sáng theo NHỊP (pulse) cho sinh động.
-          if (active && style === "chip-glow") {
+          // chip-glow: chip đang đọc phát sáng theo NHỊP (pulse) — CHỈ khi KHÔNG dùng theme Claude.
+          if (active && !theme && style === "chip-glow") {
             const pulse = 0.5 + 0.5 * Math.sin((frame / fps) * Math.PI * 3.2);
             wStyle.boxShadow =
               `0 0 ${18 + pulse * 20}px rgba(139,92,246,${(0.55 + pulse * 0.4).toFixed(2)}), 0 0 12px rgba(185,131,255,0.95)`;

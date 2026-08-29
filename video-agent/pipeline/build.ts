@@ -8,7 +8,7 @@ import {
   type BuiltProps,
   type WordTiming,
 } from "../src/schema.ts";
-import { normalizeVietnamese } from "./normalize.ts";
+import { normalizeVietnamese, restoreDisplayWords, mergePronunciations } from "./normalize.ts";
 import { getProvider, getAudioDurationSec } from "./tts.ts";
 import { alignWords } from "./align.ts";
 import { cacheKey, readCache, writeCache } from "./cache.ts";
@@ -118,6 +118,9 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
     if (!words || words.length === 0) {
       words = await alignWords(publicAbs, normalized);
     }
+
+    // Khôi phục chữ gốc cho caption (vd "ây ai" → "AI") sau khi TTS đã đọc đúng phát âm.
+    words = restoreDisplayWords(words ?? [], mergePronunciations(spec.voice.pronunciations));
 
     // Bước 5: duration THẬT → frames.
     //  - provider tự báo durationSec (Edge) → dùng luôn.
