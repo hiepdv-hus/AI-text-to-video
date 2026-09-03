@@ -4,7 +4,7 @@ import type { WordTiming, Captions } from "../schema";
 import { tokens } from "../theme/tokens";
 import { FONT_FAMILY } from "./fonts";
 import { chunkIntoLines, activeLineIndex, activeWordIndex } from "./captions";
-import { useTheme, CLAUDE_DARK, type Palette } from "../theme/claude";
+import { useTheme, isTech, CLAUDE_DARK, type Palette } from "../theme/claude";
 
 /** Preset caption cho style Claude: sạch, từ đang đọc tô CAM + đậm, không chip glow. */
 function claudePreset(p: Palette): PresetStyle {
@@ -17,6 +17,26 @@ function claudePreset(p: Palette): PresetStyle {
       textShadow: p.isDark ? "0 1px 10px rgba(0,0,0,0.35)" : "none",
     }),
     scaleActive: 1.05,
+  };
+}
+
+/**
+ * Preset caption cho theme TECH. Caption thường nằm trên VIDEO NỀN nên cần tương phản
+ * cao hơn kiểu Claude: từ đang đọc là KHỐI ĐẶC màu nhấn (chữ tối trên nền xanh) —
+ * đọc được kể cả khi cảnh quay phía sau sáng; từ chưa đọc dựa vào đổ bóng mạnh.
+ */
+function techPreset(p: Palette): PresetStyle {
+  return {
+    container: { fontWeight: 700, fontSize: p.size.caption, letterSpacing: -0.2 },
+    word: (active) => ({
+      color: active ? p.onAccent : p.text,
+      background: active ? p.accent : "transparent",
+      borderRadius: p.radius.sm,
+      padding: active ? "4px 16px" : "4px 6px",
+      textShadow: active ? "none" : "0 2px 14px rgba(0,0,0,0.8)",
+      boxShadow: active ? p.glow : "none",
+    }),
+    scaleActive: 1.08,
   };
 }
 
@@ -112,8 +132,9 @@ function getPreset(style: Captions["style"]): PresetStyle {
         scaleActive: 1.1,
       };
     case "claude":
-      // Style "claude" thực tế lấy màu từ Palette (claudePreset). Ở đây chỉ là fallback
-      // khi dùng style claude trên nền không phải Claude.
+    case "tech":
+      // Hai style này lấy màu từ Palette (xem lựa chọn preset trong component).
+      // Nhánh này chỉ là fallback khi không có theme.
       return claudePreset(CLAUDE_DARK);
     default: {
       const _e: never = style;
@@ -157,7 +178,9 @@ export const KaraokeCaption: React.FC<KaraokeCaptionProps> = ({
   const line = lines[li];
   if (!line) return null;
   const wi = activeWordIndex(line, tMs);
-  const preset = theme ? claudePreset(theme) : getPreset(style);
+  // Caption đi theo THEME, không theo captions.style — để không bao giờ lệch tông với
+  // phần còn lại của video. captions.style chỉ còn tác dụng khi không có theme.
+  const preset = theme ? (isTech(theme) ? techPreset(theme) : claudePreset(theme)) : getPreset(style);
 
   // Dòng vừa xuất hiện thì trượt lên nhẹ + mờ dần vào (theo frame, không transition).
   const lineAgeMs = tMs - line.startMs;

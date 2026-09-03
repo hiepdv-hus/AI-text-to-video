@@ -45,6 +45,32 @@ export function chunkIntoLines(
     cur.push(w);
   }
   flush();
+  return fixOrphans(lines, maxWords, gapMs);
+}
+
+/**
+ * fixOrphans — dồn lại các dòng chỉ có ĐÚNG MỘT TỪ.
+ *
+ * Một từ đứng chơ vơ giữa màn hình trông như lỗi hiển thị, nhất là ở kiểu caption có
+ * nền khối. Cách sửa: kéo từ cuối của dòng TRƯỚC xuống, để dòng lẻ có 2 từ.
+ *
+ * Chỉ làm khi dòng trước bị ngắt vì ĐỦ SỐ TỪ chứ không phải vì khoảng lặng — hai điều
+ * kiện đều phải đúng: dòng trước dài đúng maxWords, VÀ giữa hai dòng không có khoảng
+ * lặng. Khoảng lặng là ranh giới câu; kéo từ qua nó sẽ ghép đuôi câu này với đầu câu kia.
+ * Timing từng từ là tuyệt đối nên chuyển từ giữa các dòng không lệch karaoke.
+ */
+function fixOrphans(lines: CaptionLine[], maxWords: number, gapMs: number): CaptionLine[] {
+  if (maxWords < 3) return lines; // dòng 2 từ thì không có gì để dồn
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i]!;
+    const prev = lines[i - 1]!;
+    if (line.words.length !== 1 || prev.words.length !== maxWords) continue;
+    if (line.words[0]!.startMs - prev.endMs > gapMs) continue; // ngắt do nghỉ hơi → để yên
+    const moved = prev.words.pop()!;
+    line.words.unshift(moved);
+    prev.endMs = prev.words[prev.words.length - 1]!.endMs;
+    line.startMs = moved.startMs;
+  }
   return lines;
 }
 

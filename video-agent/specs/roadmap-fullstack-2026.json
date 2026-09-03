@@ -123,7 +123,7 @@
     "provider": "piper",
     "voiceId": "tranthanh3870",
     "speed": 2,
-    "pitch": -1
+    "pitch": 10
   },
   "captions": {
     "style": "clean-minimal",

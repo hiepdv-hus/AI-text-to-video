@@ -5,6 +5,7 @@ out/
 public/audio/
 public/assets/
 public/images/
+public/video/
 *.log
 
 # Piper local (nặng, tái tạo bằng scripts/setup-piper.ps1)

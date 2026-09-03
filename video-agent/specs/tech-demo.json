@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "title": "Tech Demo",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "voice": { "provider": "mock", "voiceId": "default", "speed": 1 },
+  "captions": { "style": "tech", "position": "lower-third", "maxWordsPerLine": 4, "highlightColor": "#3BE8A0" },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Ba thứ khiến code của bạn chậm hơn người khác gấp mười lần.",
+      "layout": "hook",
+      "heading": "CODE CHẬM VÌ ĐÂU?",
+      "emphasis": ["CHẬM"],
+      "transitionIn": "fade",
+      "media": { "kind": "pexels-video", "src": "programmer typing code closeup" }
+    },
+    {
+      "id": "s2",
+      "narration": "Đầu tiên, bạn lặp qua mảng nhiều lần thay vì một lần duy nhất.",
+      "layout": "bullet",
+      "heading": "Bước 1 — Duyệt mảng thừa",
+      "bullets": ["Lặp ba lần trên cùng một mảng", "Tạo mảng trung gian không cần thiết", "Gọi hàm nặng trong vòng lặp"],
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s3",
+      "narration": "Gộp lại chỉ còn một lần duyệt, kết quả vẫn thế mà nhanh hơn hẳn.",
+      "layout": "code",
+      "heading": "Bước 2 — Gộp một lần duyệt",
+      "code": "const total = items\n  .filter(i => i.active)\n  .map(i => i.price)\n  .reduce((a, b) => a + b, 0);\n\nconsole.log(total);",
+      "codeTitle": "total.js",
+      "codeHighlight": [2, 3, 4],
+      "output": "→ 1250",
+      "transitionIn": "slide-left"
+    },
+    {
+      "id": "s4",
+      "narration": "Cuối cùng, đo trước khi tối ưu. Đoán mò là cách phí thời gian nhất.",
+      "layout": "graphic",
+      "heading": "Bước 3 — Đo trước khi sửa",
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Không đo thì không biết sửa gì",
+        "labels": ["Đo bằng profiler", "Tìm điểm nghẽn thật", "Sửa đúng chỗ đó"]
+      },
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s5",
+      "narration": "Lưu lại để dùng khi cần, và theo dõi để xem phần hai nhé.",
+      "layout": "cta",
+      "heading": "Lưu lại + Theo dõi",
+      "transitionIn": "zoom",
+      "media": { "kind": "pexels-video", "src": "server room lights dark" }
+    }
+  ]
+}

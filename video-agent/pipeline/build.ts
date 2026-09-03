@@ -14,7 +14,7 @@ import { alignWords } from "./align.ts";
 import { cacheKey, readCache, writeCache } from "./cache.ts";
 import { downloadAsset } from "./assets.ts";
 import { generateImage } from "./imagegen.ts";
-import { fetchStockImage } from "./stock.ts";
+import { fetchStockImage, fetchStockVideo } from "./stock.ts";
 import { highlightCode } from "./highlight.ts";
 import type { CodeToken } from "../src/schema.ts";
 
@@ -136,9 +136,26 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
     const totalSec = durationSec + scene.tailPadSec;
     const durationInFrames = Math.max(1, Math.round(totalSec * spec.meta.fps));
 
-    // Bước 6: xử lý media.
+    // Bước 6: xử lý media. Ba kind "ảo" (pexels-video / pexels / generate) được GIẢI QUYẾT
+    // ở đây thành file thật trong public/ + kind thật ("video" / "image") để composition
+    // không bao giờ phải biết chúng từ đâu ra.
     let media = scene.media;
-    if (media && (media.kind === "generate" || media.kind === "pexels")) {
+    if (media && media.kind === "pexels-video") {
+      // Video LUÔN dọc: nó chạy full-bleed làm nền cả khung 1080x1920.
+      const clip = await fetchStockVideo(media.src, { orientation: "portrait" });
+      const rel = `video/${slug}/${scene.id}.mp4`;
+      const abs = path.join(PUBLIC_DIR, rel);
+      await fs.mkdir(path.dirname(abs), { recursive: true });
+      await fs.copyFile(clip.filePath, abs);
+      console.log(`[build]   scene "${scene.id}" → video nền Pexels (${clip.durationSec}s)`);
+      media = {
+        kind: "video",
+        src: rel,
+        fit: media.fit,
+        focus: media.focus,
+        durationSec: clip.durationSec > 0 ? clip.durationSec : undefined,
+      };
+    } else if (media && (media.kind === "generate" || media.kind === "pexels")) {
       // Ảnh DỌC cho mọi nền toàn màn (hook/cta/product…); NGANG chỉ cho khung "image" gọn.
       const portrait = scene.layout !== "image";
       let imgPath: string;

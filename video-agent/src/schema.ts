@@ -66,14 +66,27 @@ export const transitionSchema = z.enum([
 export type TransitionKind = z.infer<typeof transitionSchema>;
 
 export const mediaSchema = z.object({
-  // "generate": src là MÔ TẢ ẢNH (prompt) → pipeline tự sinh ảnh AI rồi thay bằng kind "image".
-  // "pexels": src là TỪ KHÓA → tự tìm & tải ảnh thật từ Pexels rồi thay bằng kind "image".
-  kind: z.enum(["image", "video", "color", "generate", "pexels"]),
-  /** URL/path/màu / mô tả ảnh (generate) / từ khóa tìm ảnh (pexels). */
+  /**
+   * Loại media. Ba loại cuối được pipeline GIẢI QUYẾT lúc build rồi thay bằng loại thật:
+   *   "pexels-video" → src là TỪ KHÓA → tải clip thật từ Pexels → thành kind "video".
+   *   "pexels"       → src là TỪ KHÓA → tải ảnh thật từ Pexels  → thành kind "image".
+   *   "generate"     → src là MÔ TẢ ẢNH (prompt) → sinh ảnh AI  → thành kind "image".
+   *
+   * Khác biệt quan trọng khi RENDER:
+   *   "video" chạy FULL-BLEED làm nền cả cảnh (nội dung đè lên trên);
+   *   "image" được đóng khung gọn trong cột nội dung (không crop tràn màn).
+   */
+  kind: z.enum(["image", "video", "color", "generate", "pexels", "pexels-video"]),
+  /** URL/path/màu / mô tả ảnh (generate) / từ khóa tìm (pexels, pexels-video). */
   src: z.string(),
   fit: z.enum(["cover", "contain"]).default("cover"),
   /** Điểm neo cho Ken Burns / crop. */
   focus: z.enum(["center", "top", "bottom", "left", "right"]).default("center"),
+  /**
+   * Độ dài clip (giây) — CHỈ với kind "video", do pipeline điền. Composition dùng nó để
+   * LẶP clip khi cảnh dài hơn clip (thay vì đứng hình ở khung cuối). Không có = không lặp.
+   */
+  durationSec: z.number().positive().optional(),
 });
 export type Media = z.infer<typeof mediaSchema>;
 
@@ -128,8 +141,12 @@ export const voiceSchema = z.object({
 export type Voice = z.infer<typeof voiceSchema>;
 
 export const captionsSchema = z.object({
+  /**
+   * Kiểu phụ đề. LƯU Ý: khi meta.background chọn một theme có Palette (tech/claude-*),
+   * caption tự đi theo theme để không lệch tông — field này chỉ còn tác dụng ở nền cũ.
+   */
   style: z
-    .enum(["tiktok-bold", "clean-minimal", "outline-pop", "chip-glow", "claude"])
+    .enum(["tiktok-bold", "clean-minimal", "outline-pop", "chip-glow", "claude", "tech"])
     .default("tiktok-bold"),
   position: z.enum(["center", "lower-third", "top"]).default("lower-third"),
   maxWordsPerLine: z.number().int().min(1).max(12).default(4),

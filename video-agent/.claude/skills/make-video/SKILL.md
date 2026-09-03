@@ -46,11 +46,15 @@ JSON rồi render lại — không đụng vào `src/`.
 VideoSpec {
   meta: { title, template: "ProductReview"|"ListicleTop5"|"StoryHook"|"CodeExplainer",
           width=1080, height=1920, fps=30, locale="vi-VN",
-          background?: "spider"|"tech"|"aurora"|"solid",   // "spider" = neon tím (khuyến nghị video công nghệ/AI)
+          background?: "tech"|"claude-dark"|"claude-cream"|"spider"|"aurora"|"solid",
+          //   "tech"  = MẶC ĐỊNH cho video lập trình/công nghệ: mưa nhị phân, xanh matrix, nhãn mono
+          //   "claude-dark"/"claude-cream" = tối giản ấm (cam đất)
           brand?: { name, logo="🕷", hint? } }             // thanh thương hiệu trên + pill gợi ý dưới
   voice: { provider: "edge"|"piper"|"mock"|"elevenlabs"|"azure"|"google",
            voiceId, speed=1, pitch?, pronunciations?: {from: to} }
-  captions: { style: "chip-glow"|"tiktok-bold"|"clean-minimal"|"outline-pop", // "chip-glow" = chip tím phát sáng (đi với "spider")
+  captions: { style: "tech"|"claude"|"chip-glow"|"tiktok-bold"|"clean-minimal"|"outline-pop",
+              // LƯU Ý: với background "tech"/"claude-*", caption TỰ đi theo theme —
+              // field này chỉ còn tác dụng ở các nền cũ (spider/aurora/solid).
               position: "lower-third"|"center"|"top",
               maxWordsPerLine=4, highlightColor="#B983FF" }
   scenes: [{
@@ -58,27 +62,63 @@ VideoSpec {
     layout: "hook"|"bullet"|"product"|"compare"|"cta"|"code"|"graphic"|"image",
     heading?, icon?,                     // icon = 1 emoji (vd "🚀","🤖") → huy hiệu cạnh tiêu đề
     bullets?: string[],                  // bullet có thể mở đầu bằng emoji, vd "🐳 Docker"
-    media?: { kind:"image"|"video"|"color"|"generate"|"pexels", src, fit?, focus? },
+    media?: { kind:"pexels-video"|"pexels"|"generate"|"image"|"video"|"color", src, fit?, focus? },
+    //   "pexels-video"/"video" → chạy FULL-BLEED làm nền cả cảnh (nội dung đè lên trên)
+    //   "pexels"/"generate"/"image" → khung ảnh gọn dưới tiêu đề, KHÔNG tràn màn
     emphasis?: string[],                 // cụm từ khoá → tô tím phát sáng trong heading (hook/graphic)
     transitionIn?: "fade"|"slide-left"|"slide-up"|"wipe"|"none"|"zoom"|"blur"|"glow", // zoom/blur/glow = điện ảnh
     tailPadSec?=0.35,
     // chỉ dùng khi layout="code":
     code?, codeTitle?, codeLang?="javascript", codeHighlight?: number[], output?,
     // chỉ dùng khi layout="graphic" (đồ hoạ neon khớp nội dung):
-    graphic?: { kind: "highlight-timeline"|"device-editor"|"feature-cards"|"bar-chart"|"chat-ai",
+    graphic?: { kind: "bar-chart"|"highlight-timeline"|"steps"|"feature-cards"|"chat-ai"|"device-editor",
                 subtitle?, labels?: string[], timestamps?: string[], timecode? }
-    //   bar-chart: labels dạng "Tên:80" (tên:giá trị 0–100) — biểu đồ cột mọc + số đếm
-    //   chat-ai:   labels dạng "u:câu người dùng" / "a:câu trợ lý" — khung chat AI + chấm đang gõ
   }]
   music?: { src, volume=0.12 }
 }
 ```
 
+WIDGET ĐỒ HOẠ (layout `graphic`) — chọn theo BẢN CHẤT dữ liệu, đừng chọn theo cảm tính:
+
+| `graphic.kind` | Dùng khi | Cách nhập `labels` |
+|---|---|---|
+| `bar-chart` | So sánh SỐ LIỆU | `"Tên:giá trị đơn vị"` — vd `"Trước tối ưu:48 s"`, `"Tốc độ:92%"` |
+| `highlight-timeline` | Các mốc THỜI GIAN | nội dung mốc; kèm `timestamps` cùng số lượng, vd `["00:00","00:04"]` |
+| `steps` | Quy trình CÓ THỨ TỰ | mỗi bước một chuỗi; nút tự đánh số 01/02/03 |
+| `feature-cards` | Liệt kê ngang hàng | mỗi mục một chuỗi, mở đầu bằng emoji nếu muốn |
+| `chat-ai` | Hội thoại | `"u:câu người dùng"` / `"a:câu trợ lý"` |
+
+Ghi chú về `bar-chart`: thanh dài nhất được chuẩn hoá về gần hết bề ngang (so sánh
+TƯƠNG ĐỐI, không phải thang 100), và **hàng CUỐI là điểm nhấn** — nên xếp dữ liệu theo
+mạch "trước → sau" để con số đáng nhớ nằm cuối. Số tự đếm lên khi thanh mọc.
+
+Giới hạn số mục để chữ còn to: `bar-chart` 2–4 hàng · `highlight-timeline` 3–4 mốc ·
+`steps` 3 bước · `feature-cards` 3–4 thẻ (từ 5 thẻ trở lên tự xếp 2 cột và chữ nhỏ đi
+một nấc — chỉ dùng khi thật sự cần).
+
 NGUYÊN TẮC THẺ/LIỆT KÊ (feature-cards) — tránh lỗi thiết kế:
 - **Song song**: mọi label trong 1 lưới phải cùng dạng (toàn câu hỏi "…?" HOẶC toàn cụm danh từ). Đừng trộn.
 - **Đừng trộn số liệu với punchline**: số đo ("17 file","3 API") để trong thẻ; câu chốt cảm xúc để lên `heading` (dùng `emphasis`), KHÔNG nhét thành 1 ô ngang hàng.
-- **Số lượng ô**: 4 hoặc 6 ô → tự xếp 2 cột; 1/2/3/5 ô → 1 cột (component lo, khỏi lo "ô mồ côi").
+- **Số lượng ô**: ≤ 4 ô → 1 cột, chữ to (nên dùng); ≥ 5 ô → tự xếp 2 cột và hạ một nấc cỡ chữ.
 - **Icon tiết chế**: chỉ thêm emoji khi nó MANG NGHĨA. Label không có emoji → thẻ tự dùng thanh nhấn tím (đẹp, giữ kỷ luật màu). Tránh emoji màu trang trí (bọ vàng, bia đỏ) đâm vào hệ tím–xanh.
+
+PHONG CÁCH "TECH" (MẶC ĐỊNH cho video lập trình/công nghệ): đặt `meta.background:"tech"`.
+Toàn bộ video (tiêu đề, thẻ, cửa sổ code, phụ đề, đồ hoạ) tự đổi sang một hệ: nền mưa nhị
+phân, nhấn xanh matrix, nhãn monospace, thẻ kính mờ. Không cần chỉnh gì thêm — **đừng** tự
+đặt màu trong spec, để theme lo, đó là thứ giữ cho video đồng nhất.
+- **Nhãn nhỏ tự động**: `heading` viết dạng `"Bước 3 — Viết API đầu tiên"` (gạch dài `—`,
+  vế trái ≤ 22 ký tự) sẽ tự tách thành nhãn mono nhỏ "BƯỚC 3" + tiêu đề lớn "Viết API đầu
+  tiên". Đây là cách tạo thứ bậc chữ; hãy dùng nó cho các cảnh trong một chuỗi có đánh số.
+- **Mưa nhị phân chỉ rơi ở HAI MÉP**, chừa trọn dải giữa cho nội dung. Đừng lo nó làm rối chữ.
+- **Cảnh có video thì KHÔNG có mưa nhị phân** — hai thứ tách bạch. Mỗi cảnh vì thế hoặc là
+  cảnh quay thật, hoặc là nền đồ hoạ; xen kẽ hai loại sẽ tạo nhịp cho video.
+- **Video nền là cách làm hình mặc định**: đặt `media.kind:"pexels-video"` cho khoảng một
+  nửa số cảnh (nhất là `hook`, `cta`, và các cảnh chỉ có tiêu đề). Cảnh có widget dày
+  (`graphic`, `bullet`, `code`) thì video tự động bị làm mờ mạnh để lùi hẳn ra sau — vẫn
+  dùng được, nhưng đừng để cảnh nào cũng có.
+- **Chuyển động là tự động, đừng cố mô tả nó trong spec**: tiêu đề tự chạy theo từng chữ,
+  thẻ tự lật vào và trôi, biểu đồ tự có vệt sáng quét, timeline tự có chấm chạy, CTA tự thở.
+  Việc của spec chỉ là nội dung; nhịp do `src/components/motion.ts` lo.
 
 PHONG CÁCH "SpiderAI News" (mặc định cho video công nghệ/AI): đặt `meta.background:"spider"`,
 `meta.brand`, `captions.style:"chip-glow"`. Dùng `layout:"graphic"` để đồ hoạ khớp nội dung —
@@ -102,7 +142,20 @@ CODE (dạy lập trình): đặt `layout:"code"` với các field:
 `specs/js-tap1-map-filter-reduce.json`. Với từ tiếng Anh (map/filter/const…) nên thêm
 `voice.pronunciations` để đọc đỡ trật.
 
-ẢNH MINH HỌA:
+VIDEO NỀN (cách làm hình ảnh MẶC ĐỊNH — ưu tiên hơn ảnh tĩnh):
+- `media.kind: "pexels-video"`, `src` = TỪ KHÓA tiếng **Anh** (vd "programmer typing code closeup").
+  Pipeline tự tìm & tải clip dọc thật từ Pexels, đặt làm nền TOÀN MÀN của cảnh đó.
+- Cảnh dài hơn clip thì clip TỰ LẶP — không đứng hình. Không cần khai báo gì thêm.
+- Clip được tự động: giảm bão hoà + nhuộm về tông của theme + phủ lớp tối + phủ mưa nhị phân
+  → mọi clip Pexels đều "cùng một bộ phim", không lạc màu, chữ vẫn đọc rõ. **Không cần** tự
+  chỉnh màu hay chọn clip tối/sáng.
+- Chọn từ khóa tả HÀNH ĐỘNG hoặc KHÔNG GIAN, đừng tả chữ/đồ hoạ (clip có chữ tiếng Anh
+  trên màn hình sẽ đá nhau với tiêu đề). Tốt: "server room lights", "hands typing keyboard
+  night", "city traffic timelapse". Tránh: "javascript tutorial", "infographic".
+- Dùng được cho MỌI layout trừ `code` (cảnh code đã có cửa sổ IDE riêng, đừng thêm nền động
+  làm rối). Hợp nhất với `hook`, `cta`, `bullet`.
+
+ẢNH MINH HỌA (khi cần hình TĨNH, cụ thể — sơ đồ, sản phẩm):
 - Layout `image` = khung ảnh gọn, sắc nét (không crop) + tiêu đề. Hợp sơ đồ/hình minh họa.
 - `media.kind: "image"`, src = URL hoặc file trong `public/images/`.
 - **ẢNH THẬT (Pexels)**: `media.kind: "pexels"`, `src` = TỪ KHÓA tìm kiếm bằng **tiếng Anh**

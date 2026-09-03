@@ -1,11 +1,12 @@
 import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { Palette } from "../../theme/claude";
+import { cardSurface } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
 
 /**
- * ClaudeChat — khung chat style Claude: bong bóng người dùng (phải, nền cam nhạt),
- * trợ lý (trái, thẻ, avatar chấm cam). Sạch, ấm. Nhãn "u:..." / "a:...".
+ * ClaudeChat — khung chat: bong bóng người dùng (phải, nền màu nhấn), trợ lý (trái,
+ * thẻ, avatar tròn). Nhãn "u:..." / "a:...". Màu theo Palette.
  */
 function parse(labels?: string[]): { who: "u" | "a"; text: string }[] {
   const src = labels && labels.length ? labels : ["u:Câu hỏi của bạn", "a:Trả lời của trợ lý"];
@@ -63,17 +64,17 @@ export const ClaudeChat: React.FC<{ labels?: string[]; p: Palette }> = ({ labels
             <div
               style={{
                 padding: "20px 24px",
-                borderRadius: 22,
                 fontSize: p.size.card,
                 fontWeight: 500,
                 lineHeight: 1.3,
                 textAlign: "left",
+                ...cardSurface(p),
+                borderRadius: 22,
                 color: isU ? p.onAccent : p.text,
                 background: isU ? p.accent : p.card,
                 border: isU ? "none" : `1px solid ${p.cardBorder}`,
                 borderBottomRightRadius: isU ? 6 : 22,
                 borderBottomLeftRadius: isU ? 22 : 6,
-                boxShadow: p.cardShadow,
               }}
             >
               {m.text}

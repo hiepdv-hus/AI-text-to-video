@@ -134,10 +134,10 @@
         <div>
           <label>Nền</label>
           <select id="background">
+            <option value="tech">Tech (mưa nhị phân — xanh matrix)</option>
             <option value="claude-dark">Claude Dark (than ấm — tối giản)</option>
             <option value="claude-cream">Claude Cream (kem ấm — editorial)</option>
             <option value="spider">Spider (neon tím — SpiderAI News)</option>
-            <option value="tech">Tech (mưa nhị phân)</option>
             <option value="aurora">Aurora (quầng sáng màu)</option>
             <option value="solid">Solid (đen phẳng)</option>
           </select>
@@ -174,6 +174,7 @@
         <div>
           <label>Kiểu phụ đề</label>
           <select id="capStyle">
+            <option value="tech">tech (nền Tech — từ đọc là khối xanh)</option>
             <option value="claude">claude (nền Claude — từ đọc tô cam)</option>
             <option value="chip-glow">chip-glow (SpiderAI — chip tím phát sáng)</option>
             <option value="clean-minimal">clean-minimal</option>
@@ -381,17 +382,22 @@
         <div>
           <label>Loại nền</label>
           <select class="mediaKind">
-            <option value="pexels">📷 Ảnh thật Pexels (nhập từ khóa tiếng Anh)</option>
-            <option value="generate">🎨 AI tạo ảnh (nhập mô tả tiếng Anh)</option>
+            <option value="pexels-video">🎬 Video thật Pexels — NỀN TOÀN MÀN (từ khóa tiếng Anh)</option>
+            <option value="pexels">📷 Ảnh thật Pexels — khung ảnh gọn (từ khóa tiếng Anh)</option>
+            <option value="generate">🎨 AI tạo ảnh — khung ảnh gọn (mô tả tiếng Anh)</option>
             <option value="color">Màu</option>
             <option value="image">Ảnh (URL/file)</option>
-            <option value="video">Video</option>
+            <option value="video">Video (URL/file) — nền toàn màn</option>
           </select>
         </div>
         <div style="flex:2">
-          <label>Nguồn (mã màu #..., URL ảnh, hoặc images/ten.jpg)</label>
-          <input class="mediaSrc" placeholder="#1E2A4A hoặc URL ảnh" />
+          <label>Nguồn (từ khóa, mã màu #..., URL, hoặc images/ten.jpg)</label>
+          <input class="mediaSrc" placeholder="coding on laptop" />
         </div>
+      </div>
+      <div class="hint" style="margin-top:8px">
+        🎬 <b>Video</b> chạy full-bleed làm nền cả cảnh (đã tự nhuộm theo tông nền + phủ mưa nhị phân)
+        · 📷 <b>Ảnh</b> hiện trong khung gọn dưới tiêu đề.
       </div>
     </div>
   </div>
