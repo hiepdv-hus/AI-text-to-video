@@ -27,10 +27,12 @@ import { useDrift } from "./motion";
  * thứ vào nhau chỉ làm bẩn cảnh quay mà chẳng thêm được gì; để tách bạch thì mỗi cảnh
  * có một danh tính rõ ràng: hoặc là cảnh quay thật, hoặc là nền đồ hoạ.
  *
- * Ba lớp, theo đúng thứ tự — đây là phần quyết định "đẹp & đọc được":
- *   1. VIDEO    giảm bão hoà + tối nhẹ + xoá phông, phóng chậm và trôi ngang (Ken Burns).
- *   2. DUOTONE  nhuộm về tông của theme → mọi clip Pexels đều "cùng một bộ phim".
- *   3. SCRIM    gradient tối trên/dưới + vignette, chừa vùng giữa cho hình ảnh thở.
+ * Hai lớp, theo đúng thứ tự — đây là phần quyết định "đẹp & đọc được":
+ *   1. VIDEO    GIỮ NGUYÊN BẢN màu & độ sáng gốc (độc lập với tông theme), chỉ blur nhẹ
+ *               để "xoá phông", phóng chậm và trôi ngang (Ken Burns). Cố ý KHÔNG nhuộm
+ *               duotone / không chỉnh brightness theo theme để clip Pexels không bị
+ *               "đồng bộ" thành một mảng màu với nền tech.
+ *   2. SCRIM    gradient tối trên/dưới + vignette, chừa vùng giữa cho hình ảnh thở.
  */
 
 function resolveSrc(src: string): string {
@@ -118,9 +120,7 @@ export const SceneBackdrop: React.FC<{
         height: "100%",
         objectFit: media.fit,
         objectPosition: origin,
-        filter: p.isDark
-          ? `saturate(0.42) contrast(1.06) brightness(0.88) blur(${blur}px)`
-          : `saturate(0.5) brightness(1.02) blur(${blur}px)`,
+        filter: `blur(${blur}px)`,
       }}
     />
   );
@@ -131,21 +131,17 @@ export const SceneBackdrop: React.FC<{
 
   return (
     <AbsoluteFill style={{ backgroundColor: p.bg, overflow: "hidden" }}>
-      {/* isolate: giữ mix-blend-mode của lớp duotone chỉ tác động lên video, không lên nền chung. */}
-      <AbsoluteFill style={{ isolation: "isolate" }}>
-        <AbsoluteFill
-          style={{
-            transform: `scale(${scale}) translate(${driftX}px, ${driftY}px)`,
-            transformOrigin: origin,
-          }}
-        >
-          {loopFrames > 0 && loopFrames < durationInFrames ? (
-            <Loop durationInFrames={loopFrames}>{video}</Loop>
-          ) : (
-            video
-          )}
-        </AbsoluteFill>
-        <AbsoluteFill style={{ background: p.mediaTint, mixBlendMode: "color" }} />
+      <AbsoluteFill
+        style={{
+          transform: `scale(${scale}) translate(${driftX}px, ${driftY}px)`,
+          transformOrigin: origin,
+        }}
+      >
+        {loopFrames > 0 && loopFrames < durationInFrames ? (
+          <Loop durationInFrames={loopFrames}>{video}</Loop>
+        ) : (
+          video
+        )}
       </AbsoluteFill>
 
       <Scrim p={p} />

@@ -271,6 +271,13 @@ class GoogleProvider implements TTSProvider {
  */
 const PIPER_DIR = process.env.PIPER_DIR ?? path.join(process.cwd(), "tools", "piper");
 
+/**
+ * Khoảng lặng (giây) piper chèn SAU MỖI CÂU (mỗi dấu chấm/?/!). Mặc định của piper là 0.2
+ * — quá ngắn nên nghe "đọc như máy". Nâng lên ~0.45 để có nhịp thở giữa câu như người.
+ * Chỉnh nhanh không cần sửa code:  $env:PIPER_SENTENCE_SILENCE="0.6"; pnpm video render …
+ */
+export const PIPER_SENTENCE_SILENCE = process.env.PIPER_SENTENCE_SILENCE ?? "0.45";
+
 class PiperProvider implements TTSProvider {
   readonly name = "piper";
   readonly audioFormat = "wav" as const;
@@ -297,6 +304,8 @@ class PiperProvider implements TTSProvider {
       "espeak-ng-data",
       "--length_scale",
       lengthScale,
+      "--sentence_silence",
+      PIPER_SENTENCE_SILENCE,
       "--output_file",
       relOut,
     ];

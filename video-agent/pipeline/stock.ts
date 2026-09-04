@@ -1,6 +1,7 @@
 import { promises as fs, existsSync } from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 
 /**
  * stock.ts — lấy ẢNH và VIDEO THẬT từ Pexels (miễn phí, cần API key free: pexels.com/api).
@@ -112,6 +113,60 @@ export interface StockVideo {
   durationSec: number;
 }
 
+/** FPS đích khi chuẩn hoá clip — trùng với meta.fps mặc định của mọi spec (30). */
+const TARGET_FPS = 30;
+
+let ffmpegPathCache: string | null | undefined;
+/** Tìm ffmpeg trên máy (PATH hoặc biến FFMPEG_PATH). null = không có → bỏ chuẩn hoá. */
+function findFfmpeg(): string | null {
+  if (ffmpegPathCache !== undefined) return ffmpegPathCache;
+  const exe = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
+  const fromEnv = process.env.FFMPEG_PATH;
+  if (fromEnv && existsSync(fromEnv)) return (ffmpegPathCache = fromEnv);
+  for (const dir of (process.env.PATH ?? "").split(path.delimiter)) {
+    if (!dir) continue;
+    const p = path.join(dir, exe);
+    if (existsSync(p)) return (ffmpegPathCache = p);
+  }
+  return (ffmpegPathCache = null);
+}
+
+/**
+ * normalizeClip — re-encode clip Pexels về CFR sạch để Remotion decode chắc chắn.
+ *
+ * LÝ DO: nhiều clip Pexels tuy CFR nhưng có edit-list / timestamp bù trừ khiến
+ * OffthreadVideo báo "No frame found at position N" khi seek. Ép qua `fps=TARGET_FPS`
+ * + re-encode libx264 sẽ tái tạo lại toàn bộ timestamp từ 0, khớp đúng fps composition,
+ * loại mọi edit-list → không bao giờ hụt frame. Bỏ audio (nền video luôn muted).
+ *
+ * Trả true nếu chuẩn hoá thành công; false nếu không có ffmpeg / lỗi (giữ file gốc).
+ */
+function normalizeClip(input: string, output: string): boolean {
+  const ffmpeg = findFfmpeg();
+  if (!ffmpeg) {
+    console.warn(`[stock]   ⚠ không thấy ffmpeg → giữ clip gốc (có thể lỗi "no frame found"). Đặt FFMPEG_PATH nếu cần.`);
+    return false;
+  }
+  const r = spawnSync(
+    ffmpeg,
+    [
+      "-y",
+      "-i", input,
+      "-an",
+      "-vf", `fps=${TARGET_FPS}`,
+      "-c:v", "libx264",
+      "-pix_fmt", "yuv420p",
+      "-profile:v", "high",
+      "-preset", "veryfast",
+      "-crf", "20",
+      "-movflags", "+faststart",
+      output,
+    ],
+    { stdio: "ignore" },
+  );
+  return r.status === 0 && existsSync(output);
+}
+
 /**
  * fetchStockVideo — tìm & tải 1 clip thật từ Pexels.
  *
@@ -128,7 +183,12 @@ export async function fetchStockVideo(query: string, opts: StockOptions): Promis
   await fs.mkdir(CACHE_DIR, { recursive: true });
 
   const index = opts.index ?? 0;
-  const cacheKey = createHash("sha256").update(`video:${query}:${opts.orientation}:${index}`).digest("hex").slice(0, 20);
+  // "v2-cfr" trong key: đổi sơ đồ cache để clip CŨ (chưa chuẩn hoá CFR, hay lỗi "no frame
+  // found") bị bỏ qua và tải + chuẩn hoá lại.
+  const cacheKey = createHash("sha256")
+    .update(`video-v2-cfr:${query}:${opts.orientation}:${index}`)
+    .digest("hex")
+    .slice(0, 20);
   const cachePath = path.join(CACHE_DIR, `${cacheKey}.mp4`);
   const metaPath = path.join(CACHE_DIR, `${cacheKey}.json`);
   if (existsSync(cachePath) && existsSync(metaPath)) {
@@ -156,7 +216,17 @@ export async function fetchStockVideo(query: string, opts: StockOptions): Promis
   console.log(`[stock]   tải video Pexels "${query}" (${file.width}x${file.height}, ${video.duration}s)…`);
   const dl = await fetch(file.link);
   if (!dl.ok) throw new Error(`Tải video Pexels lỗi ${dl.status}`);
-  await fs.writeFile(cachePath, Buffer.from(await dl.arrayBuffer()));
+  const rawPath = path.join(CACHE_DIR, `${cacheKey}.raw.mp4`);
+  await fs.writeFile(rawPath, Buffer.from(await dl.arrayBuffer()));
+
+  // Chuẩn hoá về CFR sạch (khớp fps composition) để Remotion không hụt frame.
+  console.log(`[stock]   chuẩn hoá clip về CFR ${TARGET_FPS}fps…`);
+  if (normalizeClip(rawPath, cachePath)) {
+    await fs.rm(rawPath, { force: true });
+  } else {
+    // Không chuẩn hoá được (thiếu ffmpeg / lỗi) → dùng file gốc để vẫn render được.
+    await fs.rename(rawPath, cachePath);
+  }
 
   // Pexels có lúc trả duration = 0; khi đó coi như không biết (0) và bỏ lặp.
   const durationSec = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0;

@@ -9,7 +9,7 @@ import {
   type WordTiming,
 } from "../src/schema.ts";
 import { normalizeVietnamese, restoreDisplayWords, mergePronunciations } from "./normalize.ts";
-import { getProvider, getAudioDurationSec } from "./tts.ts";
+import { getProvider, getAudioDurationSec, PIPER_SENTENCE_SILENCE } from "./tts.ts";
 import { alignWords } from "./align.ts";
 import { cacheKey, readCache, writeCache } from "./cache.ts";
 import { downloadAsset } from "./assets.ts";
@@ -85,9 +85,12 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
     });
 
     const ext = provider.audioFormat; // "wav" | "mp3"
+    // Với piper, khoảng lặng giữa câu là một phần "chất giọng" → đưa vào khóa cache để đổi
+    // PIPER_SENTENCE_SILENCE là tự re-TTS, không dính audio cũ đọc liền.
+    const silenceSalt = provider.name === "piper" ? `:ss${PIPER_SENTENCE_SILENCE}` : "";
     const key = cacheKey(
       normalized,
-      `${provider.name}:${spec.voice.voiceId}:p${spec.voice.pitch ?? 0}`,
+      `${provider.name}:${spec.voice.voiceId}:p${spec.voice.pitch ?? 0}${silenceSalt}`,
       spec.voice.speed,
     );
     const audioRel = `audio/${slug}/${scene.id}.${ext}`;

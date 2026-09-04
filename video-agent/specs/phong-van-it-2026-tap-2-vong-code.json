@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "title": "Phỏng vấn IT 2026 — Tập 2: Vòng code sao cho đậu",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.8,
+    "pitch": 4,
+    "pronunciations": { "IT": "ai ti", "AI": "ây ai", "code": "cốt", "test": "tét" }
+  },
+  "captions": { "style": "clean-minimal", "position": "lower-third", "maxWordsPerLine": 4, "highlightColor": "#ff3366" },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Vòng code không phải để xem bạn giỏi thuật toán. Nó xem cách bạn tư duy và xử lý vấn đề.",
+      "layout": "hook",
+      "heading": "VÒNG CODE THỰC SỰ TEST GÌ?",
+      "emphasis": ["THỰC SỰ"],
+      "transitionIn": "fade",
+      "tailPadSec": 0.4,
+      "media": { "kind": "pexels-video", "src": "hands typing keyboard code night", "focus": "center" }
+    },
+    {
+      "id": "s2",
+      "narration": "Nhà tuyển dụng chấm 3 thứ: bạn hỏi rõ đề chưa, code có sạch không, và có tự kiểm thử không.",
+      "layout": "graphic",
+      "heading": "3 tiêu chí chấm điểm",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Thứ tự đúng để ghi điểm",
+        "labels": ["Hỏi rõ đề bài trước", "Code sạch, đặt tên rõ", "Tự viết test case"]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Đừng nhảy vào code ngay. Hãy viết hàm nhỏ, tên rõ ràng, để người khác đọc là hiểu.",
+      "layout": "code",
+      "heading": "Code sạch ăn điểm",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.4,
+      "code": "function isValid(user) {\n  if (!user.email) return false\n  return user.age >= 18\n}",
+      "codeTitle": "solution.js",
+      "codeLang": "javascript",
+      "codeHighlight": [1],
+      "output": "→ Tên hàm rõ nghĩa, dễ đọc, dễ chấm điểm"
+    },
+    {
+      "id": "s4",
+      "narration": "Khi bí, đừng im lặng. Nói to hướng đang nghĩ, nhà tuyển dụng sẽ gợi ý cho bạn.",
+      "layout": "graphic",
+      "heading": "Bí thì phải nói ra",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Tư duy thành tiếng luôn ăn điểm",
+        "labels": ["u:Em nghĩ nên dùng hash map cho nhanh", "a:Ý hay, cứ thử triển khai xem"]
+      }
+    },
+    {
+      "id": "s5",
+      "narration": "Tư duy rõ ràng quan trọng hơn code hoàn hảo. Tập ba nói về câu hỏi AI, đừng bỏ lỡ.",
+      "layout": "cta",
+      "heading": "Xem tiếp Tập 3 về AI 👇",
+      "transitionIn": "zoom",
+      "tailPadSec": 0.5,
+      "media": { "kind": "pexels-video", "src": "software developer team meeting office", "focus": "center" }
+    }
+  ]
+}

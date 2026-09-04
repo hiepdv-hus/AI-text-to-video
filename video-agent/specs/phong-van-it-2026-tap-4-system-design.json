@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "title": "Phỏng vấn IT 2026 — Tập 4: System Design đừng sợ",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.8,
+    "pitch": 4,
+    "pronunciations": {
+      "IT": "ai ti",
+      "System Design": "sít tầm đi zai",
+      "Junior": "chu ni ơ",
+      "Facebook": "phây búc",
+      "cache": "két"
+    }
+  },
+  "captions": { "style": "clean-minimal", "position": "lower-third", "maxWordsPerLine": 4, "highlightColor": "#ff3366" },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "System Design làm bạn sợ? Với Junior, họ không bắt bạn thiết kế cả Facebook đâu.",
+      "layout": "hook",
+      "heading": "SYSTEM DESIGN ĐỪNG SỢ",
+      "emphasis": ["ĐỪNG SỢ"],
+      "transitionIn": "fade",
+      "tailPadSec": 0.4,
+      "media": { "kind": "pexels-video", "src": "server room data center lights", "focus": "center" }
+    },
+    {
+      "id": "s2",
+      "narration": "Chỉ cần đi theo 3 bước: làm rõ yêu cầu, vẽ các khối chính, rồi bàn về mở rộng hệ thống.",
+      "layout": "graphic",
+      "heading": "Khung trả lời 3 bước",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Cứ theo khung là không lạc",
+        "labels": ["Làm rõ yêu cầu & quy mô", "Vẽ các khối chính", "Bàn cách mở rộng"]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Nắm vững vài khái niệm lõi là đủ tự tin: cân bằng tải, cache, và cơ sở dữ liệu.",
+      "layout": "graphic",
+      "heading": "3 khái niệm phải nắm",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Đủ dùng cho vòng Junior đến Mid",
+        "labels": ["⚖️ Cân bằng tải", "⚡ Cache", "🗄️ Cơ sở dữ liệu"]
+      }
+    },
+    {
+      "id": "s4",
+      "narration": "Ví dụ, thêm cache thì thời gian phản hồi giảm từ 800 mili giây xuống còn 50. Rất ấn tượng.",
+      "layout": "graphic",
+      "heading": "Vì sao cần cache",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "bar-chart",
+        "subtitle": "Thời gian phản hồi trung bình",
+        "labels": ["Không cache:800 ms", "Có cache:50 ms"]
+      }
+    },
+    {
+      "id": "s5",
+      "narration": "Trả lời có cấu trúc là bạn đã hơn nửa ứng viên. Tập cuối: bí quyết deal lương.",
+      "layout": "cta",
+      "heading": "Tập cuối: Deal lương 👇",
+      "transitionIn": "zoom",
+      "tailPadSec": 0.5,
+      "media": { "kind": "pexels-video", "src": "city skyline night aerial", "focus": "center" }
+    }
+  ]
+}

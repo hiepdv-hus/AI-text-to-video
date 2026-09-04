@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "title": "Phỏng vấn IT 2026 — Tập 3: Câu hỏi về AI không thể tránh",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.8,
+    "pitch": 4,
+    "pronunciations": {
+      "IT": "ai ti",
+      "AI": "ây ai",
+      "AI Agent": "ây ai ây dần",
+      "code": "cốt",
+      "codebase": "cốt bây",
+      "test": "tét",
+      "Pull Request": "pun ri quét",
+      "review": "ri viu",
+      "repo": "rê pô"
+    }
+  },
+  "captions": { "style": "clean-minimal", "position": "lower-third", "maxWordsPerLine": 4, "highlightColor": "#ff3366" },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Năm 2026, không biết dùng AI là bị loại ngay vòng đầu. Đây là câu họ chắc chắn sẽ hỏi.",
+      "layout": "hook",
+      "heading": "CÂU HỎI AI KHÔNG THỂ TRÁNH",
+      "emphasis": ["AI"],
+      "transitionIn": "fade",
+      "tailPadSec": 0.4,
+      "media": { "kind": "pexels-video", "src": "artificial intelligence technology network", "focus": "center" }
+    },
+    {
+      "id": "s2",
+      "narration": "Câu kinh điển: bạn dùng AI thế nào trong công việc? Đừng trả lời chung chung cho có.",
+      "layout": "graphic",
+      "heading": "Họ sẽ hỏi thế này",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Câu hỏi mở, dễ lộ trình độ",
+        "labels": ["a:Bạn dùng AI vào việc gì khi code?", "u:Em để AI đọc repo và tự sửa bug"]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Trả lời ghi điểm phải cụ thể: dùng AI Agent đọc codebase, tự viết test, rồi tạo Pull Request.",
+      "layout": "graphic",
+      "heading": "Trả lời cụ thể, có ví dụ",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Quy trình Agentic thực tế",
+        "labels": ["🔍 Đọc & hiểu codebase", "🧪 Tự sinh unit test", "🔀 Tạo Pull Request"]
+      }
+    },
+    {
+      "id": "s4",
+      "narration": "Nhưng phải biết giới hạn. AI cũng sai, nên bạn luôn phải review lại code nó viết.",
+      "layout": "graphic",
+      "heading": "Biết giới hạn của AI",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Điểm cộng cho ứng viên chín chắn",
+        "labels": ["Luôn review code AI viết", "Tự chịu trách nhiệm kết quả", "Không tin AI mù quáng"]
+      }
+    },
+    {
+      "id": "s5",
+      "narration": "Hiểu AI sâu là lợi thế lớn nhất năm 2026. Tập bốn về System Design đang chờ bạn.",
+      "layout": "cta",
+      "heading": "Xem tiếp Tập 4 👇",
+      "transitionIn": "zoom",
+      "tailPadSec": 0.5,
+      "media": { "kind": "pexels-video", "src": "futuristic digital data network", "focus": "center" }
+    }
+  ]
+}

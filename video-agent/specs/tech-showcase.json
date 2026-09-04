@@ -8,41 +8,42 @@
     "locale": "vi-VN",
     "background": "tech"
   },
-  "voice": {
-    "provider": "piper",
-    "voiceId": "tranthanh3870",
-    "speed": 2,
-    "pitch": 10
-  },
-  "captions": {
-    "style": "tech",
-    "position": "lower-third",
-    "maxWordsPerLine": 4,
-    "highlightColor": "#3BE8A0"
-  },
   "scenes": [
     {
       "id": "s1",
       "narration": "Chín mươi phần trăm lập trình viên đang viết code chậm hơn mức cần thiết. Và họ không hề biết.",
       "layout": "hook",
       "heading": "CODE CHẬM VÌ ĐÂU?",
-      "emphasis": ["CHẬM"],
+      "media": {
+        "kind": "pexels-video",
+        "src": "programmer working late night neon",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "CHẬM"
+      ],
       "transitionIn": "fade",
-      "tailPadSec": 0.4,
-      "media": { "kind": "pexels-video", "src": "programmer working late night neon" }
+      "tailPadSec": 0.35
     },
     {
       "id": "s2",
       "narration": "Đây là con số đo được trên cùng một dự án, trước và sau khi tối ưu.",
       "layout": "graphic",
       "heading": "Đo thật, đừng đoán",
-      "emphasis": ["Đo thật"],
+      "emphasis": [
+        "Đo thật"
+      ],
       "transitionIn": "slide-up",
-      "tailPadSec": 0.4,
+      "tailPadSec": 0.35,
       "graphic": {
         "kind": "bar-chart",
         "subtitle": "Thời gian build (giây)",
-        "labels": ["Trước tối ưu:48 s", "Sau bước 1:26 s", "Sau bước 2:9 s"]
+        "labels": [
+          "Trước tối ưu:48 s",
+          "Sau bước 1:26 s",
+          "Sau bước 2:9 s"
+        ]
       }
     },
     {
@@ -50,9 +51,14 @@
       "narration": "Ba thứ ăn hết thời gian của bạn, xếp theo mức độ nghiêm trọng.",
       "layout": "graphic",
       "heading": "Ba thủ phạm",
+      "media": {
+        "kind": "pexels-video",
+        "src": "dark abstract smoke motion background",
+        "fit": "cover",
+        "focus": "center"
+      },
       "transitionIn": "slide-left",
-      "tailPadSec": 0.4,
-      "media": { "kind": "pexels-video", "src": "dark abstract smoke motion background" },
+      "tailPadSec": 0.35,
       "graphic": {
         "kind": "feature-cards",
         "labels": [
@@ -61,62 +67,18 @@
           "🐌 Gọi API trong vòng lặp"
         ]
       }
-    },
-    {
-      "id": "s4",
-      "narration": "Gộp lại chỉ còn một lần duyệt. Kết quả vẫn thế, mà nhanh hơn hẳn.",
-      "layout": "code",
-      "heading": "Bước 1 — Gộp một lần duyệt",
-      "transitionIn": "slide-left",
-      "tailPadSec": 0.4,
-      "code": "const total = items\n  .filter(i => i.active)\n  .map(i => i.price)\n  .reduce((a, b) => a + b, 0);",
-      "codeTitle": "total.js",
-      "codeLang": "javascript",
-      "codeHighlight": [2, 3, 4],
-      "output": "→ 1250"
-    },
-    {
-      "id": "s5",
-      "narration": "Quy trình tối ưu đúng chỉ gồm ba bước, và bước đầu tiên là quan trọng nhất.",
-      "layout": "graphic",
-      "heading": "Quy trình đúng",
-      "transitionIn": "slide-up",
-      "tailPadSec": 0.4,
-      "graphic": {
-        "kind": "steps",
-        "subtitle": "Làm sai thứ tự là mất công",
-        "labels": ["Đo bằng profiler trước", "Sửa đúng điểm nghẽn", "Đo lại để xác nhận"]
-      }
-    },
-    {
-      "id": "s6",
-      "narration": "Toàn bộ quá trình chỉ mất mười lăm phút, chia theo từng mốc như sau.",
-      "layout": "graphic",
-      "heading": "Mười lăm phút",
-      "emphasis": ["Mười lăm phút"],
-      "transitionIn": "slide-left",
-      "tailPadSec": 0.4,
-      "media": { "kind": "pexels-video", "src": "close up hands typing mechanical keyboard" },
-      "graphic": {
-        "kind": "highlight-timeline",
-        "subtitle": "Mốc thời gian thực tế",
-        "timestamps": ["00:00", "00:04", "00:11", "00:15"],
-        "labels": [
-          "⏱ Chạy profiler, ghi lại số",
-          "🔍 Khoanh vùng ba hàm chậm nhất",
-          "🛠 Sửa vòng lặp và import thừa",
-          "✅ Build lại: 48 giây còn 9 giây"
-        ]
-      }
-    },
-    {
-      "id": "s7",
-      "narration": "Lưu lại để dùng khi cần, và theo dõi để xem phần hai nhé.",
-      "layout": "cta",
-      "heading": "Lưu lại + Theo dõi",
-      "transitionIn": "zoom",
-      "tailPadSec": 0.5,
-      "media": { "kind": "pexels-video", "src": "city night lights bokeh timelapse" }
     }
-  ]
+  ],
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 2,
+    "pitch": 5
+  },
+  "captions": {
+    "style": "chip-glow",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#692f98"
+  }
 }

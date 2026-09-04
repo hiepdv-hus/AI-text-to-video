@@ -23,13 +23,13 @@ export const tokens = {
     lineHeight: 1.22,
   },
   size: {
-    // px trong khung 1080x1920. (Đã giảm ~12% cho gọn, đỡ chiếm chỗ.)
-    hook: 116,
-    heading: 80,
-    bullet: 52,
-    caption: 66,
-    captionSmall: 54,
-    cta: 82,
+    // px trong khung 1080x1920. (Đã giảm thêm ~14% cho gọn, đỡ chiếm chỗ.)
+    hook: 100,
+    heading: 68,
+    bullet: 48,
+    caption: 56,
+    captionSmall: 46,
+    cta: 70,
   },
   weight: {
     black: 800,

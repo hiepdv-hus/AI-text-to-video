@@ -1,0 +1,255 @@
+{
+  "meta": {
+    "title": "Phỏng vấn IT 2026 — Tập 1: 5 sai lầm khiến bạn trượt",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Bạn học JavaScript, React, Node.js, làm CV nhìn cũng ra gì lắm. Nhưng đi phỏng vấn vẫn tạch. Không hẳn vì bạn kém. Có thể bạn đang mắc 5 lỗi này. Và lỗi cuối cùng, nhiều người học IT mấy năm vẫn dính.",
+      "layout": "hook",
+      "heading": "5 SAI LẦM KHIẾN BẠN TRƯỢT",
+      "media": {
+        "kind": "pexels-video",
+        "src": "business job interview office",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "5 SAI LẦM",
+        "vẫn tạch"
+      ],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Lỗi 1: học vẹt lý thuyết. Nhà tuyển dụng hỏi closure trong JavaScript là gì, bạn đọc vanh vách định nghĩa. Nhưng hỏi tiếp em đã dùng nó ở đâu, thì bạn đứng hình. Vấn đề không phải bạn không thuộc định nghĩa, mà là bạn chưa hiểu nó dùng để làm gì.",
+      "layout": "graphic",
+      "heading": "LỖI 1: HỌC VẸT",
+      "emphasis": [
+        "HỌC VẸT"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Phỏng vấn JavaScript",
+        "labels": [
+          "a:Em giải thích closure trong JavaScript đi",
+          "u:Là hàm truy cập được biến ở scope bên ngoài",
+          "a:Vậy em đã dùng nó ở đâu chưa?",
+          "u:Dạ... em chưa dùng bao giờ"
+        ]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Cách sửa: với mỗi kiến thức, tự hỏi ba câu. Nó là gì, dùng để giải quyết vấn đề gì, và tôi đã dùng nó ở đâu. Ví dụ closure giúp một hàm nhớ được dữ liệu bên ngoài. Bạn thử viết hàm createCounter, mỗi lần gọi counter thì số tăng dần, rồi tự giải thích lại bằng lời của mình.",
+      "layout": "code",
+      "heading": "Sửa lỗi 1 — Closure thực chiến",
+      "emphasis": [
+        "Closure"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "code": "function createCounter() {\n  let count = 0;\n  return () => ++count;\n}\nconst counter = createCounter();\ncounter(); counter(); counter();",
+      "codeTitle": "counter.js",
+      "codeHighlight": [
+        3
+      ],
+      "output": "counter() → 1, 2, 3   (count được 'nhớ' qua mỗi lần gọi)"
+    },
+    {
+      "id": "s4",
+      "narration": "Lỗi 2: không có project thật. Nhà tuyển dụng hỏi bạn làm dự án gì, bạn nói làm website bán hàng. Hỏi tiếp em phụ trách phần nào, bạn nói làm frontend. Hỏi tiếp nếu API trả về lỗi thì xử lý thế nào, bạn bắt đầu kể chuyện thời tiết. Project không cần to, nhưng bạn phải thật sự hiểu nó.",
+      "layout": "graphic",
+      "heading": "LỖI 2: KHÔNG CÓ PROJECT",
+      "emphasis": [
+        "KHÔNG CÓ PROJECT"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Có project nhưng không hiểu sâu",
+        "labels": [
+          "a:Trong project đó em phụ trách phần nào?",
+          "u:Dạ em làm frontend",
+          "a:Nếu API trả về lỗi thì em xử lý sao?",
+          "u:Dạ... cái đó em chưa rõ"
+        ]
+      }
+    },
+    {
+      "id": "s5",
+      "narration": "Cách sửa: làm một project nhỏ nhưng làm cho ra hồn. Ví dụ app quản lý công việc, có đăng nhập, gọi API, loading, và xử lý lỗi đàng hoàng. Sau đó tự trả lời được vì sao chọn React, vì sao tách component như vậy. Đừng chỉ biết chạy project, hãy hiểu vì sao code của mình chạy được.",
+      "layout": "code",
+      "heading": "Sửa lỗi 2 — Project có chiều sâu",
+      "emphasis": [
+        "chiều sâu"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "code": "async function loadTasks() {\n  try {\n    setLoading(true);\n    setTasks(await api.getTasks());\n  } catch {\n    setError(\"Tải thất bại\");\n  } finally {\n    setLoading(false);\n  }\n}",
+      "codeTitle": "loadTasks.js",
+      "codeHighlight": [
+        5,
+        6
+      ],
+      "output": "Có loading + xử lý lỗi → bạn hiểu việc mình làm"
+    },
+    {
+      "id": "s6",
+      "narration": "Lỗi 3: trả lời lan man. Nhà tuyển dụng hỏi em xử lý race condition trong React thế nào, bạn lại kể từ lúc học HTML, CSS, rồi JavaScript, rồi Node.js. Interviewer lúc đó chắc đang nghĩ: anh hỏi race condition, không hỏi tiểu sử. Câu trả lời tốt không phải câu dài, mà là câu đúng trọng tâm.",
+      "layout": "graphic",
+      "heading": "LỖI 3: TRẢ LỜI LAN MAN",
+      "emphasis": [
+        "LAN MAN"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Trả lời dài không bằng đúng trọng tâm",
+        "labels": [
+          "a:Em xử lý race condition trong React thế nào?",
+          "u:Dạ đầu tiên em học HTML, CSS, rồi JavaScript...",
+          "a:Anh hỏi race condition, không hỏi tiểu sử"
+        ]
+      }
+    },
+    {
+      "id": "s7",
+      "narration": "Cách sửa: dùng công thức ba bước. Trả lời trực tiếp, giải thích ngắn gọn, rồi đưa ví dụ. Race condition xảy ra khi nhiều request chạy cùng lúc và trả về sai thứ tự. Bạn xử lý bằng cách bỏ qua kết quả không còn hợp lệ. Ví dụ người dùng click ba bài liên tục thì chỉ hiển thị bài cuối cùng.",
+      "layout": "code",
+      "heading": "Sửa lỗi 3 — Chặn race condition",
+      "emphasis": [
+        "race condition"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "code": "useEffect(() => {\n  let active = true;\n  getPost(id).then((data) => {\n    if (active) setPost(data);\n  });\n  return () => { active = false; };\n}, [id]);",
+      "codeTitle": "usePost.js",
+      "codeHighlight": [
+        6
+      ],
+      "output": "Click 3 bài liên tục → chỉ hiển thị dữ liệu bài cuối"
+    },
+    {
+      "id": "s8",
+      "narration": "Lỗi 4: không hỏi ngược nhà tuyển dụng. Cuối buổi họ hỏi em có câu hỏi gì không, bạn nói dạ không, thế là hết. Nhưng đây là lúc bạn tìm hiểu công việc thật sự. Những câu hỏi đúng không làm bạn mất điểm, mà cho thấy bạn đang nghiêm túc với công việc.",
+      "layout": "graphic",
+      "heading": "LỖI 4: KHÔNG HỎI NGƯỢC",
+      "emphasis": [
+        "KHÔNG HỎI NGƯỢC"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Bỏ lỡ cơ hội ghi điểm",
+        "labels": [
+          "a:Cuối buổi rồi, em có câu hỏi gì không?",
+          "u:Dạ em không có câu hỏi gì ạ",
+          "a:Ok, vậy buổi phỏng vấn kết thúc tại đây"
+        ]
+      }
+    },
+    {
+      "id": "s9",
+      "narration": "Cách sửa: chuẩn bị sẵn ba câu hỏi trước khi đi phỏng vấn. Một câu về công việc, một câu về team, một câu về kỳ vọng của công ty. Ví dụ trong ba tháng đầu công ty kỳ vọng em đạt được điều gì. Phỏng vấn là hai bên tìm hiểu nhau, không phải chỉ có bạn bị hỏi.",
+      "layout": "graphic",
+      "heading": "SỬA LỖI 4: HỎI NGƯỢC",
+      "emphasis": [
+        "HỎI NGƯỢC"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Chuẩn bị sẵn 3 câu hỏi",
+        "labels": [
+          "Team đang dùng công nghệ gì?",
+          "3 tháng đầu em cần đạt gì?",
+          "Quy trình review code ra sao?"
+        ]
+      }
+    },
+    {
+      "id": "s10",
+      "narration": "Lỗi 5: mù tịt về AI trong công việc. Không phải bạn phải biết train model hay xây ChatGPT. Nhưng nếu là developer năm 2026 mà chưa từng dùng AI để hỗ trợ code, debug, hay viết test, thì bạn đang tự bỏ qua một công cụ rất mạnh. Nếu bị hỏi mà trả lời em chưa dùng bao giờ, thì hơi phí.",
+      "layout": "graphic",
+      "heading": "LỖI 5: MÙ TỊT VỀ AI",
+      "emphasis": [
+        "MÙ TỊT"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Bỏ qua công cụ mạnh nhất 2026",
+        "labels": [
+          "a:Trong công việc em dùng AI thế nào?",
+          "u:Dạ em chưa dùng AI bao giờ ạ",
+          "a:Năm 2026 rồi, hơi tiếc đấy"
+        ]
+      }
+    },
+    {
+      "id": "s11",
+      "narration": "Cách sửa: chọn một việc hằng ngày và dùng AI hỗ trợ. Có đoạn code bị lỗi, đừng chỉ hỏi sửa giúp em. Hãy nói rõ: đây là code React lỗi khi gọi API, phân tích nguyên nhân, chỉ cách debug, và giải thích vì sao sửa vậy là đúng. AI không thay bạn hiểu code, nó giúp bạn học nhanh hơn nếu bạn biết đặt câu hỏi.",
+      "layout": "graphic",
+      "heading": "SỬA LỖI 5: HỎI AI ĐÚNG CÁCH",
+      "emphasis": [
+        "ĐÚNG CÁCH"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Prompt tệ vs prompt tốt",
+        "labels": [
+          "u:Sửa giúp em cái này với",
+          "a:Thiếu ngữ cảnh, mình khó giúp chính xác",
+          "u:Code React lỗi khi gọi API. Phân tích nguyên nhân và cách debug giúp mình",
+          "a:Rõ rồi! Nguyên nhân là state cập nhật sau khi component unmount..."
+        ]
+      }
+    },
+    {
+      "id": "s12",
+      "narration": "Tóm lại, năm lỗi này đều sửa được, nhưng phải sửa bằng luyện tập thật. Học kiến thức thì phải biết dùng, làm project thì phải hiểu, trả lời thì đúng trọng tâm, và đừng ngại hỏi ngược. Tập 2 mình sẽ làm một buổi phỏng vấn code giả lập: interviewer hỏi gì, ứng viên trả lời ra sao, và sửa từng câu thế nào. Theo dõi để xem nhé.",
+      "layout": "cta",
+      "heading": "TẬP 2: PHỎNG VẤN CODE 👇",
+      "media": {
+        "kind": "pexels-video",
+        "src": "programmer working computer office",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "TẬP 2"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.8,
+    "pitch": 5
+  },
+  "captions": {
+    "style": "chip-glow",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#ff3366"
+  }
+}

@@ -2,7 +2,7 @@ import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { BuiltScene } from "../schema";
 import { tokens } from "../theme/tokens";
-import { useTheme, isTech, type Palette } from "../theme/claude";
+import { useTheme, type Palette } from "../theme/claude";
 import { FONT_FAMILY } from "./fonts";
 import { EMOJI_FAMILY } from "./fontsEmoji";
 import { MONO_FAMILY } from "./fontsMono";
@@ -38,22 +38,12 @@ interface Chrome {
   backdrop: string;
 }
 
-/** Chrome cửa sổ theo theme. Tech = kính mờ xanh; còn lại = one-dark-pro. */
-function chromeFor(p: Palette): Chrome {
-  if (isTech(p)) {
-    return {
-      windowBg: "rgba(6,17,22,0.86)",
-      titleBg: "rgba(4,12,16,0.92)",
-      border: p.cardBorder,
-      gutter: "rgba(139,169,162,0.75)",
-      highlightBar: p.accentSoft,
-      accent: p.accent,
-      consoleBg: "rgba(4,12,16,0.9)",
-      consoleText: p.accent,
-      shadow: `${p.cardShadow}, ${p.glow}`,
-      backdrop: p.cardBackdrop,
-    };
-  }
+/**
+ * Chrome cửa sổ code — LUÔN dùng one-dark-pro ĐẶC, rõ nét (giao diện VS Code kinh điển).
+ * Cố ý KHÔNG dùng biến thể "kính mờ" theo theme tech: nền trong mờ tuy đẹp nhưng hoà vào
+ * mưa nhị phân + video nền làm chữ code khó đọc. Cửa sổ code cần nổi bật, tương phản cao.
+ */
+function chromeFor(_p: Palette): Chrome {
   return {
     windowBg: "#282c34",
     titleBg: "#21252b",

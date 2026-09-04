@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "title": "Deploy Video Online",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 2,
+    "pitch": 10
+  },
+  "captions": {
+    "style": "tech",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#3BE8A0"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Bạn render video xong nhưng nó nằm chết trong máy. Đưa nó lên mạng miễn phí chỉ mất năm phút.",
+      "layout": "hook",
+      "heading": "VIDEO LÊN MẠNG FREE",
+      "emphasis": ["FREE"],
+      "transitionIn": "fade",
+      "tailPadSec": 0.4,
+      "media": { "kind": "pexels-video", "src": "server data center glowing lights" }
+    },
+    {
+      "id": "s2",
+      "narration": "Cách rẻ nhất là host file MP4 như một file tĩnh, đẩy lên GitHub rồi để Vercel tự deploy.",
+      "layout": "graphic",
+      "heading": "Kiến trúc đơn giản",
+      "emphasis": ["file tĩnh"],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.4,
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Ba mảnh ghép",
+        "labels": ["Video MP4 đã render", "GitHub chứa code + video", "Vercel serve qua CDN"]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Nhớ ba giới hạn này trước khi làm, kẻo push lên rồi bị chặn.",
+      "layout": "graphic",
+      "heading": "Ba giới hạn cần nhớ",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.4,
+      "media": { "kind": "pexels-video", "src": "dark abstract warning red motion background" },
+      "graphic": {
+        "kind": "feature-cards",
+        "labels": [
+          "📦 GitHub: mỗi file tối đa 100MB",
+          "📊 Vercel Free: 100GB băng thông một tháng",
+          "🎬 Video nặng thì dùng Cloudflare R2 hoặc Bunny"
+        ]
+      }
+    },
+    {
+      "id": "s4",
+      "narration": "Tạo thư mục deploy riêng, copy video vào, rồi thêm một file cấu hình Vercel nhỏ.",
+      "layout": "code",
+      "heading": "Bước 1 — Chuẩn bị file",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.4,
+      "code": "{\n  \"headers\": [{\n    \"source\": \"/videos/(.*).mp4\",\n    \"headers\": [\n      { \"key\": \"Cache-Control\", \"value\": \"public, max-age=31536000\" },\n      { \"key\": \"Accept-Ranges\", \"value\": \"bytes\" }\n    ]\n  }]\n}",
+      "codeTitle": "vercel.json",
+      "codeLang": "json",
+      "codeHighlight": [5, 6],
+      "output": "→ video stream mượt, cache CDN"
+    },
+    {
+      "id": "s5",
+      "narration": "Đẩy toàn bộ lên GitHub chỉ với bốn dòng lệnh quen thuộc.",
+      "layout": "code",
+      "heading": "Bước 2 — Push GitHub",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.4,
+      "code": "git init\ngit add .\ngit commit -m \"add videos\"\ngh repo create video-online \\\n  --public --source=. --push",
+      "codeTitle": "terminal",
+      "codeLang": "bash",
+      "codeHighlight": [4, 5],
+      "output": "→ repo đã lên GitHub"
+    },
+    {
+      "id": "s6",
+      "narration": "Vào Vercel, import repo, chọn Static rồi bấm Deploy. Từ giờ mỗi lần push là tự deploy lại.",
+      "layout": "graphic",
+      "heading": "Bước 3 — Nối Vercel",
+      "emphasis": ["tự deploy lại"],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.4,
+      "media": { "kind": "pexels-video", "src": "close up hands typing mechanical keyboard" },
+      "graphic": {
+        "kind": "highlight-timeline",
+        "subtitle": "Từ push tới link online",
+        "timestamps": ["00:00", "00:01", "00:03", "00:05"],
+        "labels": [
+          "🔗 vercel.com/new, import repo",
+          "⚙️ Framework: Other (Static)",
+          "🚀 Bấm Deploy",
+          "✅ Nhận link video-online.vercel.app"
+        ]
+      }
+    },
+    {
+      "id": "s7",
+      "narration": "Xong. Video của bạn giờ có link chia sẻ được, tự cập nhật mỗi lần push. Theo dõi để xem phần tự động hóa nhé.",
+      "layout": "cta",
+      "heading": "Lưu lại + Theo dõi",
+      "transitionIn": "zoom",
+      "tailPadSec": 0.5,
+      "media": { "kind": "pexels-video", "src": "city night lights bokeh timelapse" }
+    }
+  ]
+}

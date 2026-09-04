@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "title": "Stop Prompting Start Agentic Coding",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Cách bạn dùng AI coding đã lỗi thời rồi. Ngừng copy paste prompt, hãy dùng Agentic Workflow.",
+      "layout": "hook",
+      "heading": "NGỪNG COPY PASTE PROMPT",
+      "media": {
+        "kind": "pexels-video",
+        "src": "artificial intelligence technology network",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "NGỪNG COPY"
+      ],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Thay vì hỏi từng câu, cho AI truy cập thẳng Terminal và Git Repo để nó tự phân tích và tạo Pull Request.",
+      "layout": "graphic",
+      "heading": "Agentic Workflow là gì?",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Quy trình AI Agent tự động",
+        "labels": [
+          "Đọc cấu trúc Repo",
+          "Tự chạy Test & Debug",
+          "Tạo PR tự động"
+        ]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Dùng lệnh CLI ngắn để giao nhiệm vụ trực tiếp cho AI Agent chạy ngay trong máy.",
+      "layout": "code",
+      "heading": "Ví dụ với Claude CLI",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "code": "claude \"Fix build errors in auth flow and update unit tests\"",
+      "codeTitle": "terminal",
+      "codeHighlight": [
+        1
+      ],
+      "output": "→ AI đọc log, sửa code, chạy lại test thành công"
+    },
+    {
+      "id": "s4",
+      "narration": "Lập trình viên hiện đại không còn viết từng dòng code, mà là người quản lý các AI Agent.",
+      "layout": "cta",
+      "heading": "Bạn đã thử Agentic chưa?",
+      "media": {
+        "kind": "pexels-video",
+        "src": "cyberpunk neon city night",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.8,
+    "pitch": 4
+  },
+  "captions": {
+    "style": "clean-minimal",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#ff3366"
+  }
+}

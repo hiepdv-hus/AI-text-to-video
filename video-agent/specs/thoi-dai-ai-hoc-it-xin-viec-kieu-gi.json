@@ -212,7 +212,7 @@
     "provider": "edge",
     "voiceId": "vi-VN-NamMinhNeural",
     "speed": 1.5,
-    "pitch": 10
+    "pitch": 5
   },
   "captions": {
     "style": "chip-glow",

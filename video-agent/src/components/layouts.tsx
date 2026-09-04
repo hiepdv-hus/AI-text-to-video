@@ -275,7 +275,7 @@ export const CompareLayout: React.FC<LayoutProps> = ({ scene, height }) => {
     >
       {scene.heading && (
         <div style={{ marginBottom: 6 }}>
-          <GlowHeading text={scene.heading} emphasis={scene.emphasis} size={72} />
+          <GlowHeading text={scene.heading} emphasis={scene.emphasis} size={62} />
         </div>
       )}
       {card(left, tokens.color.bad, "✕", eL, -50)}
