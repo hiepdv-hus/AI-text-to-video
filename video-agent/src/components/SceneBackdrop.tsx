@@ -23,9 +23,10 @@ import { useDrift } from "./motion";
  *                             (xem `Framed` ở ClaudeLayouts) để giữ bố cục sạch.
  *   không có media          → trong suốt, để backdrop chung (mưa nhị phân) hiện xuyên qua.
  *
- * Cảnh CÓ VIDEO thì video là nền DUY NHẤT — không phủ mưa nhị phân lên nữa. Trộn hai
- * thứ vào nhau chỉ làm bẩn cảnh quay mà chẳng thêm được gì; để tách bạch thì mỗi cảnh
- * có một danh tính rõ ràng: hoặc là cảnh quay thật, hoặc là nền đồ hoạ.
+ * Cảnh CÓ VIDEO: video là nền chính, và vì lớp này ĐỤC nên nó che mất mưa nhị phân mà
+ * VideoComposition vẽ chung. SceneWrapper bù lại bằng `TechBackground variant="overlay"`
+ * đặt ngay sau component này — mưa rất mờ, chỉ ở hai mép. Cảnh quay vẫn là thứ người ta
+ * nhìn, nhưng cảnh có video và cảnh đồ hoạ vẫn đọc ra là CÙNG một video.
  *
  * Hai lớp, theo đúng thứ tự — đây là phần quyết định "đẹp & đọc được":
  *   1. VIDEO    GIỮ NGUYÊN BẢN màu & độ sáng gốc (độc lập với tông theme), chỉ blur nhẹ

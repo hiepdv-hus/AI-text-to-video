@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import type { BuiltScene } from "../../schema";
-import { safeArea } from "../../theme/tokens";
+import { safeArea, tokens } from "../../theme/tokens";
 import type { Palette } from "../../theme/claude";
 import { useTheme, isTech, cardSurface } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
@@ -50,10 +50,10 @@ const Col: React.FC<React.PropsWithChildren<{ height: number; p: Palette; justif
         paddingTop: sa.top,
         // 26% dưới: chừa đủ cho phụ đề 2 dòng ở cỡ chữ mới (68px) mà không đụng nội dung.
         paddingBottom: Math.round(height * 0.26),
-        // 64px hai bên (không phải 84): chữ to hơn thì cần thêm bề ngang, nếu không
-        // nhãn tiếng Việt sẽ ngắt dòng vụn.
-        paddingLeft: 64,
-        paddingRight: 64,
+        // Lề ngang lấy từ tokens.space.pagePadding — CÙNG một con số với đồ hoạ và phụ đề.
+        // Trước đây hardcode 64px nên nội dung sát mép hơn hẳn hai lớp kia.
+        paddingLeft: tokens.space.pagePadding,
+        paddingRight: tokens.space.pagePadding,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

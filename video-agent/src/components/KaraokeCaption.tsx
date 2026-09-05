@@ -4,7 +4,43 @@ import type { WordTiming, Captions } from "../schema";
 import { tokens } from "../theme/tokens";
 import { FONT_FAMILY } from "./fonts";
 import { chunkIntoLines, activeLineIndex, activeWordIndex } from "./captions";
-import { useTheme, isTech, CLAUDE_DARK, type Palette } from "../theme/claude";
+import { useTheme, isTech, type Palette } from "../theme/claude";
+
+/* ------------------------- Tiện ích màu tương phản ------------------------ */
+
+/** Tách "#rgb"/"#rrggbb" thành [r,g,b]. null nếu không parse được. */
+function hexRgb(hex: string): [number, number, number] | null {
+  const h = hex.trim().replace("#", "");
+  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return null;
+  return [
+    parseInt(full.slice(0, 2), 16),
+    parseInt(full.slice(2, 4), 16),
+    parseInt(full.slice(4, 6), 16),
+  ];
+}
+
+/**
+ * Màu chữ ĐỌC ĐƯỢC trên nền `bg`. Cần thiết vì `highlightColor` do người dùng chọn tự
+ * do: nền vàng thì chữ phải đen, nền tím đậm thì chữ phải trắng. Ép cứng một màu là
+ * cách chắc chắn có lúc phụ đề biến mất.
+ */
+function onColor(bg: string, fallback: string): string {
+  const rgb = hexRgb(bg);
+  if (!rgb) return fallback;
+  const [r, g, b] = rgb;
+  // Luminance tương đối (xấp xỉ sRGB) — ngưỡng 0.55 hợp với chữ đậm cỡ lớn.
+  const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return lum > 0.55 ? "#111111" : "#FFFFFF";
+}
+
+/** "r,g,b" của màu nhấn — để dựng glow theo đúng màu người dùng chọn. */
+function rgbTriplet(hex: string, fallback: string): string {
+  const rgb = hexRgb(hex);
+  return rgb ? rgb.join(",") : fallback;
+}
+
+/* ------------------------------- Preset ---------------------------------- */
 
 /** Preset caption cho style Claude: sạch, từ đang đọc tô CAM + đậm, không chip glow. */
 function claudePreset(p: Palette): PresetStyle {
@@ -61,50 +97,65 @@ export interface KaraokeCaptionProps {
 
 interface PresetStyle {
   container: React.CSSProperties;
-  word: (active: boolean, highlight: string) => React.CSSProperties;
+  word: (active: boolean) => React.CSSProperties;
   scaleActive: number;
 }
 
-function getPreset(style: Captions["style"]): PresetStyle {
+/**
+ * presetFor — chọn preset theo captions.style.
+ *
+ * NGUYÊN TẮC: `style` quyết định HÌNH DẠNG (chữ trơn / khối đặc / chip / viền),
+ * `Palette` quyết định MÀU NỀN-CHỮ và CỠ CHỮ. Nhờ tách đôi như vậy, đổi kiểu phụ đề
+ * không bao giờ làm phụ đề lệch tông với phần còn lại của video — đó là lý do trước
+ * đây caption bị ép đi theo theme; giờ vẫn đồng bộ nhưng người dùng chọn được.
+ *
+ * `highlight` = captions.highlightColor, chỉ áp cho các kiểu TỰ CHỌN. Kiểu "auto",
+ * "claude", "tech" dùng màu nhấn của theme để giữ đúng bộ nhận diện.
+ */
+function presetFor(style: Captions["style"], p: Palette, highlight: string): PresetStyle {
+  const shadowSoft = p.isDark ? "0 2px 14px rgba(0,0,0,0.75)" : "none";
   switch (style) {
-    case "tiktok-bold":
-      return {
-        container: {
-          fontWeight: tokens.weight.black,
-          fontSize: tokens.size.caption,
-          textTransform: "uppercase",
-          letterSpacing: 0.5,
-        },
-        word: (active, highlight) => ({
-          color: active ? "#111" : tokens.color.text,
-          backgroundColor: active ? highlight : "transparent",
-          borderRadius: tokens.radius.md,
-          padding: active ? "6px 18px" : "6px 6px",
-          textShadow: active ? "none" : tokens.shadow.text,
-        }),
-        scaleActive: 1.12,
-      };
+    case "auto":
+      // Theo theme — đúng hành vi cũ, giữ cho spec không khai báo gì vẫn đẹp.
+      return isTech(p) ? techPreset(p) : claudePreset(p);
+    case "claude":
+      return claudePreset(p);
+    case "tech":
+      return techPreset(p);
     case "clean-minimal":
+      // CHỈ TÔ MÀU CHỮ — không nền, không viền, không chip. Kiểu nhẹ nhất.
       return {
-        container: {
-          fontWeight: tokens.weight.semibold,
-          fontSize: tokens.size.captionSmall,
-        },
-        word: (active, highlight) => ({
-          color: active ? highlight : tokens.color.text,
-          textShadow: tokens.shadow.text,
-          padding: "4px 8px",
+        container: { fontWeight: 600, fontSize: p.size.caption, letterSpacing: -0.3 },
+        word: (active) => ({
+          color: active ? highlight : p.text,
+          fontWeight: active ? 800 : 600,
+          padding: "2px 6px",
+          textShadow: shadowSoft,
         }),
         scaleActive: 1.06,
       };
-    case "outline-pop":
+    case "tiktok-bold":
       return {
         container: {
-          fontWeight: tokens.weight.black,
-          fontSize: tokens.size.caption,
+          fontWeight: 800,
+          fontSize: p.size.caption,
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
         },
-        word: (active, highlight) => ({
-          color: active ? highlight : tokens.color.text,
+        word: (active) => ({
+          color: active ? onColor(highlight, p.onAccent) : p.text,
+          backgroundColor: active ? highlight : "transparent",
+          borderRadius: p.radius.md,
+          padding: active ? "6px 18px" : "6px 6px",
+          textShadow: active ? "none" : shadowSoft,
+        }),
+        scaleActive: 1.12,
+      };
+    case "outline-pop":
+      return {
+        container: { fontWeight: 800, fontSize: p.size.caption },
+        word: (active) => ({
+          color: active ? highlight : p.text,
           WebkitTextStroke: "3px #000",
           paintOrder: "stroke fill",
           padding: "4px 10px",
@@ -112,30 +163,18 @@ function getPreset(style: Captions["style"]): PresetStyle {
         scaleActive: 1.16,
       };
     case "chip-glow":
-      // "SpiderAI News": mỗi từ là 1 chip tối; từ đang đọc là chip tím phát sáng.
+      // Mỗi từ là 1 chip; từ đang đọc là chip màu highlight phát sáng.
       return {
-        container: {
-          fontWeight: tokens.weight.bold,
-          fontSize: tokens.size.caption,
-          gap: 14,
-        },
+        container: { fontWeight: 700, fontSize: p.size.caption, gap: 14 },
         word: (active) => ({
-          color: "#fff",
-          background: active
-            ? `linear-gradient(180deg, ${tokens.neon.purpleBright}, ${tokens.neon.purple})`
-            : tokens.neon.chipBg,
-          border: `1px solid ${active ? "transparent" : tokens.neon.chipBorder}`,
+          color: active ? onColor(highlight, "#fff") : p.text,
+          background: active ? highlight : p.card,
+          border: `1px solid ${active ? "transparent" : p.cardBorder}`,
           borderRadius: 16,
           padding: "10px 22px",
-          boxShadow: active ? tokens.neon.glowStrong : "none",
         }),
         scaleActive: 1.1,
       };
-    case "claude":
-    case "tech":
-      // Hai style này lấy màu từ Palette (xem lựa chọn preset trong component).
-      // Nhánh này chỉ là fallback khi không có theme.
-      return claudePreset(CLAUDE_DARK);
     default: {
       const _e: never = style;
       throw new Error(`Preset không tồn tại: ${_e}`);
@@ -178,9 +217,8 @@ export const KaraokeCaption: React.FC<KaraokeCaptionProps> = ({
   const line = lines[li];
   if (!line) return null;
   const wi = activeWordIndex(line, tMs);
-  // Caption đi theo THEME, không theo captions.style — để không bao giờ lệch tông với
-  // phần còn lại của video. captions.style chỉ còn tác dụng khi không có theme.
-  const preset = theme ? (isTech(theme) ? techPreset(theme) : claudePreset(theme)) : getPreset(style);
+  // captions.style quyết định hình dạng; theme quyết định màu/cỡ. Xem presetFor().
+  const preset = presetFor(style, theme, highlightColor);
 
   // Dòng vừa xuất hiện thì trượt lên nhẹ + mờ dần vào (theo frame, không transition).
   const lineAgeMs = tMs - line.startMs;
@@ -228,12 +266,13 @@ export const KaraokeCaption: React.FC<KaraokeCaptionProps> = ({
             : spoken
               ? 0.97
               : 1;
-          const wStyle = preset.word(active, highlightColor);
-          // chip-glow: chip đang đọc phát sáng theo NHỊP (pulse) — CHỈ khi KHÔNG dùng theme Claude.
-          if (active && !theme && style === "chip-glow") {
+          const wStyle = preset.word(active);
+          // chip-glow: chip đang đọc phát sáng theo NHỊP, glow lấy đúng highlightColor.
+          if (active && style === "chip-glow") {
             const pulse = 0.5 + 0.5 * Math.sin((frame / fps) * Math.PI * 3.2);
+            const rgb = rgbTriplet(highlightColor, "139,92,246");
             wStyle.boxShadow =
-              `0 0 ${18 + pulse * 20}px rgba(139,92,246,${(0.55 + pulse * 0.4).toFixed(2)}), 0 0 12px rgba(185,131,255,0.95)`;
+              `0 0 ${18 + pulse * 20}px rgba(${rgb},${(0.55 + pulse * 0.4).toFixed(2)}), 0 0 12px rgba(${rgb},0.95)`;
           }
           return (
             <span

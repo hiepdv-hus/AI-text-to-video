@@ -95,8 +95,11 @@ export const CodeLayout: React.FC<{ scene: BuiltScene; height: number }> = ({ sc
         color: p.text,
         paddingTop: Math.round(height * 0.06),
         paddingBottom: Math.round(height * 0.27), // chừa vùng caption lower-third
-        paddingLeft: 44,
-        paddingRight: 44,
+        // Hẹp hơn lề chung một chút (80 vs 100): dòng code dùng `whiteSpace: "pre"`,
+        // không xuống dòng — thu hẹp thêm là cắt mất chữ. 80 là mức vừa đủ để cửa sổ
+        // code không còn dán vào mép mà vẫn giữ được độ dài dòng hiện có.
+        paddingLeft: Math.round(tokens.space.pagePadding * 0.8),
+        paddingRight: Math.round(tokens.space.pagePadding * 0.8),
       }}
     >
       {scene.heading && (

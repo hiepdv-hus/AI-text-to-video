@@ -82,14 +82,14 @@ export interface Palette {
 }
 
 const SIZE = {
-  hook: 106,
-  heading: 78,
-  subhead: 44,
-  card: 50,
-  caption: 68,
-  small: 34,
-  label: 30,
-  value: 66,
+  hook: 96,
+  heading: 72,
+  subhead: 40,
+  card: 46,
+  caption: 68, // phụ đề GIỮ NGUYÊN — nó là lớp overlay, không thuộc khối nội dung.
+  small: 32,
+  label: 28,
+  value: 60,
 } as const;
 
 const RADIUS = { sm: 12, md: 18, lg: 26, pill: 999 } as const;

@@ -38,7 +38,9 @@ export const tokens = {
     medium: 500,
   },
   space: {
-    pagePadding: 90,
+    // Lề ngang dùng chung cho MỌI lớp (nội dung, đồ hoạ, phụ đề) — một con số duy nhất
+    // để không lớp nào sát mép hơn lớp khác. 100/1080 ≈ 9.3% mỗi bên.
+    pagePadding: 100,
     // Safe area: chừa 15% dưới cho UI TikTok/Reels che.
     bottomSafeFraction: 0.15,
     topSafeFraction: 0.08,

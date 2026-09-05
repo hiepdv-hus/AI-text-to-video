@@ -4,6 +4,8 @@ import type { BuiltScene, Captions, TransitionKind } from "../schema";
 import { KaraokeCaption } from "./KaraokeCaption";
 import { CLAUDE_LAYOUTS } from "./claude/ClaudeLayouts";
 import { SceneBackdrop } from "./SceneBackdrop";
+import { TechBackground } from "./TechBackground";
+import { useTheme, isTech } from "../theme/claude";
 import { useDrift, useExit } from "./motion";
 
 /**
@@ -98,6 +100,18 @@ export const SceneWrapper: React.FC<{
   // Một bộ layout duy nhất cho mọi theme — màu/chất liệu do Palette quyết định
   // (xem theme/claude.ts). Ảnh luôn ĐÓNG KHUNG trong layout; chỉ VIDEO mới tràn màn.
   const Layout = CLAUDE_LAYOUTS[scene.layout];
+  const theme = useTheme();
+
+  /**
+   * Cảnh có VIDEO nền thì SceneBackdrop vẽ một lớp ĐỤC phủ kín, che mất mưa nhị phân
+   * mà VideoComposition vẽ chung cho cả video. Hệ quả: cảnh có video và cảnh không có
+   * video trông như hai video khác nhau.
+   *
+   * Vá bằng cách rắc lại mưa ở mức rất mờ ĐÈ LÊN video (biến thể "overlay": ít cột hơn,
+   * seed khác nên không lặp hoạ tiết với nền chung). Chỉ ở hai mép, nơi scrim tối nhất
+   * — vùng giữa vẫn sạch cho cảnh quay và cho chữ.
+   */
+  const rainOverVideo = isTech(theme) && scene.media?.kind === "video";
 
   const exit = useExit(scene.durationInFrames);
   // Parallax: nền phóng vào (SceneBackdrop) trong khi nội dung trôi NGƯỢC lên rất chậm.
@@ -120,6 +134,9 @@ export const SceneWrapper: React.FC<{
           durationInFrames={scene.durationInFrames}
           busy={BUSY_LAYOUTS.has(scene.layout)}
         />
+        {/* Đặt SAU SceneBackdrop để nằm trên video, nhưng vẫn trong lớp NỀN nên nó
+            mờ vào cùng nhịp với cảnh quay, không bật ra thành một lớp riêng. */}
+        {rainOverVideo && <TechBackground variant="overlay" />}
       </AbsoluteFill>
 
       {/* NỘI DUNG — transitionIn + parallax + pha RA ở cuối cảnh. */}

@@ -132,8 +132,9 @@ code, đồ hoạ, phụ đề đều đọc màu/chất liệu từ cùng một
 | `pexels` | Tải ảnh thật → hiện trong **khung ảnh gọn** dưới tiêu đề. |
 | `generate` | Sinh ảnh AI (Pollinations, không cần key) → khung ảnh gọn. |
 
-Cảnh CÓ video thì video là nền **duy nhất** — không phủ mưa nhị phân lên nữa. Mỗi cảnh vì
-thế có một danh tính rõ ràng: hoặc cảnh quay thật, hoặc nền đồ hoạ.
+Cảnh CÓ video thì video là nền **chính**, nhưng vẫn được rắc lại mưa nhị phân ở mức rất mờ
+(`TechBackground variant="overlay"`, chỉ hai mép) — nếu không, lớp video đục sẽ che sạch nền
+chung và cảnh có video trông như một video khác hẳn cảnh đồ hoạ.
 
 Clip nền được xử lý tự động cho khớp theme: giảm bão hoà + nhuộm về tông theme + xoá phông
 + lớp phủ đậm hai đầu khung + phóng chậm và trôi ngang. Nhờ vậy clip Pexels bất kỳ cũng

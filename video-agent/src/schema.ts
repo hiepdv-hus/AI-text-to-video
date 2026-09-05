@@ -142,12 +142,19 @@ export type Voice = z.infer<typeof voiceSchema>;
 
 export const captionsSchema = z.object({
   /**
-   * Kiểu phụ đề. LƯU Ý: khi meta.background chọn một theme có Palette (tech/claude-*),
-   * caption tự đi theo theme để không lệch tông — field này chỉ còn tác dụng ở nền cũ.
+   * Kiểu phụ đề — quyết định HÌNH DẠNG của từ đang đọc. Màu vẫn lấy từ theme
+   * (và `highlightColor` ở các kiểu tự chọn) nên không bao giờ lệch tông.
+   *
+   *   auto          – theo theme: tech = khối đặc, claude = chữ tô màu. (mặc định)
+   *   clean-minimal – CHỈ TÔ MÀU CHỮ, không nền, không viền.
+   *   tiktok-bold   – khối đặc màu `highlightColor` + VIẾT HOA.
+   *   tech / claude – ép dùng đúng preset của theme tương ứng.
+   *   outline-pop   – chữ viền đen dày.
+   *   chip-glow     – mỗi từ một chip, từ đang đọc phát sáng.
    */
   style: z
-    .enum(["tiktok-bold", "clean-minimal", "outline-pop", "chip-glow", "claude", "tech"])
-    .default("tiktok-bold"),
+    .enum(["auto", "tiktok-bold", "clean-minimal", "outline-pop", "chip-glow", "claude", "tech"])
+    .default("auto"),
   position: z.enum(["center", "lower-third", "top"]).default("lower-third"),
   maxWordsPerLine: z.number().int().min(1).max(12).default(4),
   highlightColor: z.string().default("#FFD400"),

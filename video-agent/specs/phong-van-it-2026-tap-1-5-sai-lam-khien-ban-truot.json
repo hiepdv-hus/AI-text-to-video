@@ -243,13 +243,13 @@
   "voice": {
     "provider": "piper",
     "voiceId": "tranthanh3870",
-    "speed": 1.8,
-    "pitch": 5
+    "speed": 1.6,
+    "pitch": 3
   },
   "captions": {
     "style": "chip-glow",
     "position": "lower-third",
     "maxWordsPerLine": 4,
-    "highlightColor": "#ff3366"
+    "highlightColor": "#2be3ce"
   }
 }
