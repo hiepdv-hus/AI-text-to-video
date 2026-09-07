@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "title": "Up code lên GitHub trong 4 lệnh",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Đa số người mới sợ Git vì tưởng phải học hai mươi lệnh. Thật ra up code lên GitHub chỉ cần bốn.",
+      "layout": "hook",
+      "heading": "Git — Bốn lệnh là xong",
+      "media": {
+        "kind": "pexels-video",
+        "src": "hands typing keyboard night closeup",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "Bốn lệnh"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Hiểu được đường đi này thì bốn lệnh kia tự khắc có nghĩa, không cần học thuộc.",
+      "layout": "graphic",
+      "heading": "Code của bạn đi qua bốn chỗ",
+      "emphasis": [
+        "đường đi"
+      ],
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "architecture",
+        "subtitle": "Mỗi lệnh đẩy code sang một chặng",
+        "labels": [
+          "@file Thư mục làm việc",
+          "@boxes Staging",
+          "@git Repo dưới máy",
+          "@cloud GitHub"
+        ]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Lệnh add đưa file vào vùng chờ. Lệnh commit chốt lại thành một mốc có tên.",
+      "layout": "code",
+      "heading": "Bước 1 — Đánh dấu và ghi lại",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "code": "git init\ngit add .\ngit commit -m \"lần đầu\"",
+      "codeTitle": "terminal",
+      "codeHighlight": [
+        2,
+        3
+      ],
+      "output": "3 files changed, 128 insertions(+)"
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.2,
+    "pitch": 0
+  },
+  "captions": {
+    "style": "clean-minimal",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#3be8a0"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.3,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": true,
+    "volume": 0.35
+  }
+}

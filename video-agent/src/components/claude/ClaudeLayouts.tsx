@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
-import type { BuiltScene } from "../../schema";
+import type { BuiltScene, Graphic } from "../../schema";
 import { safeArea, tokens } from "../../theme/tokens";
 import type { Palette } from "../../theme/claude";
 import { useTheme, isTech, cardSurface } from "../../theme/claude";
@@ -12,7 +12,13 @@ import { ClaudeSteps } from "./ClaudeSteps";
 import { ClaudeChat } from "./ClaudeChat";
 import { TechBars } from "./TechBars";
 import { TechTimeline } from "./TechTimeline";
+import { TechDevice } from "./TechDevice";
+import { StatBig } from "./StatBig";
+import { ClaudeChecklist } from "./ClaudeChecklist";
+import { TechArchitecture } from "./TechArchitecture";
+import { RangeBar } from "./RangeBar";
 import { HeadingBlock } from "./Heading";
+import { ChipRow } from "./ChipRow";
 import { BEAT, useDrift, useEnter, usePulse } from "../motion";
 
 export { ClaudeHeading } from "./Heading";
@@ -157,6 +163,7 @@ const Hook: React.FC<LProps> = ({ scene, height }) => {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22, width: "100%" }}>
         {scene.icon && <Icon icon={scene.icon} p={p} />}
         <HeadingBlock heading={text} emphasis={scene.emphasis} p={p} size={p.size.hook} />
+        <ChipRow labels={scene.chips} p={p} delay={10} />
       </div>
       {scene.media?.kind === "image" && <Framed src={scene.media.src} height={height} p={p} delay={8} />}
     </Col>
@@ -190,6 +197,9 @@ const Cta: React.FC<LProps> = ({ scene, height }) => {
       >
         {scene.heading ?? scene.narration}
       </div>
+      {/* Chip dưới nút CTA: chỗ đặt link, tên repo, giấy phép — thông tin người xem cần
+          ghi lại đúng lúc họ đang quyết định lưu video. */}
+      <ChipRow labels={scene.chips} p={p} delay={10} />
     </Col>
   );
 };
@@ -202,6 +212,7 @@ const Bullet: React.FC<LProps> = ({ scene, height }) => {
   return (
     <Col height={height} p={p}>
       {scene.heading && <HeadingBlock heading={scene.heading} emphasis={scene.emphasis} p={p} />}
+      <ChipRow labels={scene.chips} p={p} />
       <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}>
         {bullets.map((b, i) => (
           <BulletRow key={i} index={i} text={b} p={p} />
@@ -338,13 +349,46 @@ const ImageL: React.FC<LProps> = ({ scene, height }) => {
 
 /* -------------------------------- Graphic -------------------------------- */
 
+/**
+ * Props chung của mọi widget đồ hoạ. Widget nào cần gì thì đọc nấy — gom về một kiểu
+ * để `GRAPHICS` dưới đây khai báo được dưới dạng bảng tra thay vì chuỗi if-else.
+ */
+export interface GProps {
+  labels?: string[];
+  timestamps?: string[];
+  timecode?: string;
+  p: Palette;
+}
+
+/**
+ * GRAPHICS — bảng tra widget theo `graphic.kind`.
+ *
+ * Kiểu `Record<Graphic["kind"], …>` là phần QUAN TRỌNG NHẤT ở đây: thêm một kind vào
+ * enum trong schema mà quên nối widget sẽ thành LỖI BIÊN DỊCH. Trước đây chỗ này là
+ * chuỗi if-else có nhánh `else` bắt tất — nên `device-editor` đã nằm trong schema hàng
+ * tháng trời mà lặng lẽ render ra feature-cards, không ai biết.
+ */
+const GRAPHICS: Record<Graphic["kind"], React.FC<GProps>> = {
+  "chat-ai": ({ labels, p }) => <ClaudeChat labels={labels} p={p} />,
+  steps: ({ labels, p }) => <ClaudeSteps labels={labels} p={p} />,
+  "bar-chart": ({ labels, p }) => <TechBars labels={labels} p={p} />,
+  "highlight-timeline": ({ labels, timestamps, p }) => <TechTimeline labels={labels} timestamps={timestamps} p={p} />,
+  "feature-cards": ({ labels, p }) => <ClaudeFeatureCards labels={labels} p={p} />,
+  "device-editor": ({ timecode, p }) => <TechDevice timecode={timecode} p={p} />,
+  "stat-big": ({ labels, p }) => <StatBig labels={labels} p={p} />,
+  checklist: ({ labels, p }) => <ClaudeChecklist labels={labels} p={p} />,
+  architecture: ({ labels, p }) => <TechArchitecture labels={labels} p={p} />,
+  "range-bar": ({ labels, p }) => <RangeBar labels={labels} p={p} />,
+};
+
 const Graphic: React.FC<LProps> = ({ scene, height }) => {
   const p = useTheme()!;
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const e = spring({ frame, fps, config: { damping: 22, stiffness: 120 } });
   const g = scene.graphic;
-  const labels = g?.labels;
+  // Không có graphic thì rơi về feature-cards — cảnh vẫn có nội dung thay vì trống trơn.
+  const Widget = (g && GRAPHICS[g.kind]) || GRAPHICS["feature-cards"];
   return (
     <Col height={height} p={p}>
       {scene.heading && (
@@ -352,19 +396,10 @@ const Graphic: React.FC<LProps> = ({ scene, height }) => {
           <HeadingBlock heading={scene.heading} emphasis={scene.emphasis} subtitle={g?.subtitle} p={p} />
         </div>
       )}
-      {/* Chọn widget theo graphic.kind. Mọi widget đọc màu từ Palette nên đổi theme là
-          đổi luôn diện mạo widget — không có widget nào "cứng màu". */}
-      {g?.kind === "chat-ai" ? (
-        <ClaudeChat labels={labels} p={p} />
-      ) : g?.kind === "steps" ? (
-        <ClaudeSteps labels={labels} p={p} />
-      ) : g?.kind === "bar-chart" ? (
-        <TechBars labels={labels} p={p} />
-      ) : g?.kind === "highlight-timeline" ? (
-        <TechTimeline labels={labels} timestamps={g.timestamps} p={p} />
-      ) : (
-        <ClaudeFeatureCards labels={labels} p={p} />
-      )}
+      <ChipRow labels={scene.chips} p={p} />
+      {/* Mọi widget đọc màu từ Palette nên đổi theme là đổi luôn diện mạo widget —
+          không có widget nào "cứng màu". */}
+      <Widget labels={g?.labels} timestamps={g?.timestamps} timecode={g?.timecode} p={p} />
     </Col>
   );
 };

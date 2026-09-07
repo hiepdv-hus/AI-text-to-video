@@ -3,8 +3,8 @@ import { interpolate } from "remotion";
 import type { Palette } from "../../theme/claude";
 import { cardSurface, isTech } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
-import { EMOJI_FAMILY } from "../fontsEmoji";
 import { BEAT, useDrift, useEnter } from "../motion";
+import { Glyph, parseLabel, type ParsedLabel } from "./Icon";
 
 /**
  * ClaudeFeatureCards — lưới thẻ liệt kê cho graphic.kind = "feature-cards".
@@ -16,9 +16,11 @@ import { BEAT, useDrift, useEnter } from "../motion";
  *
  * Mỗi thẻ: huy hiệu icon (hoặc số thứ tự mono) + chữ lớn, gạch nhấn dọc bên trái để
  * mắt bắt được thứ tự đọc.
+ *
+ * Icon nhận cả hai cú pháp (xem `Icon.tsx`): "@zap Nhanh" cho icon lucide tô theo
+ * Palette, hoặc "⚡ Nhanh" cho emoji. Icon lucide là lựa chọn tốt hơn — nó đổi màu theo
+ * theme, còn emoji thì không.
  */
-
-const EMOJI_RE = /^(\p{Extended_Pictographic}️?)\s+(.*)$/u;
 
 export const ClaudeFeatureCards: React.FC<{ labels?: string[]; p: Palette }> = ({ labels, p }) => {
   const items = labels && labels.length ? labels : ["Tự động", "Nhanh", "Riêng tư", "Mượt"];
@@ -40,21 +42,9 @@ export const ClaudeFeatureCards: React.FC<{ labels?: string[]; p: Palette }> = (
         perspective: 1400,
       }}
     >
-      {items.map((raw, i) => {
-        const m = raw.match(EMOJI_RE);
-        return (
-          <Card
-            key={i}
-            index={i}
-            icon={m?.[1]}
-            text={(m?.[2] ?? raw).trim()}
-            fontSize={fontSize}
-            badge={badge}
-            compact={twoCols}
-            p={p}
-          />
-        );
-      })}
+      {items.map((raw, i) => (
+        <Card key={i} index={i} parsed={parseLabel(raw)} fontSize={fontSize} badge={badge} compact={twoCols} p={p} />
+      ))}
     </div>
   );
 };
@@ -62,13 +52,13 @@ export const ClaudeFeatureCards: React.FC<{ labels?: string[]; p: Palette }> = (
 /** Một thẻ: lật vào từ dưới (rotateX) rồi trôi khẽ. */
 const Card: React.FC<{
   index: number;
-  icon?: string;
-  text: string;
+  parsed: ParsedLabel;
   fontSize: number;
   badge: number;
   compact: boolean;
   p: Palette;
-}> = ({ index, icon, text, fontSize, badge, compact, p }) => {
+}> = ({ index, parsed, fontSize, badge, compact, p }) => {
+  const glyph = <Glyph parsed={parsed} size={Math.round(badge * 0.52)} color={p.accent} p={p} />;
   const e = useEnter(5 + index * BEAT.stagger, { damping: 17, stiffness: 190, mass: 0.75 });
   const op = interpolate(e, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
   const float = useDrift(index, 0.16) * 3.5;
@@ -110,9 +100,7 @@ const Card: React.FC<{
                 boxShadow: isTech(p) ? p.glow : "none",
               }}
             >
-              {icon ? (
-                <span style={{ fontFamily: EMOJI_FAMILY, fontSize: Math.round(badge * 0.52) }}>{icon}</span>
-              ) : (
+              {glyph ?? (
                 <span
                   style={{
                     fontFamily: p.labelFont,
@@ -125,7 +113,7 @@ const Card: React.FC<{
                 </span>
               )}
             </div>
-            <div style={{ fontSize, fontWeight: 650, color: p.text, lineHeight: 1.2 }}>{text}</div>
+            <div style={{ fontSize, fontWeight: 650, color: p.text, lineHeight: 1.2 }}>{parsed.text}</div>
           </div>
   );
 };

@@ -77,6 +77,9 @@ src/
     SceneBackdrop.tsx      VIDEO NỀN toàn màn: duotone + scrim + Ken Burns + loop
     claude/Heading.tsx     thứ bậc chữ dùng chung: eyebrow → tiêu đề → phụ đề
     claude/ClaudeLayouts   hook / bullet / product / compare / cta / image / graphic
+                           + bảng GRAPHICS: kind → widget (kiểu bắt buộc đủ kind)
+    claude/Icon.tsx        bảng ~50 icon lucide có kiểm soát, cú pháp "@tên Chữ"
+    claude/*               10 widget đồ hoạ, đều đọc màu/cỡ từ Palette
     CodeLayout.tsx         cửa sổ code kiểu IDE, chrome đổi theo theme
     SceneWrapper.tsx       ghép nền + layout + caption + audio + transitionIn
 pipeline/
@@ -142,6 +145,51 @@ Clip nền được xử lý tự động cho khớp theme: giảm bão hoà + n
 nội dung (`bullet`, `graphic`, `code`) làm mờ mạnh để clip lùi hẳn thành chất liệu; cảnh chỉ
 có tiêu đề (`hook`, `cta`) mờ nhẹ để còn thấy cảnh quay.
 
+## Chip — hàng nhãn nhỏ dưới tiêu đề
+
+`scene.chips` chở **siêu dữ liệu** dưới tiêu đề, dùng được ở mọi layout. Đây là thứ tạo
+"mật độ": một khung vừa có tiêu đề lớn vừa có số liệu bên dưới, người lướt qua cảm được
+ngay là video có thông tin.
+
+```jsonc
+"chips": ["@star 75.868 sao", "MIT", "@code Python",
+          "* @flame 9,2K fork", "$ docker compose up -d"]
+```
+
+| Cú pháp | Kết quả |
+|---|---|
+| `"@star 75.868 sao"` | chip thường có icon |
+| `"MIT"` | chip trơn |
+| `"* @flame …"` | chip **nhấn** — viền + chữ màu nhấn, có glow ở theme tech |
+| `"$ lệnh"` | chip **terminal** — nền tối, chữ mono |
+
+Khác `feature-cards` ở chỗ: thẻ là NỘI DUNG CHÍNH của cảnh; chip là chú thích đi kèm tiêu
+đề, nhỏ, xếp ngang, tràn dòng. Vì thế `chips` là field của scene chứ không phải một
+`graphic.kind`. Giới hạn 3–5 chip mỗi cảnh.
+
+## Âm thanh
+
+Ba tầng, tất cả **tổng hợp bằng Node** ([`pipeline/sfx.ts`](pipeline/sfx.ts)) — không tải file
+từ đâu, nên không vướng bản quyền khi đem video đi kiếm tiền, và cùng công thức luôn ra cùng
+một file.
+
+| Tầng | Nguồn |
+|---|---|
+| Giọng đọc | TTS theo `voice.provider` |
+| Tiếng chuyển cảnh | `sfx.enabled` — tự chọn theo `transitionIn`: trượt/xoá → `whoosh`, phóng/mờ → `riser`, loé → `impact` |
+| Nhạc nền | `music.src` — dùng `"sfx/ambient-tech.wav"` (nền tổng hợp 20 s, lặp liền mạch) hoặc file của bạn trong `public/audio/` |
+
+**Ducking** là phần quan trọng nhất: `music.duck` (mặc định `0.25`) là mức nhạc còn lại khi có
+giọng đọc. Đường bao dựng từ **mốc từng từ** trong `words` — chính xác hơn mọi bộ dò mức âm —
+rồi làm mượt bằng bộ bám hai tốc độ: hạ nhanh (0.12 s), nâng chậm (0.6 s), đúng cách một
+compressor thật hành xử. Hạ chậm thì chữ đầu câu bị nuốt; nâng nhanh thì nhạc "hộc" lên giữa
+hai câu. Xem [`src/components/ducking.ts`](src/components/ducking.ts).
+
+Không có ducking thì nhạc đè lời — lỗi âm thanh kinh điển và là thứ khiến video bị nhận ra
+là nghiệp dư nhanh hơn bất kỳ khiếm khuyết hình ảnh nào.
+
+File SFX nằm ở `public/sfx/` (đã gitignore), tự sinh lại ở bước build nếu thiếu.
+
 ## Chuyển động
 
 Nhịp chuyển động của cả hệ nằm ở [`src/components/motion.ts`](src/components/motion.ts) —
@@ -169,13 +217,28 @@ tốt hơn, đồng thời là thứ duy nhất chuyển động liên tục n�
 
 | `graphic.kind` | Dùng khi | `labels` |
 |---|---|---|
-| `bar-chart` | So sánh số liệu | `"Trước tối ưu:48 s"` — thanh dài nhất chuẩn hoá gần hết bề ngang, **hàng cuối là điểm nhấn**, số tự đếm lên |
-| `highlight-timeline` | Mốc thời gian | nội dung mốc + `timestamps` cùng số lượng |
+| `stat-big` | Một số liệu đáng nhớ | `"73%:Tin tuyển dụng yêu cầu AI"` — số đếm lên, choán màn hình |
+| `bar-chart` | So sánh số liệu | `"Trước tối ưu:48 s"` — thanh dài nhất chuẩn hoá gần hết bề ngang, **hàng cuối là điểm nhấn** |
+| `range-bar` | Giá trị là một khoảng | `"Junior:12-20 triệu"` — mọi hàng chung một thang |
+| `checklist` | Nên / không nên | `"+ Nên làm"` · `"- Nên tránh"` |
 | `steps` | Quy trình có thứ tự | mỗi bước một chuỗi, tự đánh số 01/02/03 |
+| `architecture` | Thành phần nối với nhau | `"@server API"`, dùng `" + "` cho 2 thành phần cùng tầng |
+| `highlight-timeline` | Mốc thời gian | nội dung mốc + `timestamps` cùng số lượng |
 | `feature-cards` | Liệt kê ngang hàng | ≤ 4 mục → 1 cột chữ to; ≥ 5 mục → 2 cột |
 | `chat-ai` | Hội thoại | `"u:…"` / `"a:…"` |
+| `device-editor` | Máy đang xử lý | không dùng `labels`; đặt `timecode` |
 
-Mẫu đầy đủ dùng cả 5 widget + video nền: `specs/tech-showcase.json`.
+**Icon vector**: trong `feature-cards` và `architecture`, viết `"@zap Nhanh"` để dùng icon
+[lucide](https://lucide.dev) — nó tô theo màu nhấn của theme, khác emoji (màu cố định). Bảng
+tên icon nằm ở [`src/components/claude/Icon.tsx`](src/components/claude/Icon.tsx); cố ý là
+bảng đóng ~50 icon chứ không mở toàn bộ 6000 icon của lucide, để vốn hình ảnh của các video
+còn nhất quán với nhau.
+
+Widget nào cũng đọc màu/cỡ từ Palette, và bảng `GRAPHICS` trong `ClaudeLayouts.tsx` khai báo
+kiểu `Record<Graphic["kind"], …>` — **thêm kind vào schema mà quên nối widget là lỗi biên
+dịch**, không còn im lặng rơi về `feature-cards` như trước.
+
+Mẫu đầy đủ 6 widget mới: `specs/demo-widget-moi.json` · mẫu cũ + video nền: `specs/tech-showcase.json`.
 
 ## Những chỗ dễ vỡ (đã xử lý sẵn)
 

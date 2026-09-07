@@ -1,0 +1,381 @@
+{
+  "meta": {
+    "title": "Tối ưu tốc độ web — tập 1",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Google đặt ra một con số. Trang của bạn vượt quá nó là bị xếp loại chậm, và tụt hạng tìm kiếm.",
+      "layout": "hook",
+      "heading": "Tốc độ web — Google có một con số",
+      "media": {
+        "kind": "pexels-video",
+        "src": "server room blue lights slow motion",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "một con số"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Hai giây rưỡi. Đó là mốc để nội dung chính của trang hiện ra và được chấm là tốt.",
+      "layout": "graphic",
+      "heading": "Ngưỡng — Hai giây rưỡi",
+      "chips": [
+        "@gauge Chỉ số LCP",
+        "Nguồn: web.dev"
+      ],
+      "emphasis": [
+        "Hai giây rưỡi"
+      ],
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "stat-big",
+        "subtitle": "Mốc chấm điểm của Google",
+        "labels": [
+          "2.5 giây:Để nội dung chính hiện ra và được chấm là tốt"
+        ]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Google không chỉ đo một thứ. Ba chỉ số, mỗi cái đo một cảm giác khác nhau của người dùng.",
+      "layout": "graphic",
+      "heading": "Ba chỉ số bị chấm điểm",
+      "chips": [
+        "LCP",
+        "INP",
+        "CLS",
+        "* Cả ba đều phải đạt"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Trượt một cái là trượt cả trang",
+        "labels": [
+          "@gauge Nội dung chính hiện ra nhanh chưa",
+          "@zap Bấm vào thì phản hồi có trễ không",
+          "@layers Bố cục có nhảy lung tung không"
+        ]
+      }
+    },
+    {
+      "id": "s4",
+      "narration": "Điểm không phải đạt hay trượt. Nó chia ba dải, và bạn cần biết mình đang nằm ở dải nào.",
+      "layout": "graphic",
+      "heading": "Ba dải chấm điểm",
+      "chips": [
+        "@gauge Áp cho chỉ số LCP"
+      ],
+      "emphasis": [
+        "ba dải"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "range-bar",
+        "subtitle": "Ngưỡng công bố của Google",
+        "labels": [
+          "Tốt:0-2.5 giây",
+          "Cần cải thiện:2.5-4 giây",
+          "Kém:4-8 giây trở lên"
+        ]
+      }
+    },
+    {
+      "id": "s5",
+      "narration": "Muốn biết chậm ở đâu thì phải biết dữ liệu đi qua những chặng nào.",
+      "layout": "graphic",
+      "heading": "Đường đi của một lần tải",
+      "chips": [
+        "@network Bốn chặng",
+        "* Chậm một chặng là chậm cả trang"
+      ],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "architecture",
+        "subtitle": "Mỗi chặng đều có thể là nút thắt",
+        "labels": [
+          "@mobile Trình duyệt",
+          "@cloud Mạng phân phối",
+          "@server Máy chủ",
+          "@db Cơ sở dữ liệu"
+        ]
+      }
+    },
+    {
+      "id": "s6",
+      "narration": "Một lần tải trang không phải một khoảnh khắc. Nó là chuỗi bốn mốc nối nhau.",
+      "layout": "graphic",
+      "heading": "Bốn mốc trong một lần tải",
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "highlight-timeline",
+        "subtitle": "Ví dụ minh hoạ thứ tự — số đo thật tuỳ trang",
+        "labels": [
+          "Nhận phản hồi đầu tiên",
+          "Dựng xong khung trang",
+          "Hiện nội dung chính",
+          "Sẵn sàng nhận thao tác"
+        ],
+        "timestamps": [
+          "0.2 s",
+          "0.8 s",
+          "2.1 s",
+          "2.6 s"
+        ]
+      }
+    },
+    {
+      "id": "s7",
+      "narration": "Bạn không phải đoán. Có công cụ chạy ngay trên máy, tự đo và tự chấm điểm.",
+      "layout": "graphic",
+      "heading": "Máy tự chấm hộ bạn",
+      "chips": [
+        "$ npx lighthouse",
+        "* @lock Chạy cục bộ"
+      ],
+      "emphasis": [
+        "không phải đoán"
+      ],
+      "transitionIn": "glow",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "device-editor",
+        "subtitle": "Không gửi trang của bạn đi đâu",
+        "timecode": "00:00:02"
+      }
+    },
+    {
+      "id": "s8",
+      "narration": "Một lệnh duy nhất. Nó trả về điểm số và chỉ đúng chỗ đang nặng nhất.",
+      "layout": "code",
+      "heading": "Bước 1 — Đo trước khi sửa",
+      "chips": [
+        "$ Chạy trong thư mục dự án"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "code": "npx lighthouse https://trang-cua-ban.vn \\\n  --only-categories=performance \\\n  --view",
+      "codeTitle": "terminal",
+      "codeHighlight": [
+        1
+      ],
+      "output": "Performance 42  ·  LCP 4.8 s  ·  CLS 0.21"
+    },
+    {
+      "id": "s9",
+      "narration": "Trong hầu hết trang chậm, thứ nặng nhất không phải mã nguồn. Là ảnh.",
+      "layout": "graphic",
+      "heading": "Thủ phạm số một",
+      "chips": [
+        "* @flame Nặng nhất trang"
+      ],
+      "emphasis": [
+        "Là ảnh"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "stat-big",
+        "subtitle": "Cùng một ảnh, cùng chất lượng nhìn thấy",
+        "labels": [
+          "47%:Nhẹ đi khi đổi sang định dạng ảnh mới"
+        ]
+      }
+    },
+    {
+      "id": "s10",
+      "narration": "Đây là số đo thật. Cùng một tấm ảnh, cùng độ nét, chỉ khác cách nén.",
+      "layout": "graphic",
+      "heading": "Đo thật trên một tấm ảnh",
+      "chips": [
+        "@file Ảnh 1200 điểm ảnh",
+        "Đo bằng SSIM"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "bar-chart",
+        "subtitle": "Chất lượng nhìn thấy như nhau",
+        "labels": [
+          "Ảnh gốc chưa nén:967 KB",
+          "Nén kiểu cũ:138 KB",
+          "Định dạng mới:73 KB"
+        ]
+      }
+    },
+    {
+      "id": "s11",
+      "narration": "Đừng bắt trình duyệt cũ phải hiểu định dạng mới. Khai báo cả hai, nó tự chọn cái nó đọc được.",
+      "layout": "code",
+      "heading": "Bước 2 — Để trình duyệt tự chọn",
+      "chips": [
+        "@code Một thẻ, hai lựa chọn"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "code": "<picture>\n  <source srcset=\"anh.webp\">\n  <img src=\"anh.jpg\" alt=\"...\">\n</picture>",
+      "codeTitle": "index.html",
+      "codeHighlight": [
+        2,
+        3
+      ],
+      "output": "Trình duyệt mới lấy .webp · cũ lấy .jpg"
+    },
+    {
+      "id": "s12",
+      "narration": "Cùng một trang, cùng nội dung, chỉ đổi cách nén ảnh.",
+      "layout": "compare",
+      "heading": "Trước và sau",
+      "bullets": [
+        "Trước: nội dung chính hiện sau 4,8 giây",
+        "Sau: hiện sau 2,3 giây"
+      ],
+      "transitionIn": "wipe",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s13",
+      "narration": "Đừng sửa mò. Ba bước này lặp lại được, và bạn luôn biết mình có tiến bộ hay không.",
+      "layout": "graphic",
+      "heading": "Quy trình ba bước",
+      "emphasis": [
+        "lặp lại được"
+      ],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Bước ba là bước hay bị bỏ",
+        "labels": [
+          "Đo và ghi lại điểm gốc",
+          "Sửa đúng một thứ nặng nhất",
+          "Đo lại để xem có thật sự tốt lên"
+        ]
+      }
+    },
+    {
+      "id": "s14",
+      "narration": "Bốn điều. Hai cái nên làm ngay, và hai cái làm hỏng công sức của bạn.",
+      "layout": "graphic",
+      "heading": "Nên và đừng",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "checklist",
+        "subtitle": "Rút ra từ những lần sửa hỏng",
+        "labels": [
+          "+ Đặt sẵn chiều rộng và chiều cao cho ảnh",
+          "+ Chỉ tải ảnh khi người dùng cuộn tới",
+          "- Nhồi phông chữ ngoài ở đầu trang",
+          "- Sửa nhiều thứ cùng lúc rồi không biết cái nào ăn thua"
+        ]
+      }
+    },
+    {
+      "id": "s15",
+      "narration": "Câu này gần như ai cũng hỏi khi mới bắt đầu tối ưu.",
+      "layout": "graphic",
+      "heading": "Câu hỏi hay gặp nhất",
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Trả lời ngắn gọn",
+        "labels": [
+          "u:Em nén ảnh rồi mà điểm vẫn thấp là sao?",
+          "a:Vì ảnh chỉ là một phần. Đo lại xem thứ nặng nhất giờ là gì.",
+          "u:Vậy sửa tới bao giờ mới dừng?",
+          "a:Khi cả ba chỉ số vào dải tốt. Không cần hoàn hảo."
+        ]
+      }
+    },
+    {
+      "id": "s16",
+      "narration": "Nếu chỉ nhớ được ba điều, thì nhớ ba điều này.",
+      "layout": "bullet",
+      "heading": "Ba điều mang về",
+      "chips": [
+        "@book Tóm tắt tập 1"
+      ],
+      "bullets": [
+        "Đo trước, đừng sửa mò",
+        "Ảnh thường là thứ nặng nhất",
+        "Đo lại sau mỗi lần sửa"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s17",
+      "narration": "Xử lý xong ảnh rồi, thứ nặng tiếp theo thường là phông chữ và mã nguồn.",
+      "layout": "product",
+      "heading": "Tập 2 — Phông chữ và mã nguồn",
+      "media": {
+        "kind": "generate",
+        "src": "abstract dark teal network of glowing nodes, minimal tech illustration, no text",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "transitionIn": "none",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s18",
+      "narration": "Theo dõi để không bỏ lỡ tập hai, và lưu lại tập này để làm theo.",
+      "layout": "cta",
+      "heading": "Theo dõi để xem tập 2 👇",
+      "chips": [
+        "@book Tập 1 trong series",
+        "* @target Còn 3 tập nữa"
+      ],
+      "media": {
+        "kind": "pexels-video",
+        "src": "developer working late night city window",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "tập 2"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.2,
+    "pitch": 0
+  },
+  "captions": {
+    "style": "clean-minimal",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#3be8a0"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.28,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": true,
+    "volume": 0.35
+  }
+}

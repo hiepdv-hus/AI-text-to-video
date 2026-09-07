@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { tokens, safeArea } from "../theme/tokens";
-import { TEXT_STACK } from "./layouts";
+import { TEXT_STACK } from "./textStack";
 
 /**
  * BrandHeader — thanh thương hiệu trên cùng (kiểu "SpiderAI News"): nút back,

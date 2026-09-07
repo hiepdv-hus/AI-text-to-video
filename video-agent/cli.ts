@@ -1,10 +1,12 @@
 import "./pipeline/env.ts"; // nạp .env trước tiên
 import path from "node:path";
+import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { buildSpec } from "./pipeline/build.ts";
 import { renderVideo } from "./pipeline/render.ts";
 import { getProvider, estimateDurationSec, evenWordTimings } from "./pipeline/tts.ts";
 import { normalizeVietnamese } from "./pipeline/normalize.ts";
+import type { Voice } from "./src/schema.ts";
 
 /**
  * cli.ts — entrypoint. Chạy qua: pnpm video <lệnh> <args>.
@@ -13,7 +15,9 @@ import { normalizeVietnamese } from "./pipeline/normalize.ts";
  *   pnpm video render  <spec>   # build + render → out/<slug>/final.mp4
  *   pnpm video preview <spec>   # build + mở Remotion Studio với props thật
  *   pnpm video voices           # liệt kê voice tiếng Việt khả dụng
- *   pnpm video demo-tts [text]  # in bảng word-timing để kiểm tra bằng mắt
+ *   pnpm video demo-tts "<câu>" [provider] [voiceId]
+ *       # tổng hợp thật ra .cache/demo-tts.* để NGHE, kèm bảng word-timing.
+ *       # Không chỉ định provider → tự chọn: piper (nếu đã cài) → edge.
  */
 
 const VIETNAMESE_VOICES: Record<string, { id: string; note: string }[]> = {
@@ -73,16 +77,50 @@ function cmdVoices() {
   }
 }
 
-async function cmdDemoTts(text?: string) {
+/**
+ * Chọn provider để nghe thử khi người dùng không chỉ định.
+ *
+ * TRƯỚC ĐÂY hàm này ghi cứng "mock" — mà mock là giọng IM LẶNG (nó tồn tại để test
+ * timing offline). Nên `demo-tts` luôn ra file câm và không thể dùng để nghe thử giọng,
+ * đúng thứ mà tên lệnh hứa hẹn. Giờ nó tự chọn provider TỐT NHẤT đang dùng được.
+ */
+type ProviderName = Voice["provider"];
+
+const PROVIDER_NAMES: ProviderName[] = ["mock", "edge", "piper", "elevenlabs", "azure", "google"];
+
+/** Ép chuỗi người dùng gõ về đúng tên provider hợp lệ, báo lỗi rõ nếu sai. */
+function asProvider(s: string): ProviderName {
+  const hit = PROVIDER_NAMES.find((p) => p === s);
+  if (!hit) throw new Error(`Provider không hợp lệ: "${s}". Chọn một trong: ${PROVIDER_NAMES.join(", ")}`);
+  return hit;
+}
+
+function pickDemoProvider(): { name: ProviderName; voiceId: string } {
+  if (existsSync(path.resolve(process.cwd(), "tools", "piper"))) {
+    return { name: "piper", voiceId: "tranthanh3870" };
+  }
+  // Không có piper → edge để ít nhất còn nghe được giọng Việt thật khi thử.
+  return { name: "edge", voiceId: "vi-VN-NamMinhNeural" };
+}
+
+async function cmdDemoTts(text?: string, providerArg?: string, voiceArg?: string) {
   const sample = text ?? "Mua iPhone 15 chỉ 25.990.000đ, giảm 30% hôm nay!";
   const normalized = normalizeVietnamese(sample, { pronunciations: { iPhone: "ai phôn" } });
   console.log(`Gốc:        ${sample}`);
   console.log(`Chuẩn hoá:  ${normalized}\n`);
 
-  const provider = getProvider("mock");
-  const outPath = path.resolve(process.cwd(), ".cache", "demo-tts.wav");
+  const picked = providerArg
+    ? { name: asProvider(providerArg), voiceId: voiceArg ?? "default" }
+    : pickDemoProvider();
+  console.log(`Provider:   ${picked.name}  (giọng: ${picked.voiceId})`);
+  if (picked.name === "mock") console.log("LƯU Ý:      mock là giọng IM LẶNG — file sẽ không có tiếng.\n");
+  else console.log();
+
+  const provider = getProvider(picked.name);
+  const ext = provider.audioFormat === "wav" ? "wav" : "mp3";
+  const outPath = path.resolve(process.cwd(), ".cache", `demo-tts.${ext}`);
   const res = await provider.synthesize(normalized, {
-    voiceId: "default",
+    voiceId: picked.voiceId,
     speed: 1,
     locale: "vi-VN",
     outPath,
@@ -97,10 +135,11 @@ async function cmdDemoTts(text?: string) {
     );
   });
   console.log(`\nAudio demo: ${res.audioPath}`);
+  console.log(`Nghe thử:   start "" "${res.audioPath}"`);
 }
 
 async function main() {
-  const [cmd, arg] = process.argv.slice(2);
+  const [cmd, arg, arg2, arg3] = process.argv.slice(2);
   try {
     switch (cmd) {
       case "build":
@@ -122,7 +161,8 @@ async function main() {
         cmdVoices();
         break;
       case "demo-tts":
-        await cmdDemoTts(arg);
+        // pnpm video demo-tts "<câu>" [provider] [voiceId]
+        await cmdDemoTts(arg, arg2, arg3);
         break;
       default:
         console.log(

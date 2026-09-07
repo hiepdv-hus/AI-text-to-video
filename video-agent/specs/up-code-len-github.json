@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "title": "Up code lên GitHub trong 4 lệnh",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.6,
+    "pitch": 3,
+    "pronunciations": {
+      "GitHub": "Git Háp",
+      "commit": "cơ mít",
+      "push": "pút",
+      "remote": "ri mốt",
+      "staging": "sờ tây ging"
+    }
+  },
+  "captions": {
+    "style": "auto",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#3BE8A0"
+  },
+  "music": { "src": "sfx/ambient-tech.wav", "volume": 0.3, "duck": 0.25 },
+  "sfx": { "enabled": true, "volume": 0.35 },
+  "scenes": [
+    {
+      "id": "s1",
+      "layout": "hook",
+      "heading": "Git — Bốn lệnh là xong",
+      "emphasis": ["Bốn lệnh"],
+      "narration": "Đa số người mới sợ Git vì tưởng phải học hai mươi lệnh. Thật ra up code lên GitHub chỉ cần bốn.",
+      "media": { "kind": "pexels-video", "src": "hands typing keyboard night closeup" },
+      "transitionIn": "zoom"
+    },
+    {
+      "id": "s2",
+      "layout": "graphic",
+      "heading": "Code của bạn đi qua bốn chỗ",
+      "narration": "Hiểu được đường đi này thì bốn lệnh kia tự khắc có nghĩa, không cần học thuộc.",
+      "emphasis": ["đường đi"],
+      "graphic": {
+        "kind": "architecture",
+        "subtitle": "Mỗi lệnh đẩy code sang một chặng",
+        "labels": ["@file Thư mục làm việc", "@boxes Staging", "@git Repo dưới máy", "@cloud GitHub"]
+      },
+      "transitionIn": "blur"
+    },
+    {
+      "id": "s3",
+      "layout": "code",
+      "heading": "Bước 1 — Đánh dấu và ghi lại",
+      "narration": "Lệnh add đưa file vào vùng chờ. Lệnh commit chốt lại thành một mốc có tên.",
+      "codeTitle": "terminal",
+      "codeLang": "bash",
+      "code": "git init\ngit add .\ngit commit -m \"lần đầu\"",
+      "codeHighlight": [2, 3],
+      "output": "3 files changed, 128 insertions(+)",
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s4",
+      "layout": "code",
+      "heading": "Bước 2 — Nối và đẩy lên",
+      "narration": "Khai báo địa chỉ kho trên GitHub, rồi đẩy toàn bộ mốc đã chốt lên đó.",
+      "codeTitle": "terminal",
+      "codeLang": "bash",
+      "code": "git remote add origin <URL>\ngit push -u origin main",
+      "codeHighlight": [2],
+      "output": "branch 'main' set up to track 'origin/main'",
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s5",
+      "layout": "graphic",
+      "heading": "Ba lỗi khiến bạn kẹt cả buổi",
+      "narration": "Ba lỗi này người mới nào cũng dính, và cả ba đều tránh được trong ba mươi giây.",
+      "emphasis": ["cả ba đều tránh được"],
+      "graphic": {
+        "kind": "checklist",
+        "subtitle": "Làm trước khi gõ lệnh đầu tiên",
+        "labels": [
+          "+ Tạo .gitignore trước khi add",
+          "+ Đặt tên commit nói rõ đã làm gì",
+          "- Push thẳng file .env lên",
+          "- Commit cả thư mục node_modules"
+        ]
+      },
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s6",
+      "layout": "graphic",
+      "heading": "Từ lần thứ hai trở đi",
+      "narration": "Những lần sau chỉ còn ba lệnh, và bạn sẽ gõ chúng tới hết đời làm nghề.",
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Vòng lặp hằng ngày",
+        "labels": ["git add .", "git commit -m \"sửa gì đó\"", "git push"]
+      },
+      "transitionIn": "fade"
+    },
+    {
+      "id": "s7",
+      "layout": "cta",
+      "heading": "Tập sau — Sửa khi push bị từ chối",
+      "emphasis": ["push bị từ chối"],
+      "narration": "Tập sau mình sẽ xử lý lỗi mà ai cũng gặp lần đầu: push lên thì bị từ chối.",
+      "media": { "kind": "pexels-video", "src": "developer thinking at desk office" },
+      "transitionIn": "zoom"
+    }
+  ]
+}

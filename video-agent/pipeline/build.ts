@@ -16,6 +16,7 @@ import { downloadAsset } from "./assets.ts";
 import { generateImage } from "./imagegen.ts";
 import { fetchStockImage, fetchStockVideo } from "./stock.ts";
 import { highlightCode } from "./highlight.ts";
+import { ensureSfx } from "./sfx.ts";
 import type { CodeToken } from "../src/schema.ts";
 
 /**
@@ -33,6 +34,25 @@ import type { CodeToken } from "../src/schema.ts";
 
 const OUT_DIR = path.resolve(process.cwd(), "out");
 const PUBLIC_DIR = path.resolve(process.cwd(), "public");
+
+/**
+ * copyIntoPublic — chép file vào public/ theo kiểu NGUYÊN TỬ: ghi ra tên tạm rồi đổi tên.
+ *
+ * Vì sao không dùng thẳng fs.copyFile: Remotion Studio (`pnpm video preview`) vừa chạy vừa
+ * PHỤC VỤ thư mục public/ qua HTTP. Nếu build ghi đè clip trong lúc Studio đang mở, Studio
+ * có thể đọc trúng file mới chép được một nửa, rồi CACHE bản cụt đó vào thư mục asset tạm
+ * của nó. Kết quả là lỗi "No frame found at position N" trong khi file trên đĩa hoàn toàn
+ * lành — rất khó lần ra vì mọi công cụ soi file đều báo bình thường.
+ *
+ * fs.rename trên cùng một ổ đĩa là thao tác nguyên tử: người đọc thấy hoặc file cũ trọn
+ * vẹn, hoặc file mới trọn vẹn, không bao giờ thấy trạng thái dở dang.
+ */
+async function copyIntoPublic(src: string, dest: string): Promise<void> {
+  await fs.mkdir(path.dirname(dest), { recursive: true });
+  const tmp = `${dest}.${process.pid}.tmp`;
+  await fs.copyFile(src, tmp);
+  await fs.rename(tmp, dest);
+}
 
 export interface BuildResult {
   slug: string;
@@ -70,6 +90,8 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
 
   const audioDir = path.join(PUBLIC_DIR, "audio", slug);
   await fs.mkdir(audioDir, { recursive: true });
+  // SFX tổng hợp một lần rồi dùng lại; hàm tự bỏ qua nếu file đã có.
+  await ensureSfx(PUBLIC_DIR);
   await fs.mkdir(path.join(OUT_DIR, slug), { recursive: true });
 
   const provider = getProvider(spec.voice.provider);
@@ -100,7 +122,7 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
     let durationSec: number | undefined;
     const cached = await readCache(key, ext);
     if (cached) {
-      await fs.copyFile(cached.audioPath, publicAbs);
+      await copyIntoPublic(cached.audioPath, publicAbs);
       words = cached.words;
       console.log(`[build]   scene ${idx + 1}/${spec.scenes.length} "${scene.id}" (cache hit)`);
     } else {
@@ -148,8 +170,7 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
       const clip = await fetchStockVideo(media.src, { orientation: "portrait" });
       const rel = `video/${slug}/${scene.id}.mp4`;
       const abs = path.join(PUBLIC_DIR, rel);
-      await fs.mkdir(path.dirname(abs), { recursive: true });
-      await fs.copyFile(clip.filePath, abs);
+      await copyIntoPublic(clip.filePath, abs);
       console.log(`[build]   scene "${scene.id}" → video nền Pexels (${clip.durationSec}s)`);
       media = {
         kind: "video",
@@ -171,8 +192,7 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
       }
       const rel = `images/${slug}/${scene.id}.jpg`;
       const abs = path.join(PUBLIC_DIR, rel);
-      await fs.mkdir(path.dirname(abs), { recursive: true });
-      await fs.copyFile(imgPath, abs);
+      await copyIntoPublic(imgPath, abs);
       media = { kind: "image", src: rel, fit: media.fit, focus: media.focus };
     } else if (media && media.kind !== "color") {
       const rel = await downloadAsset(media.src, media.kind === "video" ? ".mp4" : ".jpg");
@@ -218,6 +238,7 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
     voice: spec.voice,
     captions: spec.captions,
     music,
+    sfx: spec.sfx,
     scenes: builtScenes,
     totalDurationInFrames: cursor,
   };

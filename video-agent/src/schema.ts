@@ -37,7 +37,18 @@ export type Layout = z.infer<typeof layoutSchema>;
  * các field còn lại là tham số tuỳ widget (đều optional, có mặc định đẹp).
  */
 export const graphicSchema = z.object({
-  kind: z.enum(["highlight-timeline", "device-editor", "feature-cards", "bar-chart", "chat-ai", "steps"]),
+  kind: z.enum([
+    "highlight-timeline",
+    "device-editor",
+    "feature-cards",
+    "bar-chart",
+    "chat-ai",
+    "steps",
+    "stat-big",
+    "checklist",
+    "architecture",
+    "range-bar",
+  ]),
   /** Phụ đề nhỏ dưới tiêu đề (vd "Tích hợp sẵn · Không cần chỉnh thủ công"). */
   subtitle: z.string().optional(),
   /** Nhãn: cột (highlight-timeline) hoặc thẻ "🤖 Tự động" (feature-cards). */
@@ -100,6 +111,12 @@ export const sceneSchema = z.object({
   heading: z.string().optional(),
   /** Icon/emoji của cảnh (vd "🌐", "🤖") — hiện thành huy hiệu cạnh tiêu đề. */
   icon: z.string().optional(),
+  /**
+   * Hàng nhãn nhỏ dưới tiêu đề, chở SIÊU DỮ LIỆU (số sao, giấy phép, stack, lệnh).
+   * Dùng được ở mọi layout. Cú pháp: `"@star 75.868 sao"` · `"MIT"` ·
+   * `"* @flame 9,2K fork"` (chip nhấn) · `"$ docker compose up"` (chip terminal).
+   */
+  chips: z.array(z.string()).optional(),
   bullets: z.array(z.string()).optional(),
   media: mediaSchema.optional(),
   /** Các từ trong narration cần tô nổi bật trên caption. */
@@ -162,10 +179,31 @@ export const captionsSchema = z.object({
 export type Captions = z.infer<typeof captionsSchema>;
 
 export const musicSchema = z.object({
+  /**
+   * Đường dẫn trong public/. Dùng `"sfx/ambient-tech.wav"` để lấy nền tổng hợp sẵn
+   * (không bản quyền), hoặc bỏ file nhạc của bạn vào public/audio/ rồi trỏ vào đây.
+   */
   src: z.string(),
   volume: z.number().min(0).max(1).default(0.12),
+  /**
+   * Mức nhạc còn lại khi CÓ GIỌNG ĐỌC (ducking), tính theo tỉ lệ của `volume`.
+   * 0.25 = hạ còn một phần tư. Không có ducking thì nhạc đè lời — lỗi âm thanh
+   * kinh điển và là thứ khiến video nghe ra ngay là nghiệp dư.
+   */
+  duck: z.number().min(0).max(1).default(0.25),
 });
 export type Music = z.infer<typeof musicSchema>;
+
+/**
+ * Hiệu ứng âm thanh chuyển cảnh. File do pipeline TỔNG HỢP vào public/sfx/ (xem
+ * pipeline/sfx.ts) nên không cần tải gì và không vướng bản quyền.
+ */
+export const sfxSchema = z.object({
+  enabled: z.boolean().default(true),
+  /** Âm lượng chung của SFX. Để nhỏ — SFX phải là dấu chấm câu, không phải nội dung. */
+  volume: z.number().min(0).max(1).default(0.35),
+});
+export type Sfx = z.infer<typeof sfxSchema>;
 
 /* -------------------------------- Meta ---------------------------------- */
 
@@ -200,6 +238,7 @@ export const videoSpecSchema = z.object({
   voice: voiceSchema,
   captions: captionsSchema,
   music: musicSchema.optional(),
+  sfx: sfxSchema.default({}),
 });
 export type VideoSpec = z.infer<typeof videoSpecSchema>;
 
@@ -228,6 +267,7 @@ export const builtPropsSchema = z.object({
   voice: voiceSchema,
   captions: captionsSchema,
   music: musicSchema.optional(),
+  sfx: sfxSchema.default({}),
   /** Tổng số frame — tổng durationInFrames của mọi scene. */
   totalDurationInFrames: z.number().int().positive(),
 });

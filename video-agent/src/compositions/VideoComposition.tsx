@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { buildDuckEnvelope } from "../components/ducking";
 import type { BuiltProps } from "../schema";
 import { SceneWrapper } from "../components/SceneWrapper";
 import { TechBackground } from "../components/TechBackground";
@@ -19,12 +20,21 @@ export const VideoComposition: React.FC<BuiltProps> = ({
   scenes,
   captions,
   music,
+  sfx,
   totalDurationInFrames,
 }) => {
   const palette = paletteFor(meta.background);
   const isClaudeBg = meta.background === "claude-dark" || meta.background === "claude-cream";
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const progress = interpolate(frame, [0, totalDurationInFrames], [0, 1], { extrapolateRight: "clamp" });
+
+  // Đường bao ducking dựng MỘT LẦN cho cả video — nó phụ thuộc toàn bộ dòng thời gian
+  // nên không tính được cục bộ trong từng scene.
+  const duckEnv = React.useMemo(
+    () => (music ? buildDuckEnvelope(scenes, fps, totalDurationInFrames, music.duck) : null),
+    [music, scenes, fps, totalDurationInFrames],
+  );
   return (
     <ThemeContext.Provider value={palette}>
       <AbsoluteFill style={{ backgroundColor: palette.bg }}>
@@ -41,7 +51,7 @@ export const VideoComposition: React.FC<BuiltProps> = ({
             durationInFrames={scene.durationInFrames}
             name={`${scene.layout}:${scene.id}`}
           >
-            <SceneWrapper scene={scene} captions={captions} width={meta.width} height={meta.height} />
+            <SceneWrapper scene={scene} captions={captions} sfx={sfx} width={meta.width} height={meta.height} />
           </Sequence>
         ))}
 
@@ -63,7 +73,22 @@ export const VideoComposition: React.FC<BuiltProps> = ({
             "nền có nhiễu": nó phải phủ đều cả khung thì mắt mới đọc ra là chất phim. */}
         <FilmGrain />
 
-        {music && <Audio src={staticFile(music.src)} volume={music.volume} loop />}
+        {/* Nhạc nền: âm lượng là HÀM theo frame, đọc từ đường bao ducking ở trên.
+            Remotion gọi hàm này mỗi frame khi trộn audio, nên nhạc tự lùi xuống đúng
+            lúc có giọng đọc mà không cần tách file hay xử lý hậu kỳ. */}
+        {music && (
+          <Audio
+            src={staticFile(music.src)}
+            volume={(f) => music.volume * (duckEnv ? (duckEnv[f] ?? 1) : 1)}
+            loop
+            /* BẮT BUỘC khi dùng `loop` + volume là hàm. Mặc định của Remotion là
+               "repeat": frame truyền vào hàm volume RESET về 0 ở mỗi vòng lặp nhạc, nên
+               nhạc 20 s trên video 30 s sẽ lấy nhầm đoạn đầu đường bao cho 10 giây cuối.
+               "extend" cộng thêm loop.durationInFrames * iteration → frame tuyệt đối,
+               đúng chỉ số của duckEnv. */
+            loopVolumeCurveBehavior="extend"
+          />
+        )}
       </AbsoluteFill>
     </ThemeContext.Provider>
   );

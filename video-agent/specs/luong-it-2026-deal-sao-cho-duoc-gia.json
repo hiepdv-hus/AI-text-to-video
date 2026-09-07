@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "Lương IT 2026 — deal sao cho được giá",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.6,
+    "pitch": 3
+  },
+  "captions": {
+    "style": "auto",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#3BE8A0"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.3,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": true,
+    "volume": 0.35
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "layout": "hook",
+      "heading": "Lương IT 2026 — Bạn đang bị trả thiếu",
+      "emphasis": ["bị trả thiếu"],
+      "narration": "Hai người cùng ba năm kinh nghiệm, cùng một công ty, nhưng lương chênh nhau mười lăm triệu. Khác biệt nằm ở vòng cuối.",
+      "media": { "kind": "pexels-video", "src": "office developer working laptop night" },
+      "transitionIn": "zoom"
+    },
+    {
+      "id": "s2",
+      "layout": "graphic",
+      "heading": "Sự thật — Đa số không hỏi",
+      "narration": "Phần lớn ứng viên nhận luôn con số đầu tiên nhà tuyển dụng đưa ra, không hỏi lại một câu nào.",
+      "emphasis": ["không hỏi lại"],
+      "graphic": {
+        "kind": "stat-big",
+        "subtitle": "Và đó là tiền bạn để lại trên bàn",
+        "labels": ["68%:Ứng viên IT chưa từng thương lượng lương"]
+      },
+      "transitionIn": "blur"
+    },
+    {
+      "id": "s3",
+      "layout": "graphic",
+      "heading": "Khung lương theo cấp bậc",
+      "narration": "Đây là khoảng lương thị trường. Nhớ là một khoảng, không phải một con số. Chỗ bạn đứng trong khoảng đó do bạn quyết.",
+      "emphasis": ["một khoảng"],
+      "graphic": {
+        "kind": "range-bar",
+        "subtitle": "Đơn vị: triệu đồng mỗi tháng",
+        "labels": [
+          "Fresher:8-14 triệu",
+          "Junior:15-25 triệu",
+          "Middle:25-40 triệu",
+          "Senior:40-70 triệu"
+        ]
+      },
+      "transitionIn": "slide-left"
+    },
+    {
+      "id": "s4",
+      "layout": "graphic",
+      "heading": "Thứ thật sự cộng tiền",
+      "narration": "Cùng cấp bậc, nhưng biết thêm một mảng thì con số nhảy hẳn một bậc.",
+      "emphasis": ["nhảy hẳn một bậc"],
+      "graphic": {
+        "kind": "bar-chart",
+        "subtitle": "Cùng ba năm kinh nghiệm",
+        "labels": [
+          "Thuần frontend:22 triệu",
+          "Biết thêm cloud:31 triệu",
+          "Làm được với AI:38 triệu"
+        ]
+      },
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s5",
+      "layout": "graphic",
+      "heading": "Vòng deal — Nên và đừng",
+      "narration": "Bốn điều quyết định bạn nhận được bao nhiêu. Hai điều nên làm, và hai điều khiến bạn mất tiền ngay lập tức.",
+      "emphasis": ["mất tiền"],
+      "graphic": {
+        "kind": "checklist",
+        "subtitle": "Quyết định trong năm phút cuối",
+        "labels": [
+          "+ Hỏi khoảng lương ngay vòng đầu",
+          "+ Đưa con số trước, cao hơn kỳ vọng",
+          "- Nói câu em theo công ty",
+          "- Deal lương qua tin nhắn"
+        ]
+      },
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s6",
+      "layout": "graphic",
+      "heading": "Ba bước, đúng thứ tự",
+      "narration": "Tra khảo sát lương trước. Nêu con số trước họ. Rồi im lặng. Người nói trước sau câu đó thường là người nhượng bộ.",
+      "emphasis": ["im lặng"],
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Bước ba là bước khó nhất",
+        "labels": [
+          "Tra khảo sát lương trước khi phỏng vấn",
+          "Chủ động nêu con số đầu tiên",
+          "Nói xong thì im lặng, chờ họ trả lời"
+        ]
+      },
+      "transitionIn": "fade"
+    },
+    {
+      "id": "s7",
+      "layout": "cta",
+      "heading": "Tập sau — Câu hỏi lương khó nhất",
+      "narration": "Tập sau mình sẽ trả lời câu hỏi khó nhất vòng deal: mức lương mong muốn của bạn là bao nhiêu?",
+      "emphasis": ["câu hỏi khó nhất"],
+      "media": { "kind": "pexels-video", "src": "handshake business meeting office" },
+      "transitionIn": "zoom"
+    }
+  ]
+}

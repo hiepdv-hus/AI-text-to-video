@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, staticFile, useCurrentFrame } from "remotion";
-import type { BuiltScene, Captions, TransitionKind } from "../schema";
+import type { BuiltScene, Captions, Sfx, TransitionKind } from "../schema";
 import { KaraokeCaption } from "./KaraokeCaption";
 import { CLAUDE_LAYOUTS } from "./claude/ClaudeLayouts";
 import { SceneBackdrop } from "./SceneBackdrop";
@@ -28,6 +28,25 @@ const ENTER_FRAMES = 16;
  * hook/cta/product/image chỉ có một dòng chữ nên để cảnh quay hiện rõ hơn.
  */
 const BUSY_LAYOUTS = new Set<BuiltScene["layout"]>(["bullet", "compare", "graphic", "code"]);
+
+/**
+ * SFX theo KIỂU CHUYỂN CẢNH, không theo layout — vì tai phải nghe thấy đúng thứ mắt
+ * đang thấy. Trượt/xoá là chuyển động ngang → whoosh. Phóng/mờ là tiến vào → riser
+ * (cao độ đi lên dẫn người xem vào cảnh mới). Loé sáng là một cú nhấn → impact.
+ *
+ * `gain` khác nhau từng loại vì bốn file đã chuẩn hoá cùng đỉnh, nhưng tai nghe tiếng
+ * trầm (impact) to hơn tiếng cao cùng biên độ.
+ */
+const SFX_BY_TRANSITION: Record<TransitionKind, { file: string; gain: number } | null> = {
+  none: null,
+  fade: { file: "sfx/whoosh.wav", gain: 0.45 },
+  "slide-left": { file: "sfx/whoosh.wav", gain: 0.9 },
+  "slide-up": { file: "sfx/whoosh.wav", gain: 0.9 },
+  wipe: { file: "sfx/whoosh.wav", gain: 1 },
+  zoom: { file: "sfx/riser.wav", gain: 0.85 },
+  blur: { file: "sfx/riser.wav", gain: 0.6 },
+  glow: { file: "sfx/impact.wav", gain: 0.7 },
+};
 
 /** smoothstep — làm mềm chuyển động vào/ra (đỡ cứng như tuyến tính). */
 const smooth = (p: number) => p * p * (3 - 2 * p);
@@ -93,9 +112,10 @@ function contentStyle(
 export const SceneWrapper: React.FC<{
   scene: BuiltScene;
   captions: Captions;
+  sfx: Sfx;
   width: number;
   height: number;
-}> = ({ scene, captions, height }) => {
+}> = ({ scene, captions, sfx, height }) => {
   const frame = useCurrentFrame();
   // Một bộ layout duy nhất cho mọi theme — màu/chất liệu do Palette quyết định
   // (xem theme/claude.ts). Ảnh luôn ĐÓNG KHUNG trong layout; chỉ VIDEO mới tràn màn.
@@ -112,6 +132,7 @@ export const SceneWrapper: React.FC<{
    * — vùng giữa vẫn sạch cho cảnh quay và cho chữ.
    */
   const rainOverVideo = isTech(theme) && scene.media?.kind === "video";
+  const sfxCue = SFX_BY_TRANSITION[scene.transitionIn];
 
   const exit = useExit(scene.durationInFrames);
   // Parallax: nền phóng vào (SceneBackdrop) trong khi nội dung trôi NGƯỢC lên rất chậm.
@@ -152,6 +173,13 @@ export const SceneWrapper: React.FC<{
         highlightColor={captions.highlightColor}
       />
       <Audio src={staticFile(scene.audioSrc)} />
+
+      {/* SFX chuyển cảnh. Nằm trong Sequence của scene nên tự phát đúng frame đầu cảnh —
+          không cần tính mốc thời gian tuyệt đối. Cảnh ĐẦU TIÊN không có SFX: chưa
+          chuyển từ đâu cả, đánh một tiếng whoosh vào giây 0 nghe như lỗi ghép. */}
+      {sfx.enabled && scene.fromFrame > 0 && sfxCue && (
+        <Audio src={staticFile(sfxCue.file)} volume={sfx.volume * sfxCue.gain} />
+      )}
     </AbsoluteFill>
   );
 };

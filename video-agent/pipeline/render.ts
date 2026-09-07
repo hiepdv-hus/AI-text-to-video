@@ -79,24 +79,46 @@ export async function renderVideo(slug: string, props: BuiltProps): Promise<Rend
   const outputPath = path.join(OUT_DIR, slug, "final.mp4");
   const concurrency = Math.max(1, os.cpus().length - 1);
 
-  let lastPct = -1;
-  await renderMedia({
-    composition,
-    serveUrl,
-    codec: "h264",
-    crf: 23,
-    concurrency,
-    inputProps: props,
-    outputLocation: outputPath,
-    onProgress: ({ progress }) => {
-      const pct = Math.round(progress * 100);
-      if (pct !== lastPct) {
-        lastPct = pct;
-        process.stdout.write(`\r[render] ${pct}%   `);
-      }
-    },
-  });
-  process.stdout.write("\n");
+  const run = async (offthreadVideoThreads: number) => {
+    let lastPct = -1;
+    await renderMedia({
+      composition,
+      serveUrl,
+      codec: "h264",
+      crf: 23,
+      concurrency,
+      offthreadVideoThreads,
+      inputProps: props,
+      outputLocation: outputPath,
+      onProgress: ({ progress }) => {
+        const pct = Math.round(progress * 100);
+        if (pct !== lastPct) {
+          lastPct = pct;
+          process.stdout.write(`\r[render] ${pct}%   `);
+        }
+      },
+    });
+    process.stdout.write("\n");
+  };
+
+  try {
+    await run(2); // 2 = mặc định của Remotion
+  } catch (err) {
+    // "No frame found at position N" là lỗi CHẬP CHỜN của compositor Remotion, không phải
+    // clip hỏng: cùng một file, cùng một spec, lần chạy này hỏng lần sau lại qua. Đã kiểm
+    // chứng bằng cách so PTS (đều tăm tắp), đếm frame giải mã (đủ), và so hash bản sao tạm
+    // của Remotion với file gốc (trùng khớp).
+    //
+    // Thử lại MỘT lần với 1 luồng giải mã video: seek tuần tự nên không còn tranh chấp.
+    // Chậm hơn, nhưng chỉ trả giá đó ở lần hỏng, và đổi lại không mất cả lượt render.
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!/No frame found at position/i.test(msg)) throw err;
+    console.warn(
+      `\n[render] Compositor hụt frame (lỗi chập chờn của Remotion, KHÔNG phải clip hỏng).` +
+        `\n[render] Thử lại với 1 luồng giải mã video…`,
+    );
+    await run(1);
+  }
 
   return { outputPath };
 }

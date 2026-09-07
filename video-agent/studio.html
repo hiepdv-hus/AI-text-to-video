@@ -196,6 +196,41 @@
           <input id="capColor" type="color" value="#61afef" style="height:42px;padding:4px" />
         </div>
       </div>
+
+      <div class="row" style="margin-top:12px">
+        <div style="flex:2">
+          <label>Nhạc nền</label>
+          <select id="musicSrc">
+            <option value="">(không có nhạc)</option>
+            <option value="sfx/ambient-tech.wav">ambient-tech — nền tổng hợp, không bản quyền</option>
+          </select>
+        </div>
+        <div>
+          <label>Âm lượng nhạc</label>
+          <input id="musicVol" type="number" min="0" max="1" step="0.05" value="0.35" />
+        </div>
+        <div>
+          <label>Hạ nhạc khi có lời</label>
+          <select id="musicDuck">
+            <option value="0.25">0.25 — chuẩn</option>
+            <option value="0.15">0.15 — hạ sâu</option>
+            <option value="0.4">0.40 — hạ nhẹ</option>
+            <option value="1">1.00 — tắt ducking</option>
+          </select>
+        </div>
+        <div>
+          <label>Tiếng chuyển cảnh</label>
+          <select id="sfxOn">
+            <option value="1">Bật</option>
+            <option value="0">Tắt</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-size:12px;opacity:.72;margin-top:6px">
+        Muốn dùng nhạc riêng: bỏ file vào <code>public/audio/</code> rồi sửa
+        <code>music.src</code> trong spec JSON. Ducking tự hạ nhạc đúng lúc có giọng đọc,
+        tính từ mốc từng từ nên không cần chỉnh tay.
+      </div>
     </div>
 
     <h2 style="margin:20px 0 12px">Các cảnh</h2>
@@ -323,6 +358,15 @@
         <label>Từ khoá tô sáng (emphasis) — cách nhau bằng dấu phẩy</label>
         <input class="emphasis" placeholder="VD: đoạn nổi bật, bằng AI" />
       </div>
+      <div style="margin-top:12px">
+        <label>Chip dưới tiêu đề (chips) — mỗi dòng 1 chip</label>
+        <textarea class="chips" rows="2" placeholder="@star 75.868 sao&#10;MIT&#10;* @flame 9,2K fork&#10;$ docker compose up -d"></textarea>
+        <div style="font-size:12px;opacity:.72;margin-top:4px">
+          <code>@star Chữ</code> chip thường có icon · <code>MIT</code> chip trơn ·
+          <code>* @flame Chữ</code> chip <b>nhấn</b> · <code>$ lệnh</code> chip <b>terminal</b>.
+          Dùng cho số liệu đếm được (sao, license, phiên bản), 3–5 chip mỗi cảnh.
+        </div>
+      </div>
     </div>
 
     <div class="f-graphic hidden" style="margin-bottom:12px">
@@ -330,12 +374,16 @@
         <div>
           <label>Loại đồ hoạ (graphic.kind)</label>
           <select class="graphicKind">
-            <option value="feature-cards">feature-cards (thẻ tính năng)</option>
+            <option value="feature-cards">feature-cards (thẻ liệt kê)</option>
+            <option value="stat-big">stat-big (con số lớn)</option>
+            <option value="checklist">checklist (nên / không nên)</option>
+            <option value="steps">steps (các bước có thứ tự)</option>
+            <option value="architecture">architecture (sơ đồ luồng)</option>
+            <option value="bar-chart">bar-chart (so sánh số liệu)</option>
+            <option value="range-bar">range-bar (dải min–max)</option>
             <option value="highlight-timeline">highlight-timeline (dòng thời gian)</option>
-            <option value="steps">steps (các bước)</option>
-            <option value="device-editor">device-editor (laptop editor)</option>
-            <option value="bar-chart">bar-chart (biểu đồ cột)</option>
             <option value="chat-ai">chat-ai (khung chat AI)</option>
+            <option value="device-editor">device-editor (máy đang xử lý)</option>
           </select>
         </div>
         <div style="flex:2">
@@ -344,8 +392,20 @@
         </div>
       </div>
       <div style="margin-top:12px">
-        <label>Nhãn (labels) — mỗi dòng 1 mục. feature-cards: "🤖 Tự động" · bar-chart: "Tên:80" · chat-ai: "u:..." / "a:..."</label>
-        <textarea class="graphicLabels" rows="3" placeholder="✂️ Cắt tự động&#10;💬 Phụ đề AI"></textarea>
+        <label>Nhãn (labels) — mỗi dòng 1 mục. Cú pháp theo từng loại:</label>
+        <textarea class="graphicLabels" rows="3" placeholder="@zap Cắt tự động&#10;@chat Phụ đề AI"></textarea>
+        <div style="font-size:12px;opacity:.72;line-height:1.7;margin-top:6px">
+          <b>feature-cards</b> <code>@zap Nhanh</code> hoặc <code>⚡ Nhanh</code> ·
+          <b>stat-big</b> <code>73%:Tin tuyển dụng yêu cầu AI</code> ·
+          <b>checklist</b> <code>+ Nên làm</code> / <code>- Nên tránh</code> ·
+          <b>steps</b> chữ thường ·
+          <b>architecture</b> <code>@server API</code>, dùng <code>+</code> cho 2 thành phần cùng tầng ·
+          <b>bar-chart</b> <code>Tên:80</code> ·
+          <b>range-bar</b> <code>Junior:12-20 triệu</code> ·
+          <b>chat-ai</b> <code>u:…</code> / <code>a:…</code><br />
+          Icon <code>@tên</code> đổi màu theo theme (tốt hơn emoji). Có:
+          <code>code terminal bug file git package layers boxes cpu db server cloud network lock shield globe mobile monitor settings wrench gauge ai brain chat send zap rocket flame star award target play eye search filter check check-circle x x-circle warn idea money trend-up trend-down users user clock calendar book grad work</code>
+        </div>
       </div>
       <div class="row" style="margin-top:12px">
         <div>
@@ -439,6 +499,7 @@ function addScene(data) {
     c.querySelector('.code').value = data.code || '';
     c.querySelector('.output').value = data.output || '';
     c.querySelector('.emphasis').value = (data.emphasis||[]).join(', ');
+    c.querySelector('.chips').value = (data.chips||[]).join('\n');
     if (data.graphic) {
       c.querySelector('.graphicKind').value = data.graphic.kind || 'feature-cards';
       c.querySelector('.graphicSubtitle').value = data.graphic.subtitle || '';
@@ -477,6 +538,8 @@ function collectSpec() {
     if (icon) s.icon = icon;
     const emphasis = c.querySelector('.emphasis').value.split(',').map(x=>x.trim()).filter(Boolean);
     if (emphasis.length) s.emphasis = emphasis;
+    const chips = c.querySelector('.chips').value.split('\n').map(x=>x.trim()).filter(Boolean);
+    if (chips.length) s.chips = chips;
     if (layout === 'graphic') {
       const g = { kind: c.querySelector('.graphicKind').value };
       const sub = c.querySelector('.graphicSubtitle').value.trim(); if (sub) g.subtitle = sub;
@@ -523,6 +586,14 @@ function collectSpec() {
       maxWordsPerLine: 4,
       highlightColor: $('#capColor').value,
     },
+    sfx: { enabled: $('#sfxOn').value === '1', volume: 0.35 },
+    ...($('#musicSrc').value
+      ? { music: {
+            src: $('#musicSrc').value,
+            volume: parseFloat($('#musicVol').value) || 0.35,
+            duck: parseFloat($('#musicDuck').value),
+          } }
+      : {}),
     scenes,
   };
 }
@@ -583,6 +654,10 @@ async function loadSpec(name) {
   $('#capStyle').value = spec.captions.style;
   $('#capPos').value = spec.captions.position;
   $('#capColor').value = spec.captions.highlightColor || '#61afef';
+  $('#musicSrc').value = spec.music?.src || '';
+  $('#musicVol').value = spec.music?.volume ?? 0.35;
+  $('#musicDuck').value = String(spec.music?.duck ?? 0.25);
+  $('#sfxOn').value = (spec.sfx?.enabled ?? true) ? '1' : '0';
   $('#scenes').innerHTML = '';
   spec.scenes.forEach(addScene);
 }

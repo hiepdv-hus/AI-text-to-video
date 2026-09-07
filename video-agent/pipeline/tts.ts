@@ -339,7 +339,20 @@ class EdgeProvider implements TTSProvider {
   readonly name = "edge";
   readonly audioFormat = "mp3" as const;
 
-  /** Dịch vụ Edge free thỉnh thoảng rớt kết nối ("no turn.end") → thử lại vài lần. */
+  /**
+   * MỘT request tại một thời điểm. Mỗi lần tổng hợp là một WebSocket tới endpoint nội bộ
+   * của Microsoft; mở 2-3 cái cùng lúc từ một IP thì nó ngắt luồng giữa chừng và trả lỗi
+   * "Stream closed before the synthesis completed (no turn.end received)".
+   *
+   * Tệ hơn: khi chạy song song, các lần THỬ LẠI cũng va vào nhau nên cả 4 lượt cùng hỏng
+   * — nhìn ra ngoài tưởng dịch vụ chết hẳn, thực ra chỉ là tự mình chen nhau.
+   *
+   * Nối tiếp thì chậm hơn nhưng ổn định; một cảnh chỉ tốn vài giây và có cache theo
+   * hash(text+voice+speed) nên lần render sau gần như tức thì.
+   */
+  readonly maxConcurrency = 1;
+
+  /** Dịch vụ Edge free thỉnh thoảng vẫn rớt kết nối → thử lại vài lần, giãn dần. */
   async synthesize(text: string, opts: TTSOptions): Promise<TTSResult> {
     const maxAttempts = 4;
     let lastErr: unknown;
@@ -349,11 +362,16 @@ class EdgeProvider implements TTSProvider {
       } catch (err) {
         lastErr = err;
         if (attempt < maxAttempts) {
-          await new Promise((r) => setTimeout(r, 800 * attempt));
+          // Giãn mạnh hơn trước (1.5s, 3s, 4.5s): endpoint cần thời gian nhả kết nối cũ,
+          // thử lại quá sớm gần như chắc chắn hỏng tiếp.
+          await new Promise((r) => setTimeout(r, 1500 * attempt));
         }
       }
     }
-    throw new Error(`Edge TTS lỗi sau ${maxAttempts} lần thử: ${(lastErr as Error).message}`);
+    throw new Error(
+      `Edge TTS lỗi sau ${maxAttempts} lần thử: ${(lastErr as Error).message}\n` +
+        `  Gợi ý: kiểm tra mạng. Nếu vẫn hỏng, đổi sang provider "piper" (chạy offline).`,
+    );
   }
 
   private async _once(text: string, opts: TTSOptions): Promise<TTSResult> {

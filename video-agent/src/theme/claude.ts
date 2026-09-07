@@ -88,7 +88,9 @@ const SIZE = {
   card: 46,
   caption: 68, // phụ đề GIỮ NGUYÊN — nó là lớp overlay, không thuộc khối nội dung.
   small: 32,
-  label: 28,
+  // Nhãn nhỏ (eyebrow) 34 chứ không phải 28: nó viết HOA + giãn chữ 2.4 và tô màu nhấn
+  // mảnh trên nền tối, nên ở 28px đọc ra như hoạ tiết trang trí chứ không phải chữ.
+  label: 34,
   value: 60,
 } as const;
 

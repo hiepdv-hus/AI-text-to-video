@@ -44,11 +44,14 @@ export const Eyebrow: React.FC<{ text: string; p: Palette; delay?: number }> = (
         textShadow: p.isDark ? "0 2px 14px rgba(0,0,0,0.7)" : "none",
       }}
     >
-      {/* Vạch nhấn tự kéo dài ra — một chi tiết nhỏ nhưng cho cảm giác "đang vẽ". */}
+      {/* Vạch nhấn tự kéo dài ra — một chi tiết nhỏ nhưng cho cảm giác "đang vẽ".
+          Dày 4 và dài 52 để cân với cỡ chữ nhãn: vạch mảnh hơn chữ thì cụm nhãn trông
+          như bị gạch chân hụt. */}
       <span
         style={{
-          width: 40,
-          height: 3,
+          width: 52,
+          height: 4,
+          borderRadius: 999,
           background: p.accent,
           boxShadow: p.glow,
           transform: `scaleX(${e})`,

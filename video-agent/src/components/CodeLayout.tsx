@@ -7,6 +7,7 @@ import { FONT_FAMILY } from "./fonts";
 import { EMOJI_FAMILY } from "./fontsEmoji";
 import { MONO_FAMILY } from "./fontsMono";
 import { HeadingBlock } from "./claude/Heading";
+import { ChipRow } from "./claude/ChipRow";
 import { useDrift, useSweep } from "./motion";
 
 /**
@@ -110,6 +111,12 @@ export const CodeLayout: React.FC<{ scene: BuiltScene; height: number }> = ({ sc
           align="left"
         />
       )}
+      {/* Chip căn TRÁI ở cảnh code để thẳng hàng với tiêu đề và cửa sổ code. */}
+      {scene.chips?.length ? (
+        <div style={{ display: "flex", width: "100%", justifyContent: "flex-start" }}>
+          <ChipRow labels={scene.chips} p={p} />
+        </div>
+      ) : null}
 
       {/* Cửa sổ code */}
       <div

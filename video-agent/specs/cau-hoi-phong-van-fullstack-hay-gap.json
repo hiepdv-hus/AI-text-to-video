@@ -1,0 +1,213 @@
+{
+  "meta": {
+    "title": "Câu hỏi phỏng vấn fullstack hay gặp nhất",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.6,
+    "pitch": 3,
+    "pronunciations": {
+      "fullstack": "phun sờ tách"
+    }
+  },
+  "captions": {
+    "style": "auto",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#3BE8A0"
+  },
+  "music": { "src": "sfx/ambient-tech.wav", "volume": 0.3, "duck": 0.25 },
+  "sfx": { "enabled": true, "volume": 0.35 },
+  "scenes": [
+    {
+      "id": "s1",
+      "layout": "hook",
+      "heading": "Họ không hỏi bạn biết mấy framework",
+      "emphasis": ["mấy framework"],
+      "narration": "Phỏng vấn fullstack không đếm số công nghệ bạn biết. Họ dò đúng bốn chỗ.",
+      "media": { "kind": "pexels-video", "src": "job interview two people office desk", "focus": "center" },
+      "transitionIn": "zoom",
+      "tailPadSec": 0.4
+    },
+
+    {
+      "id": "s2",
+      "layout": "graphic",
+      "heading": "Họ dò suốt đường đi của dữ liệu",
+      "emphasis": ["đường đi"],
+      "narration": "Câu hỏi hay bắt bạn đi hết đường từ trình duyệt xuống cơ sở dữ liệu.",
+      "chips": ["@network Bốn chặng", "* Hổng một chặng là lộ"],
+      "graphic": {
+        "kind": "architecture",
+        "subtitle": "Mỗi chặng là một nhóm câu hỏi",
+        "labels": [
+          "@mobile Trình duyệt",
+          "@server Tầng gọi máy chủ",
+          "@cpu Xử lý nghiệp vụ",
+          "@db Cơ sở dữ liệu"
+        ]
+      },
+      "transitionIn": "blur",
+      "tailPadSec": 0.25
+    },
+
+    {
+      "id": "s3",
+      "layout": "graphic",
+      "heading": "Câu kinh điển mở màn",
+      "narration": "Câu này buổi nào cũng có. Nghe dễ, nhưng nó dò được cả bốn chặng.",
+      "chips": ["@chat Hỏi mở", "* Dễ trả lời hời hợt"],
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Họ nghe bạn đi được bao xa",
+        "labels": [
+          "a:Gõ địa chỉ web rồi bấm Enter, chuyện gì xảy ra?",
+          "u:Trình duyệt tra tên miền, mở kết nối, gọi máy chủ, rồi dựng giao diện."
+        ]
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.25
+    },
+
+    {
+      "id": "s4",
+      "layout": "code",
+      "heading": "Chặng 1 — Thứ tự chạy",
+      "narration": "Chặng đầu là câu tủ. Đoạn này in ra thứ tự nào?",
+      "chips": ["@code Hỏi ở mọi cấp"],
+      "codeTitle": "order.js",
+      "codeLang": "javascript",
+      "code": "const log = console.log\nconst p = Promise.resolve()\nlog(\"1\")\nsetTimeout(() => log(\"2\"))\np.then(() => log(\"3\"))\nlog(\"4\")",
+      "codeHighlight": [4, 5],
+      "output": "1  4  3  2",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.25
+    },
+
+    {
+      "id": "s5",
+      "layout": "graphic",
+      "heading": "Chặng 2 — Giữ đăng nhập",
+      "narration": "Chặng gọi máy chủ, họ hỏi bạn giữ đăng nhập kiểu gì và vì sao chọn kiểu đó.",
+      "chips": ["@lock Xác thực", "* Điểm nằm ở chữ 'vì sao'"],
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Biết cả hai cách và biết đánh đổi",
+        "labels": [
+          "@server Phiên lưu ở máy chủ",
+          "@shield Thẻ ký gửi kèm mỗi lần gọi",
+          "@clock Hạn ngắn và cách làm mới"
+        ]
+      },
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.25
+    },
+
+    {
+      "id": "s6",
+      "layout": "graphic",
+      "heading": "Chặng 3 — Bấm hai lần",
+      "emphasis": ["hai lần"],
+      "narration": "Câu này lọc người có kinh nghiệm. Bấm đặt hàng hai lần, bạn chặn trùng ở đâu?",
+      "chips": ["@shield Chống trùng", "* Chặn ở nút thôi là chưa đủ"],
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Phải chặn ở cả hai đầu",
+        "labels": [
+          "Khoá nút ngay khi vừa bấm",
+          "Gửi kèm một mã cho mỗi lần gửi",
+          "Máy chủ thấy mã trùng thì trả lại kết quả cũ"
+        ]
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.25
+    },
+
+    {
+      "id": "s7",
+      "layout": "code",
+      "heading": "Chặng 4 — Truy vấn thừa",
+      "narration": "Chặng cuối, họ đưa một đoạn chạy chậm rồi hỏi bạn thấy gì.",
+      "chips": ["@db Đọc dữ liệu", "* Lỗi hay gặp nhất"],
+      "codeTitle": "feed.js",
+      "codeLang": "javascript",
+      "code": "const posts = await Post.findAll()\nfor (const p of posts) {\n  p.author = await User.find(p.uid)\n}",
+      "codeHighlight": [3],
+      "output": "1 truy vấn + 1 truy vấn cho mỗi bài",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.25
+    },
+
+    {
+      "id": "s8",
+      "layout": "graphic",
+      "heading": "Câu mềm nhưng gài",
+      "narration": "Ngoài kỹ thuật luôn có một câu nghe nhẹ mà cực dễ trượt.",
+      "chips": ["@user Hỏi hành vi"],
+      "graphic": {
+        "kind": "chat-ai",
+        "subtitle": "Họ nghe cách bạn nhận trách nhiệm",
+        "labels": [
+          "a:Kể một lần bạn làm hỏng đồ trên máy thật.",
+          "u:Em kể sự cố, cách em chặn lại, và thứ em đổi sau đó."
+        ]
+      },
+      "transitionIn": "blur",
+      "tailPadSec": 0.25
+    },
+
+    {
+      "id": "s9",
+      "layout": "graphic",
+      "heading": "Trả lời sao cho ăn điểm",
+      "emphasis": ["ăn điểm"],
+      "narration": "Người đậu và người trượt khác nhau đúng ở bốn điều này.",
+      "graphic": {
+        "kind": "checklist",
+        "subtitle": "Người chấm nghe cách nghĩ, không nghe từ khoá",
+        "labels": [
+          "+ Nói giả định của mình trước khi trả lời",
+          "+ Nhận là chưa biết rồi nói cách tra",
+          "- Đọc thuộc lòng định nghĩa",
+          "- Lao vào viết mã khi chưa rõ đề"
+        ]
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.25
+    },
+
+    {
+      "id": "s11",
+      "layout": "bullet",
+      "heading": "Ba điều mang về",
+      "narration": "Nếu chỉ nhớ ba điều, thì nhớ ba điều này.",
+      "chips": ["@book Tóm tắt"],
+      "bullets": [
+        "Họ dò đường đi của dữ liệu",
+        "Câu nào cũng kèm 'vì sao chọn'",
+        "Nói cách nghĩ, đừng đọc định nghĩa"
+      ],
+      "media": { "kind": "pexels-video", "src": "hands typing keyboard night closeup", "focus": "center" },
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.25
+    },
+
+    {
+      "id": "s12",
+      "layout": "cta",
+      "heading": "Lưu lại trước khi đi phỏng vấn 👇",
+      "emphasis": ["Lưu lại"],
+      "narration": "Lưu lại để xem trước hôm phỏng vấn, và theo dõi để xem tập sau.",
+      "media": { "kind": "pexels-video", "src": "developer working late night city window", "focus": "center" },
+      "transitionIn": "zoom",
+      "tailPadSec": 0.5
+    }
+  ]
+}

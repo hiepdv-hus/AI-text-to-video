@@ -44,6 +44,42 @@ export async function writeSilentWav(
   await fs.writeFile(path, buffer);
 }
 
+/**
+ * Ghi WAV 16-bit từ mẫu float trong khoảng [-1, 1]. Dùng cho SFX tổng hợp (xem sfx.ts).
+ * Giá trị ngoài khoảng bị kẹp thay vì cho tràn — tràn số nguyên 16-bit sẽ đổi dấu và
+ * biến một đỉnh sóng thành tiếng rè rất chói.
+ */
+export async function writeWavFromFloat(
+  path: string,
+  samples: Float32Array,
+  sampleRate = 44100,
+): Promise<void> {
+  const channels = 1;
+  const bitsPerSample = 16;
+  const dataBytes = samples.length * channels * (bitsPerSample / 8);
+  const buffer = Buffer.alloc(44 + dataBytes);
+
+  buffer.write("RIFF", 0, "ascii");
+  buffer.writeUInt32LE(36 + dataBytes, 4);
+  buffer.write("WAVE", 8, "ascii");
+  buffer.write("fmt ", 12, "ascii");
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20); // PCM
+  buffer.writeUInt16LE(channels, 22);
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * channels * (bitsPerSample / 8), 28);
+  buffer.writeUInt16LE(channels * (bitsPerSample / 8), 32);
+  buffer.writeUInt16LE(bitsPerSample, 34);
+  buffer.write("data", 36, "ascii");
+  buffer.writeUInt32LE(dataBytes, 40);
+
+  for (let i = 0; i < samples.length; i++) {
+    const v = Math.max(-1, Math.min(1, samples[i]!));
+    buffer.writeInt16LE(Math.round(v * 32767), 44 + i * 2);
+  }
+  await fs.writeFile(path, buffer);
+}
+
 /** Đọc thông tin WAV từ 44 byte header. */
 export async function readWavInfo(path: string): Promise<WavInfo> {
   const fh = await fs.open(path, "r");

@@ -53,6 +53,8 @@ function demoProps(template: Meta["template"], title: string): BuiltProps {
         fromFrame: d1,
       },
     ],
+    // Studio preview không có file SFX cho tới lần build đầu → tắt để không 404.
+    sfx: { enabled: false, volume: 0.35 },
     totalDurationInFrames: d1 + d2,
   };
 }

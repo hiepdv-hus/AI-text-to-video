@@ -6,6 +6,8 @@ public/audio/
 public/assets/
 public/images/
 public/video/
+# SFX tổng hợp lại được từ pipeline/sfx.ts ở mỗi lần build — không cần commit binary.
+public/sfx/
 *.log
 
 # Piper local (nặng, tái tạo bằng scripts/setup-piper.ps1)
