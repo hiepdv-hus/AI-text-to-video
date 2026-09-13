@@ -5,7 +5,7 @@ import { KaraokeCaption } from "./KaraokeCaption";
 import { CLAUDE_LAYOUTS } from "./claude/ClaudeLayouts";
 import { SceneBackdrop } from "./SceneBackdrop";
 import { TechBackground } from "./TechBackground";
-import { useTheme, isTech } from "../theme/claude";
+import { useTheme, isTech, ThemeContext } from "../theme/claude";
 import { useDrift, useExit } from "./motion";
 
 /**
@@ -22,6 +22,13 @@ import { useDrift, useExit } from "./motion";
  */
 
 const ENTER_FRAMES = 16;
+
+/**
+ * Số frame để lớp NỀN của scene mờ vào. Export ra ngoài vì VideoComposition cần biết
+ * CHÍNH XÁC từ frame nào lớp nền đã đục hoàn toàn — để bỏ qua việc vẽ backdrop chung
+ * phía sau (xem `backdropIsHidden` ở VideoComposition.tsx).
+ */
+export const BACKDROP_FADE_FRAMES = 10;
 
 /**
  * Layout có nhiều khối nội dung đè lên nền → video nền phải lùi hẳn ra sau (mờ mạnh).
@@ -134,6 +141,24 @@ export const SceneWrapper: React.FC<{
   const rainOverVideo = isTech(theme) && scene.media?.kind === "video";
   const sfxCue = SFX_BY_TRANSITION[scene.transitionIn];
 
+  /**
+   * Palette RIÊNG CỦA CẢNH NÀY: giống palette chung, trừ `cardBackdrop`.
+   *
+   * Card kính mờ (`backdrop-filter: blur(16px) saturate(1.15)`) tồn tại để chữ đọc rõ khi
+   * card nằm TRÊN CẢNH QUAY. Cảnh không có video thì sau card chỉ là gradient + mưa nhị
+   * phân ở hai mép — làm mờ cái đó gần như không nhìn ra khác biệt, trong khi mỗi card là
+   * một lần Chrome phải đọc lại vùng nền bên dưới rồi blur, lặp lại MỖI FRAME. Đo được
+   * ~12% thời gian mỗi frame của cảnh đồ hoạ (cảnh đồ hoạ hay có 4-6 card).
+   *
+   * Hạ qua Palette thay vì thêm tham số cho `cardSurface()`: mọi widget đã đọc palette qua
+   * useTheme() nên không phải sửa 9 chỗ gọi, và không có chỗ nào lỡ quên truyền.
+   */
+  const scenePalette = React.useMemo(() => {
+    const overVideo = scene.media?.kind === "video";
+    if (overVideo || theme.cardBackdrop === "none") return theme;
+    return { ...theme, cardBackdrop: "none" };
+  }, [theme, scene.media?.kind]);
+
   const exit = useExit(scene.durationInFrames);
   // Parallax: nền phóng vào (SceneBackdrop) trong khi nội dung trôi NGƯỢC lên rất chậm.
   // Hai lớp đi khác chiều là cách rẻ nhất để khung hình có chiều sâu thay vì phẳng lì.
@@ -143,43 +168,48 @@ export const SceneWrapper: React.FC<{
   const breathe = useDrift(1, 0.09) * 3;
 
   return (
-    <AbsoluteFill>
-      {/* NỀN — chỉ mờ vào, giữ nguyên đến hết cảnh. */}
-      <AbsoluteFill
-        style={{
-          opacity: interpolate(frame, [0, 10], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
-        }}
-      >
-        <SceneBackdrop
-          media={scene.media}
-          durationInFrames={scene.durationInFrames}
-          busy={BUSY_LAYOUTS.has(scene.layout)}
+    <ThemeContext.Provider value={scenePalette}>
+      <AbsoluteFill>
+        {/* NỀN — chỉ mờ vào, giữ nguyên đến hết cảnh. */}
+        <AbsoluteFill
+          style={{
+            opacity: interpolate(frame, [0, BACKDROP_FADE_FRAMES], [0, 1], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            }),
+          }}
+        >
+          <SceneBackdrop
+            media={scene.media}
+            durationInFrames={scene.durationInFrames}
+            busy={BUSY_LAYOUTS.has(scene.layout)}
+          />
+          {/* Đặt SAU SceneBackdrop để nằm trên video, nhưng vẫn trong lớp NỀN nên nó
+              mờ vào cùng nhịp với cảnh quay, không bật ra thành một lớp riêng. */}
+          {rainOverVideo && <TechBackground variant="overlay" />}
+        </AbsoluteFill>
+
+        {/* NỘI DUNG — transitionIn + parallax + pha RA ở cuối cảnh. */}
+        <AbsoluteFill style={contentStyle(scene.transitionIn, frame, exit, parallax + breathe)}>
+          <Layout scene={scene} height={height} />
+        </AbsoluteFill>
+
+        <KaraokeCaption
+          words={scene.words}
+          style={captions.style}
+          position={captions.position}
+          maxWordsPerLine={captions.maxWordsPerLine}
+          highlightColor={captions.highlightColor}
         />
-        {/* Đặt SAU SceneBackdrop để nằm trên video, nhưng vẫn trong lớp NỀN nên nó
-            mờ vào cùng nhịp với cảnh quay, không bật ra thành một lớp riêng. */}
-        {rainOverVideo && <TechBackground variant="overlay" />}
+        <Audio src={staticFile(scene.audioSrc)} />
+
+        {/* SFX chuyển cảnh. Nằm trong Sequence của scene nên tự phát đúng frame đầu cảnh —
+            không cần tính mốc thời gian tuyệt đối. Cảnh ĐẦU TIÊN không có SFX: chưa
+            chuyển từ đâu cả, đánh một tiếng whoosh vào giây 0 nghe như lỗi ghép. */}
+        {sfx.enabled && scene.fromFrame > 0 && sfxCue && (
+          <Audio src={staticFile(sfxCue.file)} volume={sfx.volume * sfxCue.gain} />
+        )}
       </AbsoluteFill>
-
-      {/* NỘI DUNG — transitionIn + parallax + pha RA ở cuối cảnh. */}
-      <AbsoluteFill style={contentStyle(scene.transitionIn, frame, exit, parallax + breathe)}>
-        <Layout scene={scene} height={height} />
-      </AbsoluteFill>
-
-      <KaraokeCaption
-        words={scene.words}
-        style={captions.style}
-        position={captions.position}
-        maxWordsPerLine={captions.maxWordsPerLine}
-        highlightColor={captions.highlightColor}
-      />
-      <Audio src={staticFile(scene.audioSrc)} />
-
-      {/* SFX chuyển cảnh. Nằm trong Sequence của scene nên tự phát đúng frame đầu cảnh —
-          không cần tính mốc thời gian tuyệt đối. Cảnh ĐẦU TIÊN không có SFX: chưa
-          chuyển từ đâu cả, đánh một tiếng whoosh vào giây 0 nghe như lỗi ghép. */}
-      {sfx.enabled && scene.fromFrame > 0 && sfxCue && (
-        <Audio src={staticFile(sfxCue.file)} volume={sfx.volume * sfxCue.gain} />
-      )}
-    </AbsoluteFill>
+    </ThemeContext.Provider>
   );
 };

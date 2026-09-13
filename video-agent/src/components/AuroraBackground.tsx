@@ -15,9 +15,16 @@ const BLOBS = [
   { color: "rgba(245,158,11,0.32)", x: 50, y: 50, ax: 12, ay: 9, spd: 0.09, phase: 5.0, size: 0.7 },
 ];
 
+/**
+ * Năm quầng sáng này TỪNG có `filter: blur(60px)`. Bỏ đi vì mỗi quầng đã là một
+ * radial-gradient tan dần sang trong suốt — blur chỉ nới rộng chỗ tan thêm vài chục pixel
+ * (mắt gần như không thấy) nhưng bắt Chrome làm mờ 5 mặt phẳng ~1000x1000 px MỖI FRAME,
+ * bằng CPU. Bù bằng cách đẩy điểm dừng `transparent` từ 66% ra 72%.
+ * Xem thêm ghi chú cùng nội dung ở TechBackground.tsx.
+ */
 export const AuroraBackground: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
   const t = frame / fps;
 
   return (
@@ -31,13 +38,12 @@ export const AuroraBackground: React.FC = () => {
             key={i}
             style={{
               position: "absolute",
-              left: `${x}%`,
-              top: `${y}%`,
+              left: 0,
+              top: 0,
               width: d,
               height: d,
-              transform: "translate(-50%,-50%)",
-              background: `radial-gradient(circle, ${b.color}, transparent 66%)`,
-              filter: "blur(60px)",
+              transform: `translate(${((x / 100) * width - d / 2).toFixed(1)}px, ${((y / 100) * height - d / 2).toFixed(1)}px)`,
+              background: `radial-gradient(circle, ${b.color}, transparent 72%)`,
             }}
           />
         );

@@ -1,0 +1,215 @@
+{
+  "meta": {
+    "title": "12 API miễn phí cho người mới code",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "claude-dark"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Muốn luyện gọi API mà không trả tiền? Mười hai nguồn dưới đây đủ để bạn tập từ dữ liệu giả tới thời tiết, phim, nhạc.",
+      "layout": "hook",
+      "heading": "12 API miễn phí — luyện gọi dữ liệu thật",
+      "media": {
+        "kind": "pexels-video",
+        "src": "developer coding laptop night closeup",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "12 API miễn phí"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Đừng học lung tung. Chia bốn nhóm: dữ liệu giả, địa lý thời tiết, nội dung giải trí, rồi tới thương mại.",
+      "layout": "graphic",
+      "heading": "Bốn nhóm — chọn đúng việc cần làm",
+      "chips": [
+        "@layers 4 nhóm",
+        "@globe Địa lý",
+        "@play Giải trí",
+        "* Không cần trả phí để bắt đầu"
+      ],
+      "emphasis": [
+        "Bốn nhóm"
+      ],
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Mỗi nhóm một mục đích luyện tập",
+        "labels": [
+          "@db Dữ liệu giả để tập fetch",
+          "@globe Thời tiết, quốc gia, địa chỉ IP",
+          "@play Phim, nhạc, Pokemon",
+          "@money Cửa hàng và sản phẩm demo"
+        ]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Ba cái này cho bài viết, người dùng, sản phẩm giả. Gọi được ngay, không cần chìa khóa phức tạp.",
+      "layout": "graphic",
+      "heading": "Nhóm 1 — Dữ liệu giả để tập tay",
+      "chips": [
+        "@code JSON Placeholder",
+        "@users Random Data",
+        "@package DummyJSON"
+      ],
+      "emphasis": [
+        "Dữ liệu giả"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Luyện GET, POST trước khi đụng backend thật",
+        "labels": [
+          "@file JSON Placeholder — bài viết, todo giả",
+          "@users Random Data — hồ sơ người ngẫu nhiên",
+          "@boxes DummyJSON — sản phẩm, giỏ hàng demo"
+        ]
+      }
+    },
+    {
+      "id": "s4",
+      "narration": "Muốn app có vị trí hay thời tiết? Bốn nguồn này lo quốc gia, thời tiết, địa chỉ mạng và dịch máy.",
+      "layout": "graphic",
+      "heading": "Nhóm 2 — Bản đồ, thời tiết, mạng",
+      "chips": [
+        "@globe REST Countries",
+        "@gauge Open Weather",
+        "@network IP API",
+        "@chat Google Translate"
+      ],
+      "emphasis": [
+        "thời tiết"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Dữ liệu thật, vẫn có tầng miễn phí",
+        "labels": [
+          "@globe REST Countries — cờ, dân số, tiền tệ",
+          "@gauge Open Weather — nhiệt độ theo thành phố",
+          "@network IP API — vị trí gần đúng từ IP",
+          "@chat Google Translate — dịch văn bản nhanh"
+        ]
+      }
+    },
+    {
+      "id": "s5",
+      "narration": "Ba cái này làm app giải trí rất đã: tra phim, lấy bài hát, hoặc dựng danh sách Pokemon.",
+      "layout": "graphic",
+      "heading": "Nhóm 3 — Phim, nhạc, Pokemon",
+      "chips": [
+        "@play Movie Database",
+        "@star Spotify",
+        "@zap Pokemon API"
+      ],
+      "emphasis": [
+        "Phim",
+        "nhạc"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Nội dung hấp dẫn để demo portfolio",
+        "labels": [
+          "@play Movie Database — poster, điểm, trailer",
+          "@star Spotify — tìm bài, album, nghệ sĩ",
+          "@zap Pokemon API — tên, hệ, ảnh từng con"
+        ]
+      }
+    },
+    {
+      "id": "s6",
+      "narration": "Muốn làm shop thử? Có Commerce.js. Muốn thời tiết không cần đăng ký? Thêm Open-Meteo vào túi đồ nghề.",
+      "layout": "graphic",
+      "heading": "Nhóm 4 — Cửa hàng demo và thời tiết không khóa",
+      "chips": [
+        "@money Commerce.js",
+        "@gauge Open-Meteo",
+        "* Tầng miễn phí để học"
+      ],
+      "emphasis": [
+        "Cửa hàng demo"
+      ],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "checklist",
+        "subtitle": "Hai nguồn đóng danh sách mười hai",
+        "labels": [
+          "+ Commerce.js — giỏ hàng, sản phẩm ecommerce demo",
+          "+ Open-Meteo — dự báo thời tiết, không bắt buộc key",
+          "- Đừng nhét khóa bí mật lên kho công khai",
+          "- Đọc hạn mức miễn phí trước khi deploy"
+        ]
+      }
+    },
+    {
+      "id": "s7",
+      "narration": "Bắt đầu đơn giản nhất: gọi JSON Placeholder lấy một bài viết. Chạy được dòng này là bạn đã biết đường gọi API.",
+      "layout": "code",
+      "heading": "Thử ngay — một lệnh fetch",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "code": "const res = await fetch(\n  \"https://jsonplaceholder.typicode.com/posts/1\"\n);\nconst post = await res.json();\nconsole.log(post.title);",
+      "codeTitle": "fetch-post.js",
+      "codeHighlight": [
+        1,
+        2,
+        4
+      ],
+      "output": "sunt aut facere..."
+    },
+    {
+      "id": "s8",
+      "narration": "Lưu video này để lần sau khỏi tìm lại. Tập sau mình sẽ làm một app nhỏ gọi vài API trong list này.",
+      "layout": "cta",
+      "heading": "Lưu lại list này + theo dõi tập sau 👇",
+      "media": {
+        "kind": "pexels-video",
+        "src": "software developer team working office",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "Lưu lại"
+      ],
+      "transitionIn": "glow",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "piper",
+    "voiceId": "adam1",
+    "speed": 1.2,
+    "pitch": -5
+  },
+  "captions": {
+    "style": "auto",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#3be8a0"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.2,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": true,
+    "volume": 0.35
+  }
+}

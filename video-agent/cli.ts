@@ -1,9 +1,13 @@
 import "./pipeline/env.ts"; // nạp .env trước tiên
 import path from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
+import { promises as fs } from "node:fs";
 import { spawn } from "node:child_process";
-import { buildSpec } from "./pipeline/build.ts";
+import { buildSpec, slugify } from "./pipeline/build.ts";
 import { renderVideo } from "./pipeline/render.ts";
+import { cleanWorkspace } from "./pipeline/clean.ts";
+import { authorSpec } from "./pipeline/author.ts";
+import { resolveLlm, LLM_SETUP_HINT } from "./pipeline/llm.ts";
 import { getProvider, estimateDurationSec, evenWordTimings } from "./pipeline/tts.ts";
 import { normalizeVietnamese } from "./pipeline/normalize.ts";
 import type { Voice } from "./src/schema.ts";
@@ -11,9 +15,11 @@ import type { Voice } from "./src/schema.ts";
 /**
  * cli.ts — entrypoint. Chạy qua: pnpm video <lệnh> <args>.
  *
+ *   pnpm video make "<chủ đề>"  # MỘT CÂU → LLM viết spec → render luôn ra MP4
  *   pnpm video build   <spec>   # spec → out/<slug>/props.json
  *   pnpm video render  <spec>   # build + render → out/<slug>/final.mp4
  *   pnpm video preview <spec>   # build + mở Remotion Studio với props thật
+ *   pnpm video clean [--yes]    # dọn asset mồ côi trong public/ + rác tạm của Remotion
  *   pnpm video voices           # liệt kê voice tiếng Việt khả dụng
  *   pnpm video demo-tts "<câu>" [provider] [voiceId]
  *       # tổng hợp thật ra .cache/demo-tts.* để NGHE, kèm bảng word-timing.
@@ -25,11 +31,7 @@ const VIETNAMESE_VOICES: Record<string, { id: string; note: string }[]> = {
     { id: "vi-VN-HoaiMyNeural", note: "Nữ Bắc — MIỄN PHÍ, không cần key (khuyến nghị)" },
     { id: "vi-VN-NamMinhNeural", note: "Nam Bắc — MIỄN PHÍ, không cần key" },
   ],
-  piper: [
-    { id: "vi_VN-vais1000-medium", note: "Rõ nhất (22kHz) — MIỄN PHÍ, offline, không key" },
-    { id: "vi_VN-25hours_single-low", note: "Giọng khác (16kHz)" },
-    { id: "vi_VN-vivos-x_low#0..64", note: "65 giọng! đổi số sau # (vd vi_VN-vivos-x_low#30)" },
-  ],
+  // piper KHÔNG ghi cứng ở đây — xem piperVoices() bên dưới.
   elevenlabs: [
     { id: "<voice_id>", note: "Chọn voice đa ngữ (multilingual v2) hỗ trợ tiếng Việt tốt" },
   ],
@@ -45,6 +47,37 @@ const VIETNAMESE_VOICES: Record<string, { id: string; note: string }[]> = {
   ],
   mock: [{ id: "default", note: "Im lặng + timing đều — chạy offline không cần API key" }],
 };
+
+/**
+ * pnpm video make "<một câu chủ đề>" [--spec-only]
+ *
+ * Đường đi đầy đủ, không cần đụng JSON: câu chữ → LLM viết spec → specs/<slug>.json
+ * → TTS + timing → MP4.
+ */
+async function cmdMake(brief?: string, ...flags: string[]) {
+  if (!brief) {
+    throw new Error('Thiếu nội dung. Vd: pnpm video make "Dựng cho tôi video về Trấn Thành"');
+  }
+  const llm = resolveLlm();
+  if (!llm) throw new Error(LLM_SETUP_HINT);
+
+  const { spec, attempts } = await authorSpec(brief, (m) => console.log(m));
+  const slug = slugify(spec.meta.title);
+  const specPath = path.resolve(process.cwd(), "specs", `${slug}.json`);
+  await fs.mkdir(path.dirname(specPath), { recursive: true });
+  await fs.writeFile(specPath, JSON.stringify(spec, null, 2), "utf8");
+  console.log(`\n📝 Spec: ${specPath}  (${spec.scenes.length} cảnh, ${attempts} lượt viết)`);
+  console.log(`   "${spec.meta.title}"`);
+
+  if (flags.includes("--spec-only")) {
+    console.log(`\nRender khi nào bạn ưng:  pnpm video render specs/${slug}.json`);
+    return;
+  }
+
+  const built = await buildSpec(specPath);
+  const { outputPath } = await renderVideo(built.slug, built.props);
+  console.log(`\n🎬 MP4: ${outputPath}`);
+}
 
 async function cmdBuild(spec: string) {
   const { propsPath } = await buildSpec(path.resolve(spec));
@@ -68,11 +101,76 @@ async function cmdPreview(spec: string) {
   child.on("exit", (code) => process.exit(code ?? 0));
 }
 
+const MB = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(0)} MB`;
+
+/**
+ * pnpm video clean [--yes] [--stock]
+ *   không cờ   → chỉ LIỆT KÊ những gì sẽ xoá (an toàn, không đụng đĩa)
+ *   --yes      → xoá thật
+ *   --stock    → tính luôn .cache/stock (clip Pexels đã tải; xoá là lần sau tải lại)
+ */
+async function cmdClean(flags: string[]) {
+  const apply = flags.includes("--yes");
+  const stock = flags.includes("--stock");
+  const report = await cleanWorkspace({ apply, stock });
+
+  if (!report.targets.length && !report.tmpRemoved) {
+    console.log("Không có gì để dọn. 👌");
+    return;
+  }
+  for (const t of report.targets) console.log(`  ${MB(t.bytes).padStart(8)}  ${t.label}`);
+  if (report.tmpRemoved) {
+    console.log(`  ${MB(report.tmpBytes).padStart(8)}  ${report.tmpRemoved} thư mục tạm Remotion trong %TEMP%`);
+  }
+  console.log(`  ${"—".repeat(8)}`);
+  console.log(`  ${MB(report.totalBytes).padStart(8)}  ${apply ? "ĐÃ XOÁ" : "sẽ xoá"}`);
+  if (!apply) {
+    console.log(`\nChạy lại kèm --yes để xoá thật.${stock ? "" : "  (thêm --stock để tính cả clip Pexels đã tải)"}`);
+  }
+}
+
+/**
+ * Giọng Piper ĐỌC THẲNG TỪ ĐĨA, không ghi cứng.
+ *
+ * Trước đây danh sách piper nằm cứng trong VIETNAMESE_VOICES nên nó nói dối: người dùng
+ * thả thêm .onnx vào `tools/piper/voices/` thì lệnh này không thấy, còn giọng đã gỡ thì
+ * vẫn hiện. Đọc thư mục là cách duy nhất để danh sách luôn đúng.
+ *
+ * Piper cần ĐỦ CẶP `<tên>.onnx` + `<tên>.onnx.json`; thiếu file cấu hình là nó không chạy,
+ * nên ở đây báo rõ thay vì im lặng bỏ qua.
+ */
+function piperVoices(): { id: string; note: string }[] {
+  const dir = path.resolve(process.env.PIPER_DIR ?? path.join(process.cwd(), "tools", "piper"), "voices");
+  if (!existsSync(dir)) return [{ id: "(chưa cài)", note: "Chạy scripts/setup-piper.ps1 để tải Piper + giọng." }];
+
+  const NOTES: Record<string, string> = {
+    "vi_VN-vais1000-medium": "Giọng kho — rõ nhất (22kHz)",
+    "vi_VN-25hours_single-low": "Giọng kho (16kHz)",
+    "vi_VN-vivos-x_low": "Giọng kho — 65 giọng, thêm #N vào sau (vd vi_VN-vivos-x_low#30)",
+  };
+
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(".onnx"))
+    .map((f) => f.replace(/\.onnx$/, ""))
+    .sort()
+    .map((id) => ({
+      id,
+      note: existsSync(path.join(dir, `${id}.onnx.json`))
+        ? (NOTES[id] ?? "Giọng tự thêm")
+        : "⚠ THIẾU file cấu hình .onnx.json → piper sẽ báo lỗi",
+    }));
+}
+
 function cmdVoices() {
   console.log("Voice tiếng Việt khả dụng (đặt vào voice.provider / voice.voiceId):\n");
-  for (const [provider, voices] of Object.entries(VIETNAMESE_VOICES)) {
+  const all: Record<string, { id: string; note: string }[]> = {
+    ...VIETNAMESE_VOICES,
+    piper: piperVoices(),
+  };
+  const width = Math.max(24, ...Object.values(all).flat().map((v) => v.id.length));
+  for (const [provider, voices] of Object.entries(all)) {
     console.log(`● ${provider}`);
-    for (const v of voices) console.log(`    ${v.id.padEnd(24)} ${v.note}`);
+    for (const v of voices) console.log(`    ${v.id.padEnd(width)}  ${v.note}`);
     console.log();
   }
 }
@@ -142,6 +240,10 @@ async function main() {
   const [cmd, arg, arg2, arg3] = process.argv.slice(2);
   try {
     switch (cmd) {
+      case "make":
+      case "tao":
+        await cmdMake(arg, ...process.argv.slice(4));
+        break;
       case "build":
         if (!arg) throw new Error("Thiếu đường dẫn spec. Vd: pnpm video build specs/demo.json");
         await cmdBuild(arg);
@@ -157,6 +259,9 @@ async function main() {
       case "serve":
         await import("./server.ts"); // mở Studio web ở http://localhost:4321
         break;
+      case "clean":
+        await cmdClean(process.argv.slice(3));
+        break;
       case "voices":
         cmdVoices();
         break;
@@ -169,10 +274,14 @@ async function main() {
           [
             "Video Agent CLI",
             "",
+            '  pnpm video make "<chủ đề>"  MỘT CÂU → spec → MP4 (cần key LLM trong .env)',
+            "                              thêm --spec-only để dừng lại ở bước JSON",
+            "",
             "  pnpm video build   <spec>   spec → out/<slug>/props.json",
             "  pnpm video render  <spec>   build + render → out/<slug>/final.mp4",
             "  pnpm video preview <spec>   build + mở Remotion Studio",
             "  pnpm video serve            mở Video Studio web (điền form → render)",
+            "  pnpm video clean [--yes]    dọn asset mồ côi + thư mục tạm Remotion",
             "  pnpm video voices           liệt kê voice tiếng Việt",
             "  pnpm video demo-tts [text]  in bảng word-timing",
           ].join("\n"),

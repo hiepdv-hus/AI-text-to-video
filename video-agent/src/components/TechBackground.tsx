@@ -126,7 +126,7 @@ export const TechBackground: React.FC<{
   variant?: "full" | "overlay";
 }> = ({ variant = "full" }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
   const t = frame / fps;
 
   if (variant === "overlay") {
@@ -138,15 +138,15 @@ export const TechBackground: React.FC<{
   }
 
   // Hai quầng sáng lớn trôi rất chậm — nguồn "chiều sâu" chính của nền.
-  const g1x = 18 + Math.sin(t * 0.16) * 7;
-  const g1y = 24 + Math.cos(t * 0.13) * 5;
-  const g2x = 84 + Math.sin(t * 0.11 + 1.4) * 7;
-  const g2y = 74 + Math.cos(t * 0.09 + 0.6) * 5;
+  const g1x = (18 + Math.sin(t * 0.16) * 7) / 100;
+  const g1y = (24 + Math.cos(t * 0.13) * 5) / 100;
+  const g2x = (84 + Math.sin(t * 0.11 + 1.4) * 7) / 100;
+  const g2y = (74 + Math.cos(t * 0.09 + 0.6) * 5) / 100;
 
   return (
     <AbsoluteFill style={{ background: TECH.bgGradient, overflow: "hidden" }}>
-      <Glow x={g1x} y={g1y} size={width * 1.35} color="rgba(24,140,104,0.22)" />
-      <Glow x={g2x} y={g2y} size={width * 1.15} color="rgba(30,110,168,0.20)" />
+      <Glow xPx={g1x * width} yPx={g1y * height} size={width * 1.35} color="rgba(24,140,104,0.22)" />
+      <Glow xPx={g2x * width} yPx={g2y * height} size={width * 1.15} color="rgba(30,110,168,0.20)" />
 
       {/* Lưới rất mờ, chỉ hiện ở mép — cùng logic với mưa: giữa khung phải sạch. */}
       <AbsoluteFill
@@ -171,17 +171,29 @@ export const TechBackground: React.FC<{
   );
 };
 
-const Glow: React.FC<{ x: number; y: number; size: number; color: string }> = ({ x, y, size, color }) => (
+/**
+ * Glow — quầng sáng lớn.
+ *
+ * KHÔNG dùng `filter: blur()`. Nguồn sáng ở đây đã là một radial-gradient tan dần sang
+ * trong suốt trên ~450px, nên blur(40px) gần như không thêm gì cho MẮT — nhưng với máy
+ * thì nó là một pass làm mờ 1458x1458 px CHẠY LẠI MỖI FRAME (Chrome headless raster bằng
+ * CPU, không có GPU). Đo trên máy 6 nhân: bỏ blur ở hai quầng này cắt ~25% thời gian
+ * render mỗi frame. Độ tan của blur được bù bằng cách đẩy điểm dừng `transparent` ra xa
+ * hơn (62% → 70%).
+ *
+ * Vị trí đi bằng `translate()` tính sẵn ra PIXEL chứ không bằng left/top theo %:
+ * transform không buộc Chrome tính lại layout mỗi frame.
+ */
+const Glow: React.FC<{ xPx: number; yPx: number; size: number; color: string }> = ({ xPx, yPx, size, color }) => (
   <div
     style={{
       position: "absolute",
-      left: `${x}%`,
-      top: `${y}%`,
+      left: 0,
+      top: 0,
       width: size,
       height: size,
-      transform: "translate(-50%,-50%)",
-      background: `radial-gradient(circle, ${color}, transparent 62%)`,
-      filter: "blur(40px)",
+      transform: `translate(${(xPx - size / 2).toFixed(1)}px, ${(yPx - size / 2).toFixed(1)}px)`,
+      background: `radial-gradient(circle, ${color}, transparent 70%)`,
     }}
   />
 );

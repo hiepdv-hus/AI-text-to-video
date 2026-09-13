@@ -37,6 +37,11 @@ export interface Palette {
   /**
    * backdrop-filter cho card. Tech đặt "blur(…)" vì card nằm TRÊN VIDEO NỀN —
    * làm mờ nền sau card là cách giữ chữ đọc rõ mà không cần lớp phủ đen dày.
+   *
+   * Giá trị ở đây là giá trị MẶC ĐỊNH của theme; SceneWrapper hạ nó xuống "none" cho
+   * những cảnh KHÔNG có video nền (xem `scenePalette` trong SceneWrapper.tsx) — sau card
+   * lúc đó chỉ là gradient + mưa nhị phân, làm mờ cũng gần như không thấy khác, mà
+   * backdrop-filter thì tốn một lần đọc-lại-nền + blur cho MỖI card, MỖI frame.
    */
   cardBackdrop: string;
   /**
@@ -81,16 +86,25 @@ export interface Palette {
   lineHeight: number;
 }
 
+/**
+ * Thang cỡ chữ. Chỉnh ở ĐÂY là mọi layout đổi theo — đừng ghi số cứng trong component.
+ *
+ * Đợt chỉnh gần nhất kéo TIÊU ĐỀ xuống và đẩy NHÃN lên, để khoảng cách giữa hai mức
+ * không còn quá gắt: tiêu đề 72 trên nhãn 34 là gấp đôi, khung hình bị tiêu đề nuốt hết
+ * và phần nhãn đọc ra như chú thích thừa. Giờ 64/40 — vẫn rõ thứ bậc mà cả cụm đọc
+ * được như MỘT khối.
+ */
 const SIZE = {
-  hook: 96,
-  heading: 72,
+  hook: 86, // tiêu đề cảnh hook/cta (câu mở, câu chốt) — to nhất khung hình
+  heading: 64, // tiêu đề các cảnh còn lại
   subhead: 40,
-  card: 46,
-  caption: 68, // phụ đề GIỮ NGUYÊN — nó là lớp overlay, không thuộc khối nội dung.
+  card: 42, // chữ trong labels của mọi widget (thẻ, checklist, bước…)
+  caption: 60, // phụ đề karaoke chạy theo giọng đọc
   small: 32,
-  // Nhãn nhỏ (eyebrow) 34 chứ không phải 28: nó viết HOA + giãn chữ 2.4 và tô màu nhấn
-  // mảnh trên nền tối, nên ở 28px đọc ra như hoạ tiết trang trí chứ không phải chữ.
-  label: 34,
+  // Nhãn nhỏ (eyebrow, vd "Lỗi số 1") — nó viết HOA + giãn chữ 2.4 và tô màu nhấn mảnh
+  // trên nền tối, nên phải to hơn cảm giác ban đầu mới đọc ra là CHỮ chứ không phải
+  // hoạ tiết trang trí.
+  label: 40,
   value: 60,
 } as const;
 

@@ -58,7 +58,10 @@ const Card: React.FC<{
   compact: boolean;
   p: Palette;
 }> = ({ index, parsed, fontSize, badge, compact, p }) => {
-  const glyph = <Glyph parsed={parsed} size={Math.round(badge * 0.52)} color={p.accent} p={p} />;
+  // 0.62 chứ không phải 0.52: chữ trong thẻ đã hạ xuống (size.card 46 → 42) nên icon giữ
+  // nguyên là bị teo theo. Icon nằm trong ô huy hiệu có viền — to gần chạm viền mới ra
+  // "biểu tượng", nhỏ quá thì thành một chấm lạc giữa ô trống.
+  const glyph = <Glyph parsed={parsed} size={Math.round(badge * 0.62)} color={p.accent} p={p} />;
   const e = useEnter(5 + index * BEAT.stagger, { damping: 17, stiffness: 190, mass: 0.75 });
   const op = interpolate(e, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
   const float = useDrift(index, 0.16) * 3.5;

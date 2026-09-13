@@ -5,6 +5,8 @@ import path from "node:path";
 import { buildSpec, slugify, OUT_DIR } from "./pipeline/build.ts";
 import { renderVideo } from "./pipeline/render.ts";
 import { buildCaption, buildHashtags, revealFile } from "./pipeline/publish.ts";
+import { authorSpec } from "./pipeline/author.ts";
+import { resolveLlm, LLM_SETUP_HINT } from "./pipeline/llm.ts";
 import { videoSpecSchema } from "./src/schema.ts";
 
 /**
@@ -18,6 +20,7 @@ const PORT = Number(process.env.PORT ?? 4321);
 const SPECS_DIR = path.join(ROOT, "specs");
 
 let rendering = false; // chỉ 1 lần render tại một thời điểm
+let generating = false; // chỉ 1 lượt gọi LLM tại một thời điểm (mỗi lượt là tiền thật)
 
 function send(res: http.ServerResponse, code: number, body: string | Buffer, type = "text/plain; charset=utf-8") {
   res.writeHead(code, { "Content-Type": type });
@@ -114,15 +117,49 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { items });
     }
 
-    // Xóa 1 project: xóa out/<slug>, public/audio/<slug>, specs/<slug>.json.
+    // Xóa 1 project: out/<slug>, spec, và MỌI asset mang tên slug trong public/.
+    //
+    // Bản trước chỉ xoá public/audio/<slug> mà bỏ sót public/video/<slug> và
+    // public/images/<slug> — đúng hai thư mục NẶNG nhất (clip nền Pexels vài MB mỗi cái).
+    // Hệ quả: xoá project trên giao diện mà đĩa gần như không giảm, và public/ cứ phình
+    // mãi theo số video từng dựng.
     if (req.method === "DELETE" && pathname.startsWith("/api/item/")) {
       const slug = path.basename(pathname.slice("/api/item/".length));
       if (!slug) return sendJson(res, 400, { error: "thiếu slug" });
       await fs.rm(path.join(OUT_DIR, slug), { recursive: true, force: true });
-      await fs.rm(path.join(ROOT, "public", "audio", slug), { recursive: true, force: true });
+      for (const kind of ["audio", "video", "images"]) {
+        await fs.rm(path.join(ROOT, "public", kind, slug), { recursive: true, force: true });
+      }
       await fs.rm(path.join(SPECS_DIR, `${slug}.json`), { force: true });
-      console.log(`[serve] đã xóa "${slug}"`);
+      console.log(`[serve] đã xóa "${slug}" (out/, spec, audio+video+images trong public/)`);
       return sendJson(res, 200, { ok: true });
+    }
+
+    // LLM đã cắm key chưa — giao diện dùng để bật/tắt ô "tạo bằng AI".
+    if (req.method === "GET" && pathname === "/api/llm") {
+      const llm = resolveLlm();
+      return sendJson(res, 200, llm ? { ready: true, ...llm } : { ready: false, hint: LLM_SETUP_HINT });
+    }
+
+    // MỘT CÂU → spec. Không render ở đây: trả JSON về cho giao diện đổ vào form để
+    // người dùng ĐỌC LẠI và sửa trước khi tốn vài phút CPU render.
+    if (req.method === "POST" && pathname === "/api/generate") {
+      if (generating) return sendJson(res, 429, { error: "Đang viết kịch bản khác, đợi chút." });
+      const { brief } = JSON.parse(await readBody(req)) as { brief?: string };
+      if (!brief?.trim()) return sendJson(res, 400, { error: "Thiếu nội dung yêu cầu." });
+      if (!resolveLlm()) return sendJson(res, 400, { error: LLM_SETUP_HINT });
+
+      generating = true;
+      try {
+        console.log(`[serve] viết kịch bản: "${brief.trim().slice(0, 80)}"`);
+        const { spec, attempts } = await authorSpec(brief, (m) => console.log(m));
+        return sendJson(res, 200, { ok: true, spec, attempts });
+      } catch (err) {
+        console.error(err);
+        return sendJson(res, 500, { error: (err as Error).message });
+      } finally {
+        generating = false;
+      }
     }
 
     // Render

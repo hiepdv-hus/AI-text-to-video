@@ -43,16 +43,67 @@ và sửa video cũ.
 ## Dùng CLI
 
 ```bash
+pnpm video make "Dựng cho tôi video về Trấn Thành"   # MỘT CÂU → kịch bản → MP4
+pnpm video make "..." --spec-only                    # chỉ viết JSON, chưa render
+
 pnpm video build   specs/demo-tainghe.json   # spec → out/<slug>/props.json (TTS + timing)
 pnpm video render  specs/demo-tainghe.json   # build + render → out/<slug>/final.mp4
 pnpm video preview specs/demo-tainghe.json   # build + mở Remotion Studio với props thật
 pnpm video voices                            # liệt kê voice tiếng Việt khả dụng
 pnpm video demo-tts "Giảm 30% còn 199k!"     # in bảng word-timing để kiểm tra bằng mắt
+pnpm video clean                             # LIỆT KÊ rác có thể xoá (không đụng đĩa)
+pnpm video clean --yes                       # xoá thật: asset mồ côi + thư mục tạm Remotion
+pnpm video clean --yes --stock               # xoá luôn .cache/stock (lần sau tải lại từ Pexels)
 
 pnpm studio            # mở Remotion Studio (preview template với defaultProps)
 pnpm typecheck         # tsc --noEmit
 pnpm test              # test chuẩn hoá tiếng Việt (số → chữ, NFC…)
 ```
+
+### Một câu → video (cần key AI)
+
+`pnpm video make` và nút **✨ Tạo bằng AI** trên Studio web đều đi qua cùng một đường:
+LLM viết `specs/<slug>.json` → Zod kiểm kiểu → `lintSpec()` kiểm cách dùng → sai chỗ nào
+thì **nhắc lại đúng chỗ đó** cho LLM sửa (tối đa 3 lượt) → render.
+
+Người dùng tự cắm key, chỉ cần **một** trong số này vào `.env`:
+
+```bash
+GEMINI_API_KEY=...       # aistudio.google.com/apikey — có tầng miễn phí, dễ bắt đầu nhất
+OPENAI_API_KEY=...
+ANTHROPIC_API_KEY=...
+
+# hoặc bất kỳ dịch vụ nào tương thích OpenAI (OpenRouter, Groq, LM Studio…):
+LLM_PROVIDER=compat
+LLM_BASE_URL=https://openrouter.ai/api/v1
+LLM_API_KEY=...
+LLM_MODEL=<tên model>
+```
+
+Hệ thống **tự dò** key nào đang có; `LLM_PROVIDER` chỉ cần khi muốn ép một nhà cung cấp
+cụ thể, `LLM_MODEL` chỉ cần khi muốn đổi model.
+
+Luật viết kịch bản KHÔNG nằm trong code — nó là [`.claude/skills/make-video/SKILL.md`](.claude/skills/make-video/SKILL.md),
+cùng file mà agent đang dùng. `pipeline/author.ts` đọc thẳng file đó làm system prompt,
+nên sửa luật ở một chỗ là cả hai đường cùng đổi theo.
+
+Trên Studio web, AI **không render thẳng**: nó đổ kịch bản vào form để bạn đọc lại và sửa
+trước. Render tốn vài phút CPU — xem trước rẻ hơn nhiều so với render rồi mới thấy sai.
+
+### Render ăn bao nhiêu CPU
+
+Render là việc nặng thật: mỗi frame 1080x1920 do Chrome headless raster bằng **CPU**
+(headless không dùng GPU), rồi ffmpeg encode song song. Số frame chạy cùng lúc mặc định
+là *một nửa số luồng CPU* (tối đa 8) — giống mặc định của Remotion, để còn máy mà làm
+việc khác. Muốn đổi:
+
+```bash
+RENDER_CONCURRENCY=3 pnpm video render specs/x.json   # nhẹ máy, render lâu hơn
+RENDER_CONCURRENCY=8 pnpm video render specs/x.json   # dồn sức cho nhanh
+```
+
+Đo trên máy 6 nhân/12 luồng: đẩy lên 11 luồng **không** nhanh hơn 6 luồng (cảnh đồ hoạ
+còn chậm đi), chỉ tốn thêm RAM. Đừng đặt quá nửa số luồng trừ khi máy rảnh hẳn.
 
 ## Cấu trúc
 
@@ -249,6 +300,32 @@ Mẫu đầy đủ 6 widget mới: `specs/demo-widget-moi.json` · mẫu cũ + v
 - **Render treo 0%** → `<Img>`/`<OffthreadVideo>` tự `delayRender`; Chrome do Remotion tự tải.
 - **Audio lệch phụ đề** → duration lấy từ file audio thật, không ước lượng theo ký tự.
 - **Dấu tiếng Việt lệch khi so khớp** → chuẩn hoá NFC ở cả 2 phía.
+
+## Viết component sao cho render không ì
+
+Chrome headless raster bằng CPU, nên mọi thứ "mềm mại" đều tính tiền theo **số pixel ×
+số frame**. Ba luật rút ra từ việc đo thật (xem ghi chú trong `TechBackground.tsx`):
+
+1. **Không dùng `filter: blur()` cho quầng sáng.** `radial-gradient` tan sang `transparent`
+   đã mềm sẵn; blur chỉ nới thêm vài chục pixel mà mắt không thấy, nhưng bắt Chrome làm mờ
+   cả mặt phẳng ~1500x1500 px **mỗi frame**. Bỏ 2 quầng blur ở nền tech cắt ~25% thời gian
+   mỗi frame. Cần mềm hơn thì đẩy điểm dừng `transparent` ra xa.
+2. **Đừng vẽ thứ đang bị che.** Backdrop chung bị `SceneBackdrop` đục phủ kín trong cảnh có
+   video — Chrome vẫn vẽ đủ vì lớp che nằm trong stacking context riêng. `VideoComposition`
+   tự cắt nó ở những frame chắc chắn bị che (ra hình y hệt, PSNR = ∞).
+3. **`backdrop-filter` và `mixBlendMode` là thuế toàn khung** — cả hai đều bắt Chrome đọc
+   lại nền đã vẽ. Không bỏ hẳn (chúng làm nên diện mạo), mà **chỉ trả tiền ở chỗ nhìn ra
+   khác biệt**:
+   - Card kính mờ giờ chỉ bật `backdrop-filter` ở cảnh CÓ VIDEO nền — nơi nó thật sự giúp
+     chữ đọc rõ. `SceneWrapper` hạ `cardBackdrop` xuống `"none"` cho cảnh đồ hoạ.
+   - `FilmGrain` bỏ `mixBlendMode: overlay`, đổi sang HAI lớp hạt (đen + trắng) chồng khít
+     nhau, trộn thường. Cùng hiệu ứng sáng-tối, không có lượt đọc-lại-nền nào. Độ dốc và
+     `opacity` được dò để biên độ hạt lệch dưới 0.35 dB và độ sáng trung bình lệch dưới
+     0.2/255 so với bản overlay.
+
+   Tổng hai thứ này: **−45% mỗi frame ở cảnh đồ hoạ**. Trước khi thêm hiệu ứng toàn khung
+   thứ ba, hãy đo trước — và **đo cả bitrate**, không chỉ tốc độ: hạt nhiễu là thứ tốn bit
+   nhất trong khung hình, chỉnh sai một nấc là file phình gấp mấy lần.
 
 ## Mở rộng
 

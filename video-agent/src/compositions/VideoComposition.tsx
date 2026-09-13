@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { buildDuckEnvelope } from "../components/ducking";
 import type { BuiltProps } from "../schema";
-import { SceneWrapper } from "../components/SceneWrapper";
+import { SceneWrapper, BACKDROP_FADE_FRAMES } from "../components/SceneWrapper";
 import { TechBackground } from "../components/TechBackground";
 import { AuroraBackground } from "../components/AuroraBackground";
 import { SpiderBackground } from "../components/SpiderBackground";
@@ -35,14 +35,43 @@ export const VideoComposition: React.FC<BuiltProps> = ({
     () => (music ? buildDuckEnvelope(scenes, fps, totalDurationInFrames, music.duck) : null),
     [music, scenes, fps, totalDurationInFrames],
   );
+
+  /**
+   * Backdrop chung (mưa nhị phân / cực quang / neon) có ĐANG BỊ CHE KÍN không?
+   *
+   * Scene có `media` kiểu video hoặc color vẽ một lớp ĐỤC phủ toàn khung (SceneBackdrop),
+   * mờ vào trong BACKDROP_FADE_FRAMES frame rồi giữ đục đến hết cảnh. Từ lúc nó đục hẳn,
+   * mọi pixel của backdrop chung đều bị đè — nhưng Chrome vẫn phải VẼ đủ: gradient, hai
+   * quầng sáng lớn, mưa nhị phân, lưới, vignette. Trên clip đo được, việc vẽ thừa này
+   * chiếm ~25% thời gian mỗi frame của cảnh có video.
+   *
+   * Chrome không tự bỏ qua được vì lớp che nằm trong một stacking context riêng (nó có
+   * opacity động), nên phải tự cắt ở đây. Chỉ cắt khi lớp che đã ĐỤC HOÀN TOÀN → hình ra
+   * không đổi một pixel nào.
+   */
+  const backdropHidden = React.useMemo(
+    () =>
+      scenes.some(
+        (s) =>
+          (s.media?.kind === "video" || s.media?.kind === "color") &&
+          frame >= s.fromFrame + BACKDROP_FADE_FRAMES &&
+          frame < s.fromFrame + s.durationInFrames,
+      ),
+    [scenes, frame],
+  );
+
   return (
     <ThemeContext.Provider value={palette}>
       <AbsoluteFill style={{ backgroundColor: palette.bg }}>
         {/* Backdrop tuỳ chọn — presentation (card/chữ) luôn theo style Claude bên trên. */}
-        {isClaudeBg && <ClaudeBackground palette={palette} />}
-        {meta.background === "tech" && <TechBackground />}
-        {meta.background === "aurora" && <AuroraBackground />}
-        {meta.background === "spider" && <SpiderBackground />}
+        {!backdropHidden && (
+          <>
+            {isClaudeBg && <ClaudeBackground palette={palette} />}
+            {meta.background === "tech" && <TechBackground />}
+            {meta.background === "aurora" && <AuroraBackground />}
+            {meta.background === "spider" && <SpiderBackground />}
+          </>
+        )}
 
         {scenes.map((scene) => (
           <Sequence

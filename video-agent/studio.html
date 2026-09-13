@@ -115,6 +115,24 @@
       </select>
     </div>
 
+    <!-- Ô một-câu-ra-video. Đặt TRÊN CÙNG vì đây là đường đi mặc định; cả cái form dài
+         bên dưới trở thành chỗ TINH CHỈNH sau khi AI đã điền, không phải chỗ bắt đầu. -->
+    <div class="card" id="aiCard">
+      <h2>✨ Tạo bằng AI</h2>
+      <div class="row">
+        <div style="flex:3">
+          <input id="brief" placeholder='VD: Dựng cho tôi video về Trấn Thành'
+                 onkeydown="if(event.key==='Enter')generateSpec()" />
+        </div>
+        <div>
+          <button class="btn-primary" id="genBtn" style="width:100%" onclick="generateSpec()">Viết kịch bản</button>
+        </div>
+      </div>
+      <div class="hint" id="aiHint" style="margin-top:8px">
+        Nhập một câu là đủ. AI viết xong sẽ đổ vào form bên dưới — đọc lại, sửa chỗ nào chưa ưng, rồi mới Render.
+      </div>
+    </div>
+
     <div class="card">
       <h2>Cài đặt chung</h2>
       <div class="row">
@@ -155,9 +173,14 @@
               <option value="maiphuong" data-provider="piper">Mai Phương (nữ)</option>
               <option value="ngochuyen" data-provider="piper">Ngọc Huyền (nữ)</option>
               <option value="ngochuyennew" data-provider="piper">Ngọc Huyền — bản mới (nữ)</option>
-              <option value="thanhphuong2" data-provider="piper">Thanh Phương</option>
+              <option value="phuongtrang" data-provider="piper">Phương Trang (nữ)</option>
               <option value="tranthanh3870" data-provider="piper">Trấn Thành (nam)</option>
               <option value="adam1" data-provider="piper">Adam (nam)</option>
+            </optgroup>
+            <optgroup label="Piper — giọng kho, do setup-piper.ps1 tải về">
+              <option value="vi_VN-vais1000-medium" data-provider="piper">VAIS 1000 — rõ nhất (22kHz)</option>
+              <option value="vi_VN-25hours_single-low" data-provider="piper">25hours single (16kHz)</option>
+              <option value="vi_VN-vivos-x_low" data-provider="piper">VIVOS — giọng 0 (đổi số: vivos#30)</option>
             </optgroup>
           </select>
         </div>
@@ -642,9 +665,49 @@ async function loadSpecList() {
   } catch {}
 }
 
-async function loadSpec(name) {
-  if (!name) return;
-  const spec = await (await fetch('/api/spec/'+encodeURIComponent(name))).json();
+/* ---- Tạo bằng AI: một câu → spec → đổ vào form ---- */
+
+// Bật/tắt ô AI theo việc người dùng đã cắm key chưa. Hiện một ô bấm vào là báo lỗi
+// thì tệ hơn hẳn so với nói thẳng từ đầu là cần cắm gì.
+async function checkLlm() {
+  try {
+    const s = await (await fetch('/api/llm')).json();
+    if (s.ready) {
+      $('#aiHint').innerHTML = 'Nhập một câu là đủ. AI viết xong sẽ đổ vào form bên dưới — đọc lại, sửa chỗ nào chưa ưng, rồi mới Render. <span class="hint">(' + s.provider + '/' + s.model + ')</span>';
+    } else {
+      $('#genBtn').disabled = true;
+      $('#brief').disabled = true;
+      $('#brief').placeholder = 'Cần cắm key LLM vào .env trước';
+      $('#aiHint').innerHTML = '<span class="err">Chưa cắm key AI.</span> Mở file <code>.env</code> và thêm <code>GEMINI_API_KEY=...</code> (có tầng miễn phí), hoặc <code>OPENAI_API_KEY</code> / <code>ANTHROPIC_API_KEY</code>. Rồi khởi động lại server.';
+    }
+  } catch {}
+}
+
+async function generateSpec() {
+  const brief = $('#brief').value.trim();
+  if (!brief) { $('#aiHint').innerHTML = '<span class="err">Nhập chủ đề đã.</span>'; return; }
+  $('#genBtn').disabled = true;
+  const old = $('#aiHint').innerHTML;
+  $('#aiHint').innerHTML = '<span class="spinner"></span> Đang viết kịch bản… (10–40s)';
+  try {
+    const res = await fetch('/api/generate', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ brief })
+    });
+    const data = await res.json();
+    if (!data.ok) { $('#aiHint').innerHTML = '<span class="err">❌ ' + (data.error||'Lỗi') + '</span>'; return; }
+    fillForm(data.spec);
+    $('#aiHint').innerHTML = '✅ Đã viết xong ' + data.spec.scenes.length + ' cảnh. Đọc lại bên dưới rồi bấm <b>Render video</b>.';
+    setStatus('Kịch bản đã sẵn sàng — bấm Render khi bạn ưng.');
+  } catch (e) {
+    $('#aiHint').innerHTML = '<span class="err">❌ ' + e.message + '</span>';
+  } finally {
+    $('#genBtn').disabled = false;
+    if ($('#aiHint').innerHTML.includes('spinner')) $('#aiHint').innerHTML = old;
+  }
+}
+
+/** Đổ một spec vào form. Tách riêng để cả "nạp spec đã lưu" và "tạo bằng AI" dùng chung. */
+function fillForm(spec) {
   $('#title').value = spec.meta.title;
   $('#template').value = spec.meta.template;
   $('#background').value = spec.meta.background || 'solid';
@@ -660,6 +723,11 @@ async function loadSpec(name) {
   $('#sfxOn').value = (spec.sfx?.enabled ?? true) ? '1' : '0';
   $('#scenes').innerHTML = '';
   spec.scenes.forEach(addScene);
+}
+
+async function loadSpec(name) {
+  if (!name) return;
+  fillForm(await (await fetch('/api/spec/'+encodeURIComponent(name))).json());
 }
 
 /* ---- Màn quản lý ---- */
@@ -805,6 +873,7 @@ addScene({ layout:'code', heading:'map — biến đổi mỗi phần tử', cod
   codeHighlight:[2], output:'[ 2, 4, 6 ]', narration:'Hàm map biến đổi từng phần tử, trả về mảng mới.', transitionIn:'slide-up' });
 addScene({ layout:'cta', icon:'🔔', heading:'Theo dõi để xem tiếp 👇', narration:'Lưu lại và theo dõi để xem tập sau nhé!', transitionIn:'fade' });
 loadSpecList();
+checkLlm();
 </script>
 </body>
 </html>

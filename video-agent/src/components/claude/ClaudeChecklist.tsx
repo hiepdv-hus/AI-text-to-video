@@ -110,7 +110,9 @@ const Row: React.FC<{ item: Item; index: number; dense: boolean; p: Palette }> =
           ).toFixed(1)}deg)`,
         }}
       >
-        <Mark size={Math.round(box * 0.56)} color={color} strokeWidth={3} absoluteStrokeWidth />
+        {/* 0.66 chứ không 0.56 — cùng lý do với huy hiệu ở ClaudeFeatureCards: chữ trong
+            thẻ đã nhỏ lại, dấu tick/chéo phải to gần chạm vành tròn mới đọc ra ngay. */}
+        <Mark size={Math.round(box * 0.66)} color={color} strokeWidth={3} absoluteStrokeWidth />
       </div>
 
       <div

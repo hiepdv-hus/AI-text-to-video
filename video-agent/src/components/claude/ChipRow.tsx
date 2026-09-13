@@ -58,6 +58,10 @@ export const ChipRow: React.FC<{ labels?: string[]; p: Palette; delay?: number }
         justifyContent: "center",
         alignItems: "center",
         gap: 10,
+        // Thở ra hai đầu: hàng chip nằm kẹp giữa tiêu đề và nội dung chính, dính sát
+        // bên nào cũng đọc nhầm là thuộc về bên đó.
+        marginTop: 8,
+        marginBottom: 12,
         width: "100%",
         fontFamily: TEXT_STACK,
       }}
@@ -85,8 +89,10 @@ const ChipView: React.FC<{ chip: Chip; index: number; delay: number; p: Palette 
 
   const term = chip.kind === "term";
   const accent = chip.kind === "accent";
-  // Cỡ chip cố ý NHỎ hơn hẳn chữ thân: nó là chú thích, không được tranh chỗ với tiêu đề.
-  const size = Math.round(p.size.small * 0.92);
+  // Cỡ chip vẫn NHỎ hơn chữ thân — nó là chú thích, không được tranh chỗ với tiêu đề —
+  // nhưng ở 0.92 thì trên khung dọc 1080 nó bé tới mức người xem lướt qua không đọc kịp.
+  // 1.06 là mức vẫn rõ thứ bậc mà đọc được trong một nhịp.
+  const size = Math.round(p.size.small * 1.06);
 
   return (
     <div

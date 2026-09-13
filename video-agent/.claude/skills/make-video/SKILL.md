@@ -250,7 +250,7 @@ Quy ước layout:
   `src` là URL ảnh, hoặc `"color"` với mã màu nếu chưa có ảnh.
 
 CODE (dạy lập trình): đặt `layout:"code"` với các field:
-- `code`: mã nguồn (dùng `\n` xuống dòng). GIỮ NGẮN: tối đa ~6-9 dòng, mỗi dòng ≤ ~40 ký tự.
+- `code`: mã nguồn (dùng `\n` xuống dòng). GIỮ NGẮN: tối đa ~6-9 dòng, mỗi dòng ≤ 37 ký tự.
 - `codeTitle`: tên file trên thanh cửa sổ (vd `"map.js"`).
 - `codeHighlight`: mảng số dòng (1-indexed) cần tô sáng, vd `[2]` — dòng khác sẽ mờ.
 - `output`: kết quả console (chuỗi, có thể nhiều dòng) — hiện ở panel dưới, là khoảnh khắc "à há".
@@ -259,7 +259,7 @@ CODE (dạy lập trình): đặt `layout:"code"` với các field:
 `narration` = lời GIẢI THÍCH (không đọc code). Mỗi cảnh code chỉ 1 khái niệm. Với từ tiếng
 Anh (map/filter/const…) nên thêm `voice.pronunciations` để đọc đỡ trật.
 
-Dòng code KHÔNG tự xuống dòng — dòng dài quá ~40 ký tự sẽ bị cắt cụt ở mép phải.
+Dòng code KHÔNG tự xuống dòng — dòng dài quá 37 ký tự sẽ bị cắt cụt ở mép phải.
 
 VIDEO NỀN (cách làm hình ảnh MẶC ĐỊNH — ưu tiên hơn ảnh tĩnh):
 - `media.kind: "pexels-video"`, `src` = TỪ KHÓA tiếng **Anh** (vd "programmer typing code closeup").
@@ -460,7 +460,7 @@ Mẫu dùng đủ 6 widget mới trong repo: `specs/demo-widget-moi.json`.
 - Tổng thời lượng 30–45s (chạy `pnpm video build` rồi xem log số frame ÷ fps).
 - Có `music` + `sfx` chưa? Thiếu là video nghe ra ngay là nghiệp dư.
 - Số tiền/%/tên riêng đã đúng (chạy `pnpm video demo-tts "<câu>"` để nghe thử cách đọc).
-- Dòng `code` nào dài quá ~40 ký tự không? Nó sẽ bị cắt mất ở mép phải.
+- Dòng `code` nào dài quá 37 ký tự không? Nó sẽ bị cắt mất ở mép phải.
 
 ## Tuân thủ (video affiliate)
 

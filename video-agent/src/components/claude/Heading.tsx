@@ -137,6 +137,11 @@ const Subtitle: React.FC<{ text: string; p: Palette }> = ({ text, p }) => {
         color: p.textMuted,
         fontSize: p.size.subhead,
         fontWeight: 500,
+        // Thở thêm ra hai đầu (cộng vào `gap: 14` của HeadingBlock → ~26 trên, ~28 dưới).
+        // Phụ đề dính sát tiêu đề thì hai dòng đọc thành một khối chữ dài; tách ra mới
+        // rõ đây là câu giải thích cho tiêu đề bên trên, rồi mới tới nội dung bên dưới.
+        marginTop: 12,
+        marginBottom: 14,
         opacity: interpolate(e, [0, 0.7], [0, 1], { extrapolateRight: "clamp" }),
         transform: `translateY(${interpolate(e, [0, 1], [12, 0])}px)`,
       }}

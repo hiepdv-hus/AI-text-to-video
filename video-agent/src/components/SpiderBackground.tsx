@@ -17,9 +17,14 @@ const BLOBS = [
   { color: N.glowPink, x: 52, y: 82, ax: 10, ay: 6, spd: 0.1, phase: 3.1, size: 1.15 },
 ];
 
+/**
+ * Ba quầng neon TỪNG có `filter: blur(70px)` — đã bỏ. Lý do y hệt TechBackground.tsx:
+ * gradient vốn đã tan mềm, blur chỉ tốn một pass làm mờ toàn mặt phẳng mỗi frame trên CPU.
+ * Bù bằng điểm dừng `transparent` xa hơn (66% → 74%).
+ */
 export const SpiderBackground: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
   const t = frame / fps;
 
   return (
@@ -39,13 +44,12 @@ export const SpiderBackground: React.FC = () => {
             key={i}
             style={{
               position: "absolute",
-              left: `${x}%`,
-              top: `${y}%`,
+              left: 0,
+              top: 0,
               width: d,
               height: d,
-              transform: "translate(-50%,-50%)",
-              background: `radial-gradient(circle, ${b.color}, transparent 66%)`,
-              filter: "blur(70px)",
+              transform: `translate(${((x / 100) * width - d / 2).toFixed(1)}px, ${((y / 100) * height - d / 2).toFixed(1)}px)`,
+              background: `radial-gradient(circle, ${b.color}, transparent 74%)`,
             }}
           />
         );
