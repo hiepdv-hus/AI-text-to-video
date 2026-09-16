@@ -3,7 +3,7 @@ import { AbsoluteFill, Audio, interpolate, staticFile, useCurrentFrame } from "r
 import type { BuiltScene, Captions, Sfx, TransitionKind } from "../schema";
 import { KaraokeCaption } from "./KaraokeCaption";
 import { CLAUDE_LAYOUTS } from "./claude/ClaudeLayouts";
-import { SceneBackdrop } from "./SceneBackdrop";
+import { SceneBackdrop, coversFrame, useImageIsBackdrop } from "./SceneBackdrop";
 import { TechBackground } from "./TechBackground";
 import { useTheme, isTech, ThemeContext } from "../theme/claude";
 import { useDrift, useExit } from "./motion";
@@ -124,10 +124,12 @@ export const SceneWrapper: React.FC<{
   height: number;
 }> = ({ scene, captions, sfx, height }) => {
   const frame = useCurrentFrame();
-  // Một bộ layout duy nhất cho mọi theme — màu/chất liệu do Palette quyết định
-  // (xem theme/claude.ts). Ảnh luôn ĐÓNG KHUNG trong layout; chỉ VIDEO mới tràn màn.
-  const Layout = CLAUDE_LAYOUTS[scene.layout];
   const theme = useTheme();
+  // Kiểu hình ảnh của cả video (meta.visualStyle), tách bạch hai đường:
+  //   "mixed" → nền + layout ClaudeLayouts (thẻ, biểu đồ, code, ảnh đóng khung…)
+  //   "photo" → CHỈ ẢNH GỐC + phụ đề lời kể. Không layout, không chữ tiêu đề, không đồ hoạ.
+  const imageIsBackdrop = useImageIsBackdrop();
+  const Layout = CLAUDE_LAYOUTS[scene.layout];
 
   /**
    * Cảnh có VIDEO nền thì SceneBackdrop vẽ một lớp ĐỤC phủ kín, che mất mưa nhị phân
@@ -138,7 +140,10 @@ export const SceneWrapper: React.FC<{
    * seed khác nên không lặp hoạ tiết với nền chung). Chỉ ở hai mép, nơi scrim tối nhất
    * — vùng giữa vẫn sạch cho cảnh quay và cho chữ.
    */
-  const rainOverVideo = isTech(theme) && scene.media?.kind === "video";
+  // "Phủ kín khung" = video, hoặc ảnh ở chế độ photo — hai trường hợp này xử lý y hệt nhau.
+  const coversBg = coversFrame(scene.media, imageIsBackdrop);
+  // Chế độ "Chỉ ảnh" KHÔNG có mưa nhị phân — kể cả lớp mưa mờ phủ lên nền.
+  const rainOverVideo = !imageIsBackdrop && isTech(theme) && coversBg;
   const sfxCue = SFX_BY_TRANSITION[scene.transitionIn];
 
   /**
@@ -154,10 +159,9 @@ export const SceneWrapper: React.FC<{
    * useTheme() nên không phải sửa 9 chỗ gọi, và không có chỗ nào lỡ quên truyền.
    */
   const scenePalette = React.useMemo(() => {
-    const overVideo = scene.media?.kind === "video";
-    if (overVideo || theme.cardBackdrop === "none") return theme;
+    if (coversBg || theme.cardBackdrop === "none") return theme;
     return { ...theme, cardBackdrop: "none" };
-  }, [theme, scene.media?.kind]);
+  }, [theme, coversBg]);
 
   const exit = useExit(scene.durationInFrames);
   // Parallax: nền phóng vào (SceneBackdrop) trong khi nội dung trôi NGƯỢC lên rất chậm.
@@ -170,14 +174,20 @@ export const SceneWrapper: React.FC<{
   return (
     <ThemeContext.Provider value={scenePalette}>
       <AbsoluteFill>
-        {/* NỀN — chỉ mờ vào, giữ nguyên đến hết cảnh. */}
+        {/* NỀN — chỉ mờ vào, giữ nguyên đến hết cảnh.
+            Chế độ "Chỉ ảnh": KHÔNG mờ vào — ảnh hiện nguyên vẹn ngay frame đầu. Mờ vào là
+            10 frame ảnh bị pha với màu nền, tức là không còn là ảnh gốc. */}
         <AbsoluteFill
-          style={{
-            opacity: interpolate(frame, [0, BACKDROP_FADE_FRAMES], [0, 1], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            }),
-          }}
+          style={
+            imageIsBackdrop
+              ? undefined
+              : {
+                  opacity: interpolate(frame, [0, BACKDROP_FADE_FRAMES], [0, 1], {
+                    extrapolateLeft: "clamp",
+                    extrapolateRight: "clamp",
+                  }),
+                }
+          }
         >
           <SceneBackdrop
             media={scene.media}
@@ -189,10 +199,13 @@ export const SceneWrapper: React.FC<{
           {rainOverVideo && <TechBackground variant="overlay" />}
         </AbsoluteFill>
 
-        {/* NỘI DUNG — transitionIn + parallax + pha RA ở cuối cảnh. */}
-        <AbsoluteFill style={contentStyle(scene.transitionIn, frame, exit, parallax + breathe)}>
-          <Layout scene={scene} height={height} />
-        </AbsoluteFill>
+        {/* NỘI DUNG — transitionIn + parallax + pha RA ở cuối cảnh.
+            Chế độ "Chỉ ảnh" không có lớp này: trên màn hình chỉ có ảnh và phụ đề lời kể. */}
+        {!imageIsBackdrop && (
+          <AbsoluteFill style={contentStyle(scene.transitionIn, frame, exit, parallax + breathe)}>
+            <Layout scene={scene} height={height} />
+          </AbsoluteFill>
+        )}
 
         <KaraokeCaption
           words={scene.words}

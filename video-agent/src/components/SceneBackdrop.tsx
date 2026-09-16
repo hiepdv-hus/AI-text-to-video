@@ -16,11 +16,13 @@ import { useDrift } from "./motion";
 /**
  * SceneBackdrop — NỀN TOÀN MÀN HÌNH của một scene.
  *
- * Quy tắc (cố ý đơn giản, không cần field thêm trong spec):
+ * Quy tắc:
  *   media.kind === "video"  → cảnh quay chạy FULL-BLEED làm nền, nội dung đè lên trên.
  *   media.kind === "color"  → màu phẳng.
- *   media.kind === "image"  → KHÔNG làm nền; ảnh được đóng khung trong layout
- *                             (xem `Framed` ở ClaudeLayouts) để giữ bố cục sạch.
+ *   media.kind === "image"  → tuỳ `meta.visualStyle` của cả video:
+ *       "mixed" (mặc định) — KHÔNG làm nền; ảnh đóng khung trong layout (`Framed`).
+ *       "photo"            — làm NỀN TOÀN MÀN, hiển thị ĐÚNG ẢNH GỐC (PhotoBackdrop):
+ *                            không mờ, không phủ tối, không phóng/trôi.
  *   không có media          → trong suốt, để backdrop chung (mưa nhị phân) hiện xuyên qua.
  *
  * Cảnh CÓ VIDEO: video là nền chính, và vì lớp này ĐỤC nên nó che mất mưa nhị phân mà
@@ -35,6 +37,20 @@ import { useDrift } from "./motion";
  *               "đồng bộ" thành một mảng màu với nền tech.
  *   2. SCRIM    gradient tối trên/dưới + vignette, chừa vùng giữa cho hình ảnh thở.
  */
+
+/**
+ * Ảnh của cảnh là NỀN (true) hay ĐÓNG KHUNG trong layout (false)?
+ *
+ * VideoComposition cấp giá trị này theo `meta.visualStyle`. Dùng context thay vì luồn
+ * prop qua SceneWrapper → Layout vì có ba nơi cần biết (nền, layout, lớp kính mờ của
+ * thẻ) và cả ba đều nằm sâu bên dưới; quên luồn ở một chỗ là ảnh hiện hai lần.
+ */
+export const ImageBackdropContext = React.createContext(false);
+export const useImageIsBackdrop = () => React.useContext(ImageBackdropContext);
+
+/** Media của cảnh có phủ KÍN khung hình (video, hoặc ảnh ở chế độ photo) không. */
+export const coversFrame = (media: Media | undefined, imageIsBackdrop: boolean): boolean =>
+  media?.kind === "video" || (imageIsBackdrop && media?.kind === "image");
 
 function resolveSrc(src: string): string {
   if (/^https?:\/\//.test(src) || src.startsWith("data:")) return src;
@@ -89,10 +105,14 @@ export const SceneBackdrop: React.FC<{
   const p = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const imageIsBackdrop = useImageIsBackdrop();
 
   if (!media) return null;
   if (media.kind === "color") return <AbsoluteFill style={{ backgroundColor: media.src }} />;
-  if (media.kind !== "video") return null; // ảnh → đóng khung trong layout, không làm nền
+  // Chế độ "Chỉ ảnh": ảnh GỐC, không đụng gì — xem PhotoBackdrop.
+  if (media.kind === "image" && imageIsBackdrop) return <PhotoBackdrop media={media} />;
+  // Ảnh ở chế độ "mixed" → đóng khung trong layout, không làm nền.
+  if (media.kind !== "video") return null;
 
   const origin = focusToOrigin[media.focus];
   // Phóng rất chậm: đủ để khung hình "sống" mà không lộ ra là đang zoom. Không bắt đầu
@@ -149,6 +169,26 @@ export const SceneBackdrop: React.FC<{
     </AbsoluteFill>
   );
 };
+
+/**
+ * PhotoBackdrop — ảnh nền của chế độ "Chỉ ảnh". HIỂN THỊ ĐÚNG ẢNH GỐC:
+ *   KHÔNG làm mờ, KHÔNG lớp phủ tối (scrim), KHÔNG phóng/trôi, KHÔNG filter nào.
+ *
+ * Thuộc tính duy nhất là `objectFit`/`objectPosition` lấy từ spec — bắt buộc để ảnh lấp
+ * kín khung dọc 1080x1920 (không có thì ảnh hiện theo kích thước file, lệch góc). Đó là
+ * cách ĐẶT ảnh vào khung, không phải sửa ảnh.
+ *
+ * Đừng thêm hiệu ứng vào đây: người dùng chọn chế độ này chính vì muốn thấy ảnh y nguyên.
+ * Muốn ảnh mờ/tối/chuyển động thì đó là chế độ "Đầy đủ".
+ */
+const PhotoBackdrop: React.FC<{ media: Media }> = ({ media }) => (
+  <AbsoluteFill>
+    <Img
+      src={resolveSrc(media.src)}
+      style={{ width: "100%", height: "100%", objectFit: media.fit, objectPosition: focusToOrigin[media.focus] }}
+    />
+  </AbsoluteFill>
+);
 
 /**
  * BackdropImage — ảnh nền full-bleed. Không dùng trong luồng mặc định (ảnh được đóng

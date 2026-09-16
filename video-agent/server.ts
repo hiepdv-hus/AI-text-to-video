@@ -6,7 +6,8 @@ import { buildSpec, slugify, OUT_DIR } from "./pipeline/build.ts";
 import { renderVideo } from "./pipeline/render.ts";
 import { buildCaption, buildHashtags, revealFile } from "./pipeline/publish.ts";
 import { authorSpec } from "./pipeline/author.ts";
-import { resolveLlm, LLM_SETUP_HINT } from "./pipeline/llm.ts";
+import { loadArticle, peekArticle, splitArticleBrief } from "./pipeline/article.ts";
+import { LLM_PROVIDERS, parseLlmConfig, testLlm, effectiveModel } from "./pipeline/llm.ts";
 import { videoSpecSchema } from "./src/schema.ts";
 
 /**
@@ -37,6 +38,52 @@ async function readBody(req: http.IncomingMessage): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+/* ----------------------------------------------------------------------------
+ * LOG TRỰC TIẾP cho giao diện (Server-Sent Events, GET /api/logs)
+ *
+ * Render mất vài phút mà /api/render chỉ trả lời MỘT lần lúc xong — trong lúc chờ người
+ * dùng không biết máy đang làm gì. Đúng những dòng in ra terminal ([build] scene 3/6…,
+ * [stock] tải video…, [render] 42%) là thứ trả lời câu hỏi đó, nên chuyển thẳng chúng
+ * lên trình duyệt thay vì bịa ra một thanh tiến trình riêng.
+ *
+ * Bắt ở tầng process.stdout/stderr chứ không sửa từng chỗ console.log: log đến từ nhiều
+ * nơi (pipeline, Remotion, ffmpeg wrapper), sót một chỗ là giao diện đứng im đúng lúc lâu
+ * nhất. Terminal vẫn in như cũ — ở đây chỉ SAO một bản.
+ * -------------------------------------------------------------------------- */
+const logClients = new Set<http.ServerResponse>();
+let logPending = "";
+
+/** Bỏ mã màu ANSI (Remotion tô màu log) — lên trình duyệt thành rác "[31m". */
+const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, "");
+
+function broadcastLog(line: string) {
+  const text = stripAnsi(line).trimEnd();
+  if (!text.trim() || !logClients.size) return;
+  const payload = `data: ${JSON.stringify(text.slice(0, 400))}\n\n`;
+  for (const c of logClients) c.write(payload);
+}
+
+function teeLog(chunk: unknown) {
+  logPending += typeof chunk === "string" ? chunk : Buffer.from(chunk as Uint8Array).toString("utf8");
+  // Tách theo \n VÀ \r: tiến độ render in kiểu "\r[render] 42%" — ghi đè cùng một dòng
+  // trên terminal, lên trình duyệt thì mỗi lần là một dòng mới (giao diện tự cập nhật tại chỗ).
+  const parts = logPending.split(/\r\n|\n|\r/);
+  logPending = parts.pop() ?? "";
+  parts.forEach(broadcastLog);
+}
+
+for (const stream of [process.stdout, process.stderr]) {
+  const original = stream.write.bind(stream) as (...args: unknown[]) => boolean;
+  stream.write = ((chunk: unknown, ...rest: unknown[]) => {
+    try {
+      teeLog(chunk);
+    } catch {
+      /* log hỏng không được làm hỏng việc in ra terminal */
+    }
+    return original(chunk, ...rest);
+  }) as typeof stream.write;
+}
+
 /** Serve file có hỗ trợ Range (để tua video trong trình duyệt). */
 function serveVideo(req: http.IncomingMessage, res: http.ServerResponse, filePath: string) {
   if (!existsSync(filePath)) return send(res, 404, "not found");
@@ -63,6 +110,24 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? "/", `http://localhost:${PORT}`);
     const pathname = decodeURIComponent(url.pathname);
+
+    // Luồng log trực tiếp — trình duyệt giữ kết nối mở, server đẩy từng dòng xuống.
+    if (req.method === "GET" && pathname === "/api/logs") {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+      res.write(": connected\n\n");
+      logClients.add(res);
+      // Nhịp giữ kết nối: một số proxy/antivirus cắt kết nối im lặng quá lâu.
+      const ping = setInterval(() => res.write(": ping\n\n"), 25000);
+      req.on("close", () => {
+        clearInterval(ping);
+        logClients.delete(res);
+      });
+      return;
+    }
 
     // Trang studio
     if (req.method === "GET" && (pathname === "/" || pathname === "/index.html")) {
@@ -135,25 +200,71 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { ok: true });
     }
 
-    // LLM đã cắm key chưa — giao diện dùng để bật/tắt ô "tạo bằng AI".
-    if (req.method === "GET" && pathname === "/api/llm") {
-      const llm = resolveLlm();
-      return sendJson(res, 200, llm ? { ready: true, ...llm } : { ready: false, hint: LLM_SETUP_HINT });
+    // Danh sách AI cho ô chọn trên giao diện — lấy từ llm.ts để không khai hai nơi.
+    if (req.method === "GET" && pathname === "/api/llm/providers") {
+      return sendJson(res, 200, { providers: LLM_PROVIDERS });
+    }
+
+    // Thử key ngay lúc người dùng dán, trước khi họ tốn 30 giây chờ viết kịch bản.
+    // KEY KHÔNG BAO GIỜ ĐƯỢC GHI LOG hay lưu xuống đĩa — nó chỉ sống trong lượt gọi này.
+    if (req.method === "POST" && pathname === "/api/llm/test") {
+      try {
+        const { llm } = JSON.parse(await readBody(req)) as { llm?: unknown };
+        // Trả model DÙNG THẬT: nếu model đã chọn bị gỡ và hệ thống tự đổi, giao diện lưu lại.
+        const model = await testLlm(parseLlmConfig(llm));
+        return sendJson(res, 200, { ok: true, model });
+      } catch (err) {
+        return sendJson(res, 400, { error: (err as Error).message });
+      }
+    }
+
+    // Xem nhanh link bài báo vừa dán: logo + tên báo + tiêu đề + số ảnh. Không gọi AI.
+    if (req.method === "GET" && pathname === "/api/article/peek") {
+      const link = url.searchParams.get("url")?.trim() ?? "";
+      if (!/^https?:\/\//i.test(link)) return sendJson(res, 400, { error: "Link phải bắt đầu bằng http:// hoặc https://" });
+      try {
+        return sendJson(res, 200, { ok: true, ...(await peekArticle(link)) });
+      } catch (err) {
+        return sendJson(res, 200, { ok: false, error: (err as Error).message });
+      }
     }
 
     // MỘT CÂU → spec. Không render ở đây: trả JSON về cho giao diện đổ vào form để
     // người dùng ĐỌC LẠI và sửa trước khi tốn vài phút CPU render.
     if (req.method === "POST" && pathname === "/api/generate") {
       if (generating) return sendJson(res, 429, { error: "Đang viết kịch bản khác, đợi chút." });
-      const { brief } = JSON.parse(await readBody(req)) as { brief?: string };
-      if (!brief?.trim()) return sendJson(res, 400, { error: "Thiếu nội dung yêu cầu." });
-      if (!resolveLlm()) return sendJson(res, 400, { error: LLM_SETUP_HINT });
+      const body = JSON.parse(await readBody(req)) as { brief?: string; llm?: unknown; visualStyle?: string };
+      // Chỉ nhận hai giá trị đã biết; gửi lạ thì về mặc định chứ không để AI nhận rác.
+      const visualStyle = body.visualStyle === "photo" ? "photo" : "mixed";
+      const brief = body.brief?.trim();
+      if (!brief) return sendJson(res, 400, { error: "Thiếu nội dung yêu cầu." });
+      let llm;
+      try {
+        llm = parseLlmConfig(body.llm);
+      } catch (err) {
+        return sendJson(res, 400, { error: (err as Error).message });
+      }
 
       generating = true;
       try {
-        console.log(`[serve] viết kịch bản: "${brief.trim().slice(0, 80)}"`);
-        const { spec, attempts } = await authorSpec(brief, (m) => console.log(m));
-        return sendJson(res, 200, { ok: true, spec, attempts });
+        // Có link trong ô yêu cầu → đọc bài báo + tải ảnh của bài, phần chữ còn lại là yêu cầu thêm.
+        const link = splitArticleBrief(brief);
+        const article = link ? await loadArticle(link.url, (m) => console.log(m)) : undefined;
+        console.log(`[serve] viết kịch bản (${visualStyle}) bằng ${llm.provider}/${llm.model}: "${(article?.article.title ?? brief).slice(0, 80)}"`);
+        const { spec, attempts } = await authorSpec(link ? link.extra : brief, llm, (m) => console.log(m), { visualStyle, article });
+        return sendJson(res, 200, {
+          ok: true,
+          spec,
+          attempts,
+          model: effectiveModel(llm),
+          article: article && {
+            title: article.article.title,
+            site: article.article.site,
+            siteName: article.article.siteName,
+            url: article.article.url,
+            images: article.images.length,
+          },
+        });
       } catch (err) {
         console.error(err);
         return sendJson(res, 500, { error: (err as Error).message });

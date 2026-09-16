@@ -108,6 +108,12 @@ VideoSpec {
           background?: "tech"|"claude-dark"|"claude-cream"|"spider"|"aurora"|"solid",
           //   "tech"  = MẶC ĐỊNH cho video lập trình/công nghệ: mưa nhị phân, xanh matrix, nhãn mono
           //   "claude-dark"/"claude-cream" = tối giản ấm (cam đất)
+          visualStyle?: "mixed"|"photo",
+          //   "mixed" = MẶC ĐỊNH: pexels-video làm nền hook/cta, ảnh (pexels/generate) ĐÓNG KHUNG
+          //   "photo" = CHỈ ẢNH GỐC + PHỤ ĐỀ LỜI KỂ: mọi cảnh có media ảnh ("pexels" + từ khoá
+          //             tiếng Anh) hiển thị nguyên bản (không mờ, không phủ tối, không chuyển động);
+          //             không video, không nền tech, không tiêu đề, không bullet, không đồ hoạ.
+          //             Layout: hook (đầu) / image (giữa) / cta (cuối). Nội dung kể hết trong narration.
           brand?: { name, logo="🕷", hint? } }             // thanh thương hiệu trên + pill gợi ý dưới
   voice: { provider: "edge"|"piper"|"mock"|"elevenlabs"|"azure"|"google",
            voiceId, speed=1, pitch?, pronunciations?: {from: to} }

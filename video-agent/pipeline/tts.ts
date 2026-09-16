@@ -352,9 +352,22 @@ class EdgeProvider implements TTSProvider {
    */
   readonly maxConcurrency = 1;
 
-  /** Dịch vụ Edge free thỉnh thoảng vẫn rớt kết nối → thử lại vài lần, giãn dần. */
+  /**
+   * Dịch vụ Edge miễn phí có TỪNG ĐỢT chập chờn — thử lại đủ lâu để vượt qua một đợt.
+   *
+   * Đo thực tế (2026-09): trong đợt chập chờn, Microsoft NHẬN kết nối, im lặng ~2,2 giây
+   * rồi cắt ngang (WebSocket close=1006) mà không gửi byte âm thanh nào — lỗi "no
+   * turn.end received". Không phụ thuộc nội dung câu, tốc độ, cao độ hay tuỳ chọn timing
+   * (biến thể nào cũng dính), cũng không do gọi dồn dập (30 lần gọi sát nhau lúc dịch vụ
+   * ổn đều qua). Đợt xấu kéo dài vài chục giây rồi tự hết.
+   *
+   * Bản cũ thử 4 lần trong ~18 giây → gặp đợt dài hơn thế là hỏng cả video. Giờ thử tới
+   * 8 lần, giãn 2 → 4 → 8 → 15 giây (tối đa ~75 giây). Mỗi lần hỏng chỉ tốn ~2 giây nên
+   * khi dịch vụ ổn thì không chậm thêm chút nào; chỉ chờ lâu khi thật sự đang chập chờn.
+   * Cộng thêm chút ngẫu nhiên để các lần thử không rơi đúng nhịp của đợt xấu.
+   */
   async synthesize(text: string, opts: TTSOptions): Promise<TTSResult> {
-    const maxAttempts = 4;
+    const maxAttempts = 8;
     let lastErr: unknown;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -362,15 +375,26 @@ class EdgeProvider implements TTSProvider {
       } catch (err) {
         lastErr = err;
         if (attempt < maxAttempts) {
-          // Giãn mạnh hơn trước (1.5s, 3s, 4.5s): endpoint cần thời gian nhả kết nối cũ,
-          // thử lại quá sớm gần như chắc chắn hỏng tiếp.
-          await new Promise((r) => setTimeout(r, 1500 * attempt));
+          const waitMs = Math.min(15000, 2000 * 2 ** (attempt - 1)) + Math.round(Math.random() * 1000);
+          console.warn(
+            `[tts] Edge rớt kết nối (lần ${attempt}/${maxAttempts}), thử lại sau ${Math.round(waitMs / 1000)}s…`,
+          );
+          await new Promise((r) => setTimeout(r, waitMs));
         }
       }
     }
+
+    const msg = (lastErr as Error).message;
+    // Mất mạng thật thì thư viện báo lỗi WebSocket kèm mã hệ điều hành; còn đứt ngang
+    // (1006, "no turn.end") là phía Microsoft. Hai trường hợp khuyên khác nhau.
+    const offline = /ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ETIMEDOUT|ENETUNREACH/.test(msg);
     throw new Error(
-      `Edge TTS lỗi sau ${maxAttempts} lần thử: ${(lastErr as Error).message}\n` +
-        `  Gợi ý: kiểm tra mạng. Nếu vẫn hỏng, đổi sang provider "piper" (chạy offline).`,
+      offline
+        ? `Không kết nối được tới giọng đọc Microsoft Edge — máy đang mất mạng?\n  Chi tiết: ${msg}`
+        : `Giọng đọc Microsoft Edge (dịch vụ miễn phí) đang chập chờn, thử ${maxAttempts} lần trong hơn một phút vẫn hỏng.\n` +
+            `  • Đợi vài phút rồi bấm Render lại — các cảnh đã đọc xong được giữ lại, không phải làm lại từ đầu.\n` +
+            `  • Hoặc chọn một giọng Piper (chạy ngay trên máy, không cần mạng).\n` +
+            `  Chi tiết: ${msg}`,
     );
   }
 

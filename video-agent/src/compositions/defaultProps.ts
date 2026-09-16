@@ -24,6 +24,7 @@ function demoProps(template: Meta["template"], title: string): BuiltProps {
       fps,
       locale: "vi-VN",
       background: template === "CodeExplainer" ? "tech" : "solid",
+      visualStyle: "mixed",
     },
     voice: { provider: "mock", voiceId: "default", speed: 1 },
     captions: { style: "tiktok-bold", position: "lower-third", maxWordsPerLine: 4, highlightColor: "#FFD400" },

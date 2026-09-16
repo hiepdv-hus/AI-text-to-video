@@ -94,6 +94,21 @@ export function lintSpec(spec: VideoSpec): string[] {
         add(s.id, `emphasis "${em}" không xuất hiện trong heading lẫn narration → không tô được gì.`);
     }
 
+    // Chỉ feature-cards / architecture (và chips) hiểu cú pháp "@icon". Widget khác gặp
+    // "@grad 18 tuổi" là hiện NGUYÊN CHỮ "@grad" lên màn hình — lỗi này đã lọt ra video thật.
+    const ICON_WIDGETS = new Set(["feature-cards", "architecture"]);
+    if (s.graphic && !ICON_WIDGETS.has(s.graphic.kind)) {
+      for (const l of s.graphic.labels ?? []) {
+        if (/^(?:[+-]\s+)?@[a-z0-9-]+\s/i.test(l))
+          add(s.id, `${s.graphic.kind} không hiểu cú pháp "@icon" — bỏ phần "@…" đi, để chữ trơn: "${l}"`);
+      }
+    }
+    if (s.graphic?.kind === "range-bar") {
+      for (const l of s.graphic.labels ?? []) {
+        if (!l.includes(":")) add(s.id, `range-bar cần nhãn kiểu "Junior:12-20 triệu": "${l}"`);
+      }
+    }
+
     // checklist: phải có tiền tố +/- thì mới biết dấu tick hay dấu chéo.
     if (s.graphic?.kind === "checklist") {
       for (const l of s.graphic.labels ?? []) {
@@ -114,6 +129,33 @@ export function lintSpec(spec: VideoSpec): string[] {
     if (s.graphic?.kind === "chat-ai") {
       for (const l of s.graphic.labels ?? []) {
         if (!/^[ua]:/.test(l)) add(s.id, `chat-ai cần nhãn bắt đầu bằng "u:" (người) hoặc "a:" (máy): "${l}"`);
+      }
+    }
+  }
+
+  // Chế độ "chỉ ảnh": ảnh là NỀN của mọi cảnh. Thiếu ảnh ở một cảnh là cảnh đó trơ nền
+  // giữa một video toàn ảnh — lộ ngay. Còn lẫn video vào là sai hẳn lựa chọn của người dùng.
+  if (spec.meta.visualStyle === "photo") {
+    // Chế độ này TRÊN MÀN HÌNH CHỈ CÓ ẢNH GỐC + PHỤ ĐỀ LỜI KỂ. Renderer không vẽ layout nào,
+    // nên mọi nội dung nhét vào bullet/thẻ/code đều BIẾN MẤT không báo — bắt ở đây để AI
+    // đưa hết nội dung vào lời kể (narration), chỗ duy nhất người xem thấy và nghe.
+    const PHOTO_LAYOUTS = new Set(["hook", "image", "cta"]);
+    for (const s of spec.scenes) {
+      if (!PHOTO_LAYOUTS.has(s.layout))
+        add(s.id, `chế độ "chỉ ảnh" không vẽ gì ngoài ảnh — layout "${s.layout}" không dùng được, chỉ hook / image / cta.`);
+      if (s.bullets?.length)
+        add(s.id, 'chế độ "chỉ ảnh" không có gạch đầu dòng — bỏ `bullets`, kể nội dung đó trong `narration`.');
+      if (s.chips?.length) add(s.id, 'chế độ "chỉ ảnh" không dùng `chips` — bỏ đi.');
+      if (s.icon) add(s.id, 'chế độ "chỉ ảnh" không dùng `icon` — bỏ đi.');
+    }
+    for (const s of spec.scenes) {
+      const kind = s.media?.kind;
+      if (kind === "video" || kind === "pexels-video") {
+        add(s.id, `chế độ "chỉ ảnh" không được dùng video (media.kind="${kind}") — đổi sang "pexels".`);
+      } else if (!kind || kind === "color") {
+        add(s.id, 'chế độ "chỉ ảnh" cần mỗi cảnh một ảnh nền: media { kind: "pexels", src: "<từ khoá tiếng Anh>" }.');
+      } else if (!s.media?.src.trim()) {
+        add(s.id, "media.src đang trống — cần từ khoá tìm ảnh.");
       }
     }
   }

@@ -181,7 +181,9 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
       };
     } else if (media && (media.kind === "generate" || media.kind === "pexels")) {
       // Ảnh DỌC cho mọi nền toàn màn (hook/cta/product…); NGANG chỉ cho khung "image" gọn.
-      const portrait = scene.layout !== "image";
+      // Chế độ photo: ảnh nào cũng là nền toàn màn 1080x1920 → luôn dọc, kể cả layout
+      // "image" (ảnh ngang phóng cho kín khung dọc sẽ bị cắt mất hai phần ba).
+      const portrait = spec.meta.visualStyle === "photo" || scene.layout !== "image";
       let imgPath: string;
       if (media.kind === "generate") {
         imgPath = await generateImage(media.src, portrait ? { width: 896, height: 1216 } : { width: 1216, height: 832 });

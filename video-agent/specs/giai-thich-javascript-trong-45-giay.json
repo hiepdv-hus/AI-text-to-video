@@ -1,0 +1,154 @@
+{
+  "meta": {
+    "title": "Giải thích JavaScript trong 45 giây",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech",
+    "visualStyle": "mixed"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Hầu như mọi website bạn lướt mỗi ngày đều đang chạy JavaScript. Nhưng ngôn ngữ này thật sự làm được những gì?",
+      "layout": "hook",
+      "heading": "JavaScript — Ngôn ngữ của Web",
+      "media": {
+        "kind": "pexels-video",
+        "src": "developer typing code dark room",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "Ngôn ngữ của Web"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Không chỉ làm cho web tương tác sinh động, JavaScript giờ đây chạy được cả ở server lẫn ứng dụng di động.",
+      "layout": "graphic",
+      "heading": "3 nơi JavaScript thống trị",
+      "chips": [
+        "@code ES6+",
+        "* @star Ngôn ngữ phổ biến nhất",
+        "Cross-platform"
+      ],
+      "emphasis": [
+        "thống trị"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Chạy trên mọi nền tảng hiện đại",
+        "labels": [
+          "@globe Giao diện Web (Frontend)",
+          "@server Máy chủ (Node.js)",
+          "@mobile App di động (React Native)"
+        ]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Cú pháp của JS rất trực quan. Chỉ vài dòng code là bạn đã có thể xử lý chuỗi và in kết quả ra màn hình.",
+      "layout": "code",
+      "heading": "Bước 1 — Cú pháp siêu đơn giản",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "code": "const user = \"Lập trình viên\";\nconsole.log(`Xin chào ${user}!`);",
+      "codeLang": "javascript",
+      "codeTitle": "app.js",
+      "codeHighlight": [
+        2
+      ],
+      "output": "Xin chào Lập trình viên!"
+    },
+    {
+      "id": "s4",
+      "narration": "JS rất dễ bắt đầu và có cộng đồng khổng lồ, nhưng bạn cần nắm vững tư duy xử lý bất đồng bộ.",
+      "layout": "graphic",
+      "heading": "Đặc điểm cần nhớ khi học",
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "checklist",
+        "subtitle": "Ưu điểm và thách thức cho người mới",
+        "labels": [
+          "+ Cực kỳ dễ bắt đầu cho người mới",
+          "+ Hệ sinh thái thư viện khổng lồ",
+          "- Cần nắm vững cơ chế bất đồng bộ",
+          "- Dễ viết code rối nếu thiếu kỷ luật"
+        ]
+      }
+    },
+    {
+      "id": "s5",
+      "narration": "Để làm chủ ngôn ngữ này, hãy đi theo ba bước chuẩn từ cú pháp cơ bản đến thao tác dữ liệu.",
+      "layout": "graphic",
+      "heading": "Lộ trình học JavaScript chuẩn",
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "3 chặng nền tảng",
+        "labels": [
+          "Nắm vững cú pháp cơ bản",
+          "Thao tác DOM và sự kiện web",
+          "Xử lý bất đồng bộ Async/Await"
+        ]
+      }
+    },
+    {
+      "id": "s6",
+      "narration": "Ở tập tiếp theo, chúng ta sẽ cùng phân biệt let, const và var trong JavaScript. Đăng ký kênh để không bỏ lỡ!",
+      "layout": "cta",
+      "heading": "Tập sau — Biến và Kiểu dữ liệu 🚀",
+      "media": {
+        "kind": "pexels-video",
+        "src": "digital matrix code technology abstract background",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "Biến và Kiểu dữ liệu"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.6,
+    "pronunciations": {
+      "JavaScript": "Gia va Sờ kíp",
+      "JS": "Dây Ép",
+      "Node.js": "Nốt Dây Ép",
+      "React Native": "Ri ắc Nây tiv",
+      "Frontend": "Phờ rơn én",
+      "Backend": "Béc én",
+      "Async": "A sinh",
+      "DOM": "Đôm",
+      "Fetch API": "Phét A Pi"
+    }
+  },
+  "captions": {
+    "style": "auto",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#3BE8A0"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.3,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": true,
+    "volume": 0.35
+  }
+}

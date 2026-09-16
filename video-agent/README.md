@@ -43,8 +43,8 @@ và sửa video cũ.
 ## Dùng CLI
 
 ```bash
-pnpm video make "Dựng cho tôi video về Trấn Thành"   # MỘT CÂU → kịch bản → MP4
-pnpm video make "..." --spec-only                    # chỉ viết JSON, chưa render
+pnpm video make "Dựng video về Trấn Thành" --ai gemini --key <key>   # MỘT CÂU → MP4
+pnpm video make "..." --ai gemini --key <key> --spec-only            # chỉ viết JSON
 
 pnpm video build   specs/demo-tainghe.json   # spec → out/<slug>/props.json (TTS + timing)
 pnpm video render  specs/demo-tainghe.json   # build + render → out/<slug>/final.mp4
@@ -60,28 +60,59 @@ pnpm typecheck         # tsc --noEmit
 pnpm test              # test chuẩn hoá tiếng Việt (số → chữ, NFC…)
 ```
 
-### Một câu → video (cần key AI)
+### Một câu → video bằng AI
 
-`pnpm video make` và nút **✨ Tạo bằng AI** trên Studio web đều đi qua cùng một đường:
-LLM viết `specs/<slug>.json` → Zod kiểm kiểu → `lintSpec()` kiểm cách dùng → sai chỗ nào
-thì **nhắc lại đúng chỗ đó** cho LLM sửa (tối đa 3 lượt) → render.
+Người dùng **không cần mở file nào**:
 
-Người dùng tự cắm key, chỉ cần **một** trong số này vào `.env`:
+1. `pnpm web`, mở http://localhost:4321
+2. Ô **✨ Tạo bằng AI** → **⚙️ Cài đặt AI** (tự mở sẵn khi chưa có key) → chọn AI → dán key
+   → **Lưu & kiểm tra key**
+3. Chọn kiểu hình ảnh:
+   - **🎬 Đầy đủ** — như trước giờ: video thật ở cảnh mở & kết, cảnh giữa có đồ hoạ, code, ảnh đóng khung
+   - **🖼️ Chỉ ảnh** — mỗi cảnh một ảnh Pexels hiển thị **nguyên bản** (không mờ, không phủ
+     tối, không chuyển động) + phụ đề lời kể. Không tiêu đề, không gạch đầu dòng, không đồ hoạ,
+     không nền tech, không thanh tiến trình, không hạt phim. Nội dung kể hết qua giọng đọc.
+     (`meta.visualStyle: "photo"`; cũng đổi được ở ô *Kiểu hình ảnh* trong Cài đặt chung)
+4. Gõ một câu, vd *"Dựng cho tôi video về Trấn Thành"* → **Viết kịch bản** → đọc lại → **Render**
 
-```bash
-GEMINI_API_KEY=...       # aistudio.google.com/apikey — có tầng miễn phí, dễ bắt đầu nhất
-OPENAI_API_KEY=...
-ANTHROPIC_API_KEY=...
+### Tạo video từ link bài báo
 
-# hoặc bất kỳ dịch vụ nào tương thích OpenAI (OpenRouter, Groq, LM Studio…):
-LLM_PROVIDER=compat
-LLM_BASE_URL=https://openrouter.ai/api/v1
-LLM_API_KEY=...
-LLM_MODEL=<tên model>
-```
+Ở ô **Kiểu video** chọn **📰 Từ bài báo** → ô ý tưởng và bước sửa kịch bản ẩn đi, thay bằng ô
+**Link bài báo**. Dán link **một bài viết** (Kênh 14, GenK, CafeF, Soha, aFamily… — các báo cùng
+hệ thống; báo khác đọc theo Open Graph/JSON-LD, tuỳ trang):
 
-Hệ thống **tự dò** key nào đang có; `LLM_PROVIDER` chỉ cần khi muốn ép một nhà cung cấp
-cụ thể, `LLM_MODEL` chỉ cần khi muốn đổi model.
+- Ngay khi dán, ô link hiện **logo của báo** (lấy icon từ chính trang báo) kèm thẻ xem trước:
+  tên báo, tiêu đề bài, ảnh đại diện, số ảnh, số chữ. Link hỏng / trang chủ / trang chuyên mục
+  báo lỗi ngay, chưa tốn lượt gọi AI (`GET /api/article/peek`).
+- Ô **Dặn thêm** (không bắt buộc), vd `chỉ 6 cảnh, giọng hài hước`.
+- **📰 Tạo video từ bài báo** làm liền một mạch: đọc bài + tải ảnh → AI viết kịch bản → render.
+  Giọng đọc, phụ đề, nhạc chỉnh ở cột bên cạnh trước khi bấm. Muốn sửa kịch bản thì chuyển
+  sang **🖼️ Chỉ ảnh** — kịch bản vừa viết vẫn nằm đó.
+- Dán nhầm link vào ô ý tưởng ở chế độ khác → tự chuyển sang chế độ bài báo.
+
+- `pipeline/article.ts` đọc tiêu đề, sapo, toàn bộ thân bài (bỏ tin liên quan, ghi công ảnh)
+  và ảnh trong bài theo đúng thứ tự, kể cả ảnh đại diện của video nhúng; bỏ ảnh nhỏ < 300px.
+- Ảnh tải về `public/articles/<mã-link>/anh-N.jpg` (tải một lần, dùng lại khi render lại).
+- AI chỉ được dùng thông tin **có trong bài** và chỉ được chọn ảnh **của bài** (theo mã
+  `anh-N`); dùng ảnh ngoài danh sách là bị nhắc sửa. Cảnh cuối ghi nguồn ("Theo Kênh 14").
+- Ảnh dọc phủ kín khung; ảnh ngang hiện **nguyên ảnh** (không cắt) trên nền tối.
+- Hợp nhất với **🖼️ Chỉ ảnh** nhất; **🎬 Đầy đủ** thì xen đồ hoạ khi bài có số liệu.
+- `pnpm video clean` dọn thư mục ảnh bài báo không còn spec nào dùng.
+
+> ⚖️ Chữ và ảnh thuộc bản quyền của báo. Đăng lại cần xin phép hoặc tuân thủ chính sách của
+> báo/nền tảng — công cụ chỉ ghi nguồn giúp, không thay cho việc xin phép.
+
+AI hỗ trợ: Google Gemini (có gói miễn phí), OpenAI, Anthropic Claude, và bất kỳ dịch vụ nào
+tương thích OpenAI (OpenRouter, Groq, LM Studio…). Danh sách nằm ở `LLM_PROVIDERS` trong
+`pipeline/llm.ts` — thêm dịch vụ mới chỉ sửa ở đó, giao diện tự hiện theo.
+
+**Key lưu ở đâu:** `localStorage` của trình duyệt trên máy người dùng. Mỗi lần bấm, trình
+duyệt gửi key cho server local, server gọi dịch vụ AI rồi bỏ — **không ghi log, không lưu
+xuống đĩa**. Đổi trình duyệt hay xoá dữ liệu trình duyệt thì phải dán lại.
+
+Bên dưới, cả nút trên web lẫn `pnpm video make` đi cùng một đường: AI viết
+`specs/<slug>.json` → Zod kiểm kiểu → `lintSpec()` kiểm cách dùng → sai chỗ nào thì **nhắc
+lại đúng chỗ đó** cho AI sửa (tối đa 3 lượt).
 
 Luật viết kịch bản KHÔNG nằm trong code — nó là [`.claude/skills/make-video/SKILL.md`](.claude/skills/make-video/SKILL.md),
 cùng file mà agent đang dùng. `pipeline/author.ts` đọc thẳng file đó làm system prompt,

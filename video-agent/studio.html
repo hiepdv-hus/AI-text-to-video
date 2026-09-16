@@ -1,879 +1,2940 @@
 <!doctype html>
 <html lang="vi">
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Video Studio</title>
-<style>
-  :root {
-    --bg:#0e0f13; --panel:#171922; --panel2:#1f2230; --border:#2b2f3d;
-    --text:#e7e9ee; --muted:#9aa0b0; --accent:#61afef; --accent2:#39d98a; --danger:#ff5c5c;
-  }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text);
-    font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif; }
-  header { padding:18px 28px; border-bottom:1px solid var(--border);
-    display:flex; align-items:center; gap:14px; position:sticky; top:0; background:var(--bg); z-index:10; }
-  header h1 { font-size:21px; margin:0; }
-  header .sub { color:var(--muted); font-size:13px; }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video Studio</title>
+  <script>
+    // Áp giao diện sáng/tối TRƯỚC khi trang được vẽ — nếu để sau, người chọn "Tối" sẽ thấy
+    // trang nháy trắng một nhịp mỗi lần mở.
+    (function () {
+      var mode = 'system';
+      try { mode = localStorage.getItem('videoStudio.theme') || 'system'; } catch (e) { }
+      var dark = mode === 'dark' ||
+        (mode === 'system' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    })();
+  </script>
+  <style>
+    /* ============================ BẢNG MÀU ============================
+     Mọi màu đều là biến. Giao diện sáng là mặc định; tối chỉ ghi đè biến — không có
+     quy tắc CSS nào viết riêng cho từng giao diện, nên hai bên không bao giờ lệch nhau. */
+    :root {
+      color-scheme: light;
+      --bg: #f4f6fb;
+      --panel: #ffffff;
+      --panel2: #f1f3f8;
+      --field: #ffffff;
+      --border: #e2e6ee;
+      --border-strong: #cdd4e1;
+      --text: #161a23;
+      --muted: #677086;
+      --accent: #3a5cf0;
+      --accent-hover: #2d4ed9;
+      --accent-ink: #ffffff;
+      --accent-soft: rgba(58, 92, 240, 0.09);
+      --ok: #10884a;
+      --ok-soft: rgba(16, 136, 74, 0.10);
+      --danger: #d4383e;
+      --danger-soft: rgba(212, 56, 62, 0.09);
+      --warn: #9a6200;
+      --warn-soft: rgba(214, 146, 0, 0.13);
+      --shadow: 0 1px 2px rgba(20, 30, 60, 0.05), 0 8px 24px rgba(20, 30, 60, 0.06);
+      --radius: 14px;
+    }
 
-  /* Bố cục 2 cột: trái = form (cuộn), phải = kết quả (dính) */
-  .layout { display:flex; gap:24px; max-width:1500px; margin:0 auto; align-items:flex-start; }
-  .col-left { flex:2.75; min-width:0; }
-  .col-right { flex:1; min-width:0; position:sticky; top:92px; }
-  @media (max-width:900px) { .layout { flex-direction:column; } .col-right { position:static; width:100%; } }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0c0e13;
+      --panel: #151821;
+      --panel2: #1c202b;
+      --field: #10131a;
+      --border: #262b37;
+      --border-strong: #363d4d;
+      --text: #e7e9ef;
+      --muted: #9299ab;
+      --accent: #7390ff;
+      --accent-hover: #8ea5ff;
+      --accent-ink: #0a0f22;
+      --accent-soft: rgba(115, 144, 255, 0.14);
+      --ok: #41d086;
+      --ok-soft: rgba(65, 208, 134, 0.12);
+      --danger: #ff6b70;
+      --danger-soft: rgba(255, 107, 112, 0.12);
+      --warn: #f0b64a;
+      --warn-soft: rgba(240, 182, 74, 0.13);
+      --shadow: 0 0 0 1px rgba(255, 255, 255, 0.01);
+    }
 
-  .card { background:var(--panel); border:1px solid var(--border); border-radius:14px;
-    padding:18px; margin-bottom:16px; }
-  .row { display:flex; gap:12px; flex-wrap:wrap; }
-  .row > div { flex:1; min-width:140px; }
-  label { display:block; font-size:13px; color:var(--muted); margin:0 0 6px; }
-  input, select, textarea { width:100%; background:var(--panel2); color:var(--text);
-    border:1px solid var(--border); border-radius:9px; padding:10px 12px; font-size:15px; font-family:inherit; }
-  textarea { resize:vertical; }
-  textarea.code { font-family:"JetBrains Mono",ui-monospace,Consolas,monospace; font-size:14px; }
-  h2 { font-size:14px; margin:0 0 14px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
-  .scene { border-left:3px solid var(--accent); }
-  .scene-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
-  .scene-head .tag { background:var(--panel2); border:1px solid var(--border); border-radius:999px;
-    padding:3px 12px; font-size:12px; color:var(--muted); }
-  .spacer { flex:1; }
-  button { cursor:pointer; border:none; border-radius:9px; padding:10px 16px; font-size:14px;
-    font-weight:600; font-family:inherit; }
-  .btn-ghost { background:var(--panel2); color:var(--text); border:1px solid var(--border); }
-  .btn-primary { background:var(--accent); color:#08111e; }
-  .btn-add { background:transparent; color:var(--accent); border:1px dashed var(--accent); width:100%; padding:14px; }
-  .nav { background:transparent; color:var(--muted); border:1px solid var(--border); }
-  .nav.active { background:var(--panel2); color:var(--text); }
-  .librow { display:flex; align-items:center; gap:14px; }
-  .librow .title { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .icon-btn { background:var(--panel2); border:1px solid var(--border); color:var(--muted);
-    width:34px; height:34px; padding:0; border-radius:8px; font-size:15px; }
-  .icon-btn:hover { color:var(--text); }
-  .hidden { display:none !important; }
-  .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+    * {
+      box-sizing: border-box;
+    }
 
-  /* Panel kết quả bên phải */
-  .result-panel { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:18px; }
-  .render-btn { width:100%; padding:15px; font-size:16px; }
-  .status { display:block; margin-top:12px; color:var(--muted); font-size:14px; min-height:20px; }
-  .spinner { width:16px; height:16px; border:3px solid var(--border); border-top-color:var(--accent);
-    border-radius:50%; animation:spin 1s linear infinite; display:inline-block; vertical-align:middle; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-  .preview { margin-top:14px; }
-  video { width:100%; border-radius:12px; background:#000; display:block; }
-  .placeholder { margin-top:14px; border:1px dashed var(--border); border-radius:12px;
-    aspect-ratio:9/16; max-height:60vh; margin-left:auto; margin-right:auto; display:flex;
-    align-items:center; justify-content:center; text-align:center; color:var(--muted); font-size:14px; padding:20px; }
-  .hint { font-size:12px; color:var(--muted); margin-top:8px; }
-  .err { color:var(--danger); font-size:14px; white-space:pre-wrap; }
-  a.dl { color:var(--accent2); font-size:14px; }
+    html,
+    body {
+      margin: 0;
+    }
 
-  /* Modal đăng TikTok */
-  .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:50;
-    display:flex; align-items:center; justify-content:center; padding:20px; }
-  .modal { background:var(--panel); border:1px solid var(--border); border-radius:16px;
-    width:100%; max-width:560px; max-height:90vh; overflow:auto; padding:22px; }
-  .modal h3 { margin:0 0 4px; font-size:18px; }
-  .step { display:flex; gap:12px; align-items:flex-start; margin-top:16px; }
-  .step .no { flex:none; width:26px; height:26px; border-radius:50%; background:var(--panel2);
-    border:1px solid var(--border); color:var(--accent); font-size:13px; font-weight:700;
-    display:flex; align-items:center; justify-content:center; }
-  .step .body { flex:1; min-width:0; }
-  .step .body button { margin-top:8px; }
-  .path { font-family:ui-monospace,Consolas,monospace; font-size:12px; color:var(--muted);
-    word-break:break-all; margin-top:6px; }
-  .btn-tiktok { background:#fe2c55; color:#fff; }
-  .tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-  .tagchip { display:inline-flex; align-items:center; gap:7px; background:var(--panel2);
-    border:1px solid var(--border); color:var(--text); border-radius:999px;
-    padding:6px 13px; font-size:13px; font-weight:600; }
-  .tagchip:hover { border-color:var(--accent); color:var(--accent); }
-  .tagchip .ico { font-size:12px; opacity:.75; }
-</style>
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    code {
+      font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
+      font-size: 0.88em;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0 5px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .small {
+      font-size: 13px;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    /* Chế độ "Chỉ ảnh" không vẽ tiêu đề, thẻ, code… → ẩn luôn các ô đó trên form. */
+    body[data-style="photo"] .mixed-only {
+      display: none !important;
+    }
+
+    body:not([data-style="photo"]) .photo-only {
+      display: none !important;
+    }
+
+    /* Chế độ "Từ bài báo": AI tự viết kịch bản → ẩn ô ý tưởng và bước sửa kịch bản. */
+    body[data-mode="article"] .not-article {
+      display: none !important;
+    }
+
+    body:not([data-mode="article"]) .article-only {
+      display: none !important;
+    }
+
+    /* ============================ THANH TRÊN ============================ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 19px;
+      background: var(--accent-soft);
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--panel2);
+      padding: 4px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+    }
+
+    .tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      padding: 7px 12px;
+      border-radius: 999px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+    }
+
+    .pill.ok .dot {
+      background: var(--ok);
+    }
+
+    .seg {
+      display: flex;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+    }
+
+    .seg button {
+      border: 0;
+      background: transparent;
+      padding: 5px 9px;
+      border-radius: 7px;
+      font-size: 15px;
+      cursor: pointer;
+      line-height: 1;
+      opacity: 0.6;
+    }
+
+    .seg button.active {
+      background: var(--panel);
+      opacity: 1;
+      box-shadow: var(--shadow);
+    }
+
+    /* ============================ BỐ CỤC ============================ */
+    /* BA CỘT: [Ý tưởng + Kịch bản] [Giọng đọc, phụ đề & âm thanh] [Xuất video].
+       Hai cột phải DÍNH khi cuộn danh sách cảnh dài, và tự cuộn riêng nếu cao hơn màn hình
+       — nút Render và cài đặt giọng luôn trong tầm tay dù đang sửa cảnh thứ mười. */
+    .page {
+      display: grid;
+      grid-template-columns: 1fr .8fr 350px;
+      grid-template-areas: "main settings side";
+      gap: 20px;
+      margin: 0 auto;
+      padding: 22px 24px 60px;
+      align-items: start;
+    }
+
+    .main {
+      grid-area: main;
+      min-width: 0;
+    }
+
+    /* Khoảng cách giữa các cột/hàng do `gap` của lưới lo — bỏ lề dưới của thẻ kẻo cộng dồn. */
+    .page>.card {
+      margin-bottom: 0;
+    }
+
+    .settings-col {
+      grid-area: settings;
+    }
+
+    .side {
+      grid-area: side;
+    }
+
+    .settings-col,
+    .side {
+      position: sticky;
+      top: 78px;
+      max-height: calc(100vh - 96px);
+      overflow-y: auto;
+    }
+
+    /* Màn vừa: cột phải gộp Xuất video (trên) + Cài đặt (dưới). */
+    @media (max-width: 1280px) {
+      .page {
+        grid-template-columns: minmax(0, 1fr) 350px;
+        grid-template-areas:
+          "main side"
+          "main settings";
+      }
+
+      .settings-col,
+      .side {
+        position: static;
+        max-height: none;
+        overflow: visible;
+      }
+    }
+
+    /* Màn hẹp: một cột, theo đúng thứ tự làm việc. */
+    @media (max-width: 1020px) {
+      .page {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "main"
+          "settings"
+          "side";
+      }
+
+      .brand-sub {
+        display: none;
+      }
+    }
+
+    .mt-3 {
+      margin-top: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px 14px;
+      }
+
+      .page {
+        padding: 14px;
+      }
+
+      .grid2,
+      .grid3,
+      .settings-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .scene-dur,
+      .scene-type {
+        display: none;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .step-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .step-no {
+      flex: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    h2 {
+      font-size: 17px;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .step-head p {
+      margin: 2px 0 0;
+      font-size: 13px;
+    }
+
+    /* ============================ Ô NHẬP ============================ */
+    .field {
+      display: block;
+      margin-bottom: 14px;
+    }
+
+    .field>span,
+    .field-title {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .field>span em,
+    .field-title em {
+      font-style: normal;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      background: var(--field);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font: inherit;
+      font-size: 14.5px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    textarea {
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    textarea.mono {
+      font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
+      font-size: 13.5px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    input:disabled,
+    select:disabled {
+      opacity: 0.5;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 14px;
+    }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 0 14px;
+    }
+
+    .hint {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 5px;
+      line-height: 1.55;
+    }
+
+    /* Thanh trượt kèm con số hiện tại. */
+    .range {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .range input[type="range"] {
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+      accent-color: var(--accent);
+      background: transparent;
+    }
+
+    .range output {
+      flex: none;
+      min-width: 52px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 13px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px 6px;
+    }
+
+    /* Công tắc bật/tắt. */
+    .switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .switch input {
+      display: none;
+    }
+
+    .field.switch>span.track {
+      margin: 0;
+    }
+
+    .switch .track {
+      flex: none;
+      width: 42px;
+      height: 24px;
+      border-radius: 999px;
+      background: var(--border-strong);
+      position: relative;
+      transition: background 0.15s;
+    }
+
+    .switch .track::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.15s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    }
+
+    .switch input:checked+.track {
+      background: var(--accent);
+    }
+
+    .switch input:checked+.track::after {
+      transform: translateX(18px);
+    }
+
+    /* ============================ NÚT ============================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 9px 15px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s, transform 0.05s;
+    }
+
+    a.btn {
+      text-decoration: none;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .btn.primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn.ghost {
+      background: var(--panel2);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn.ghost:hover:not(:disabled) {
+      border-color: var(--border-strong);
+    }
+
+    .btn.dashed {
+      width: 100%;
+      background: transparent;
+      color: var(--accent);
+      border: 1.5px dashed var(--border-strong);
+      padding: 13px;
+    }
+
+    .btn.dashed:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .btn.danger {
+      color: var(--danger);
+    }
+
+    .btn.tiktok {
+      background: #fe2c55;
+      color: #fff;
+    }
+
+    .btn.sm {
+      padding: 6px 11px;
+      font-size: 13px;
+    }
+
+    .btn.lg {
+      padding: 12px 20px;
+      font-size: 15px;
+    }
+
+    .btn.xl {
+      width: 100%;
+      padding: 15px;
+      font-size: 16px;
+      border-radius: 12px;
+    }
+
+    .btn.w100 {
+      width: 100%;
+    }
+
+    .link {
+      background: none;
+      border: 0;
+      padding: 0;
+      color: var(--accent);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+    }
+
+    .icon-btn:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    .icon-btn.danger:hover {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    /* ============================ BƯỚC 1 ============================ */
+    #brief {
+      font-size: 16px;
+      padding: 13px 14px;
+    }
+
+    .label-row {
+      font-size: 13px;
+      font-weight: 600;
+      margin: 16px 0 8px;
+    }
+
+    .style-pick {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 1500px) and (min-width: 1281px), (max-width: 860px) {
+      .style-pick {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .style-opt:last-child {
+        grid-column: 1 / -1;
+      }
+    }
+
+    /* ---- Link bài báo: logo báo hiện ngay trong ô khi nhận ra link ---- */
+    .url-field {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--field);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 6px 6px 6px 8px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .url-field:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .url-field.err {
+      border-color: var(--danger);
+    }
+
+    .url-field input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none !important;
+      padding: 8px 2px;
+      font-size: 15.5px;
+    }
+
+    .site-logo {
+      flex: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent-ink);
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .site-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .site-logo.letter {
+      background: var(--accent);
+      border-color: transparent;
+    }
+
+    .site-logo.sm {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .site-logo .spinner {
+      margin: 0;
+    }
+
+    .peek {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel2);
+    }
+
+    .peek-cover {
+      flex: none;
+      width: 92px;
+      height: 92px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--border);
+    }
+
+    .peek-body {
+      min-width: 0;
+    }
+
+    .peek-site {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+    }
+
+    .peek-site .muted::before {
+      content: "·";
+      margin-right: 7px;
+    }
+
+    .peek-title {
+      font-weight: 600;
+      font-size: 15px;
+      line-height: 1.4;
+      margin: 5px 0 3px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    @media (max-width: 640px) {
+      .style-pick {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .style-opt {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: var(--panel);
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .style-opt:hover {
+      border-color: var(--border-strong);
+    }
+
+    .style-opt input {
+      display: none;
+    }
+
+    .style-opt .ico {
+      font-size: 22px;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .style-opt b {
+      display: block;
+      font-size: 14.5px;
+    }
+
+    .style-opt .desc {
+      display: block;
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.45;
+    }
+
+    .style-opt:has(input:checked) {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .notice {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      background: var(--panel2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .notice.ok {
+      background: var(--ok-soft);
+      color: var(--ok);
+      border-color: transparent;
+    }
+
+    .notice.err {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: transparent;
+      white-space: pre-wrap;
+    }
+
+    .notice.warn {
+      background: var(--warn-soft);
+      color: var(--warn);
+      border-color: transparent;
+    }
+
+    .notice.busy {
+      color: var(--text);
+    }
+
+    /* ============================ BƯỚC 2 — CẢNH ============================ */
+    .empty {
+      text-align: center;
+      padding: 34px 20px;
+      border: 1.5px dashed var(--border-strong);
+      border-radius: 12px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .empty .big {
+      font-size: 30px;
+    }
+
+    .empty b {
+      color: var(--text);
+    }
+
+    .scene {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .scene[open] {
+      border-color: var(--border-strong);
+    }
+
+    .scene-sum {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .scene-sum::-webkit-details-marker {
+      display: none;
+    }
+
+    .scene[open] .scene-sum {
+      border-bottom: 1px solid var(--border);
+      background: var(--panel2);
+    }
+
+    .scene-no {
+      flex: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .scene-type {
+      flex: none;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px 9px;
+      background: var(--panel);
+    }
+
+    .scene-preview {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 14px;
+    }
+
+    .scene-preview.empty-text {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .scene-dur {
+      flex: none;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .scene-tools {
+      flex: none;
+      display: flex;
+      gap: 5px;
+    }
+
+    .scene-body {
+      padding: 16px 14px 4px;
+    }
+
+    .sub-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 12px 2px;
+      margin-bottom: 14px;
+      background: var(--panel2);
+    }
+
+    .adv {
+      margin: 0 0 14px;
+    }
+
+    .adv>summary {
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 4px 0;
+    }
+
+    .adv[open]>summary {
+      margin-bottom: 10px;
+    }
+
+    /* ============================ BƯỚC 3 — CÀI ĐẶT ============================ */
+    /* Cột hẹp → các nhóm xếp dọc; màn vừa (cột cài đặt nằm dưới Xuất video) vẫn xếp dọc. */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* Màn hẹp một cột thì cột cài đặt đủ rộng lại → chia đôi cho đỡ dài. */
+    @media (max-width: 1020px) and (min-width: 641px) {
+      .settings-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    fieldset {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px 2px;
+      margin: 0;
+      min-width: 0;
+    }
+
+    legend {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 0 6px;
+    }
+
+    /* ============================ CỘT PHẢI ============================ */
+
+    /* Log trực tiếp: MỘT dòng. Dòng mới trượt từ dưới lên, dòng cũ trượt lên rồi biến mất. */
+    .side>h2 {
+      margin-bottom: 14px;
+    }
+
+    .ticker {
+      position: relative;
+      height: 40px;
+      overflow: hidden;
+      margin: 0 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel2);
+      font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
+      font-size: 12px;
+      transition: opacity 0.3s;
+    }
+
+    .ticker.closing {
+      opacity: 0;
+    }
+
+    .tick-line {
+      position: absolute;
+      inset: 0;
+      padding: 0 12px;
+      line-height: 38px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text);
+    }
+
+    .tick-line .tag {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .tick-line.enter {
+      animation: tick-in 0.35s ease-out both;
+    }
+
+    .tick-line.leave {
+      animation: tick-out 0.35s ease-in both;
+    }
+
+    @keyframes tick-in {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: none;
+        opacity: 1;
+      }
+    }
+
+    @keyframes tick-out {
+      from {
+        transform: none;
+        opacity: 1;
+      }
+
+      to {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .tick-line.enter,
+      .tick-line.leave {
+        animation-duration: 1ms;
+      }
+    }
+
+    .status {
+      font-size: 13.5px;
+      margin: 10px 0 0;
+      min-height: 20px;
+    }
+
+    .status .err {
+      color: var(--danger);
+      white-space: pre-wrap;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2.5px solid var(--border-strong);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      display: inline-block;
+      vertical-align: -2px;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .placeholder {
+      margin: 14px auto;
+      border: 1.5px dashed var(--border-strong);
+      border-radius: 12px;
+      aspect-ratio: 9 / 16;
+      max-height: 420px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13.5px;
+      padding: 20px;
+    }
+
+    .preview {
+      margin: 14px 0;
+    }
+
+    .preview video {
+      width: 100%;
+      max-height: 560px;
+      border-radius: 12px;
+      background: #000;
+      display: block;
+    }
+
+    .result-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    /* ============================ MODAL ============================ */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(8, 10, 16, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 540px;
+      max-height: 92vh;
+      overflow: auto;
+      padding: 22px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .modal-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .pstep {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-top: 18px;
+    }
+
+    .pstep .no {
+      flex: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .pstep .body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pstep .body .btn {
+      margin-top: 8px;
+    }
+
+    .path {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 12px;
+      color: var(--muted);
+      word-break: break-all;
+      margin-top: 6px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .tagchip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tagchip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .key-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    /* ============================ THƯ VIỆN ============================ */
+    .lib {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 22px 24px 60px;
+    }
+
+    .lib-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .librow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .librow input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--accent);
+    }
+
+    .librow .title {
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
 </head>
-<body>
-<header>
-  <span style="font-size:24px">🎬</span>
-  <div>
-    <h1>Video Studio</h1>
-    <div class="sub">Điền nội dung bên trái → bấm Render → xem kết quả bên phải. Chạy local, miễn phí.</div>
-  </div>
-  <div class="spacer"></div>
-  <button id="navEditor" class="nav active" onclick="switchView('editor')">✏️ Tạo</button>
-  <button id="navManage" class="nav" onclick="switchView('manage')">🗂️ Quản lý</button>
-</header>
 
-<div id="viewEditor">
-<div class="layout">
-  <!-- CỘT TRÁI: form nội dung (cuộn) -->
-  <div class="col-left">
-    <div class="toolbar">
-      <button class="btn-ghost" onclick="exportJson()">⬇ Xuất JSON</button>
-      <select id="loadSelect" class="btn-ghost" style="width:auto" onchange="loadSpec(this.value)">
-        <option value="">📂 Nạp spec đã lưu…</option>
-      </select>
-    </div>
+<body data-style="mixed">
 
-    <!-- Ô một-câu-ra-video. Đặt TRÊN CÙNG vì đây là đường đi mặc định; cả cái form dài
-         bên dưới trở thành chỗ TINH CHỈNH sau khi AI đã điền, không phải chỗ bắt đầu. -->
-    <div class="card" id="aiCard">
-      <h2>✨ Tạo bằng AI</h2>
-      <div class="row">
-        <div style="flex:3">
-          <input id="brief" placeholder='VD: Dựng cho tôi video về Trấn Thành'
-                 onkeydown="if(event.key==='Enter')generateSpec()" />
-        </div>
-        <div>
-          <button class="btn-primary" id="genBtn" style="width:100%" onclick="generateSpec()">Viết kịch bản</button>
-        </div>
-      </div>
-      <div class="hint" id="aiHint" style="margin-top:8px">
-        Nhập một câu là đủ. AI viết xong sẽ đổ vào form bên dưới — đọc lại, sửa chỗ nào chưa ưng, rồi mới Render.
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🎬</div>
+      <div>
+        <div class="brand-name">Video Studio</div>
+        <div class="brand-sub">Ý tưởng → kịch bản → video</div>
       </div>
     </div>
+    <nav class="tabs">
+      <button id="navEditor" class="tab active" onclick="switchView('editor')">✏️ Tạo video</button>
+      <button id="navManage" class="tab" onclick="switchView('manage')">🗂️ Thư viện</button>
+    </nav>
+    <div class="spacer"></div>
+    <button class="pill" id="aiBadge" onclick="openAi()" title="Kết nối AI để viết kịch bản">
+      <span class="dot"></span><span id="aiBadgeText">Kết nối AI</span>
+    </button>
+    <div class="seg" role="group" aria-label="Giao diện sáng / tối">
+      <button data-mode="light" onclick="setTheme('light')" title="Giao diện sáng">☀️</button>
+      <button data-mode="dark" onclick="setTheme('dark')" title="Giao diện tối">🌙</button>
+      <button data-mode="system" onclick="setTheme('system')" title="Theo cài đặt của máy">🖥️</button>
+    </div>
+  </header>
 
-    <div class="card">
-      <h2>Cài đặt chung</h2>
-      <div class="row">
-        <div style="flex:2">
-          <label>Tiêu đề video</label>
-          <input id="title" placeholder="VD: JS Tập 2 - async await" />
-        </div>
-        <div>
-          <label>Template</label>
-          <select id="template">
-            <option value="CodeExplainer">CodeExplainer (dạy code)</option>
-            <option value="StoryHook">StoryHook (kể chuyện)</option>
-            <option value="ProductReview">ProductReview (review SP)</option>
-            <option value="ListicleTop5">ListicleTop5 (top N)</option>
-          </select>
-        </div>
-        <div>
-          <label>Nền</label>
-          <select id="background">
-            <option value="tech">Tech (mưa nhị phân — xanh matrix)</option>
-            <option value="claude-dark">Claude Dark (than ấm — tối giản)</option>
-            <option value="claude-cream">Claude Cream (kem ấm — editorial)</option>
-            <option value="spider">Spider (neon tím — SpiderAI News)</option>
-            <option value="aurora">Aurora (quầng sáng màu)</option>
-            <option value="solid">Solid (đen phẳng)</option>
-          </select>
-        </div>
-      </div>
-      <div class="row" style="margin-top:12px">
-        <div>
-          <label>Giọng đọc</label>
-          <select id="voiceId">
-            <optgroup label="Edge — miễn phí, không key">
-              <option value="vi-VN-NamMinhNeural" data-provider="edge">Nam Bắc — NamMinh</option>
-              <option value="vi-VN-HoaiMyNeural" data-provider="edge">Nữ Bắc — HoaiMy</option>
-            </optgroup>
-            <optgroup label="Piper — giọng của tôi, offline, không key">
-              <option value="maiphuong" data-provider="piper">Mai Phương (nữ)</option>
-              <option value="ngochuyen" data-provider="piper">Ngọc Huyền (nữ)</option>
-              <option value="ngochuyennew" data-provider="piper">Ngọc Huyền — bản mới (nữ)</option>
-              <option value="phuongtrang" data-provider="piper">Phương Trang (nữ)</option>
-              <option value="tranthanh3870" data-provider="piper">Trấn Thành (nam)</option>
-              <option value="adam1" data-provider="piper">Adam (nam)</option>
-            </optgroup>
-            <optgroup label="Piper — giọng kho, do setup-piper.ps1 tải về">
-              <option value="vi_VN-vais1000-medium" data-provider="piper">VAIS 1000 — rõ nhất (22kHz)</option>
-              <option value="vi_VN-25hours_single-low" data-provider="piper">25hours single (16kHz)</option>
-              <option value="vi_VN-vivos-x_low" data-provider="piper">VIVOS — giọng 0 (đổi số: vivos#30)</option>
-            </optgroup>
-          </select>
-        </div>
-        <div>
-          <label>Tốc độ</label>
-          <input id="speed" type="number" step="0.01" value="1.15" />
-        </div>
-        <div>
-          <label>Cao độ</label>
-          <input id="pitch" type="number" step="1" value="-1" />
-        </div>
-      </div>
-      <div class="row" style="margin-top:12px">
-        <div>
-          <label>Kiểu phụ đề</label>
-          <select id="capStyle">
-            <option value="auto">auto (theo theme đang chọn)</option>
-            <option value="clean-minimal">clean-minimal (CHỈ tô màu chữ, không nền)</option>
-            <option value="tiktok-bold">tiktok-bold (khối đặc + VIẾT HOA)</option>
-            <option value="outline-pop">outline-pop (chữ viền đen dày)</option>
-            <option value="chip-glow">chip-glow (mỗi từ 1 chip, phát sáng)</option>
-            <option value="tech">tech (ép khối đặc màu theme)</option>
-            <option value="claude">claude (ép tô màu nhấn của theme)</option>
-          </select>
-        </div>
-        <div>
-          <label>Vị trí phụ đề</label>
-          <select id="capPos">
-            <option value="lower-third">lower-third</option>
-            <option value="center">center</option>
-            <option value="top">top</option>
-          </select>
-        </div>
-        <div>
-          <label>Màu nhấn</label>
-          <input id="capColor" type="color" value="#61afef" style="height:42px;padding:4px" />
-        </div>
-      </div>
+  <!-- ======================================================================
+     MÀN TẠO VIDEO
+     ====================================================================== -->
+  <main id="viewEditor" class="page">
+    <div class="main">
 
-      <div class="row" style="margin-top:12px">
-        <div style="flex:2">
-          <label>Nhạc nền</label>
-          <select id="musicSrc">
-            <option value="">(không có nhạc)</option>
-            <option value="sfx/ambient-tech.wav">ambient-tech — nền tổng hợp, không bản quyền</option>
+      <!-- BƯỚC 1 — Ý TƯỞNG -->
+      <section class="card">
+        <div class="step-head">
+          <span class="step-no">1</span>
+          <div>
+            <h2 class="not-article">Ý tưởng</h2>
+            <h2 class="article-only">Bài báo</h2>
+            <p class="muted not-article">Nhập một câu — AI viết kịch bản, bạn đọc lại rồi xuất video.</p>
+            <p class="muted article-only">Dán link một bài viết — AI đọc hết bài, lấy ảnh trong bài và dựng thành video.</p>
+          </div>
+          <div class="spacer"></div>
+          <select id="loadSelect" class="not-article" style="width:auto;max-width:230px" onchange="loadSpec(this.value)">
+            <option value="">📂 Mở dự án đã lưu…</option>
           </select>
         </div>
-        <div>
-          <label>Âm lượng nhạc</label>
-          <input id="musicVol" type="number" min="0" max="1" step="0.05" value="0.35" />
+
+        <div class="label-row" style="margin-top:0">Kiểu video</div>
+        <div class="style-pick">
+          <label class="style-opt">
+            <input type="radio" name="visualStyle" value="mixed" onchange="onStyleChange()" checked />
+            <span class="ico">🎬</span>
+            <span><b>Đầy đủ</b><span class="desc">Video thật, nền tech, đồ hoạ động, cửa sổ code, tiêu đề chữ
+                lớn</span></span>
+          </label>
+          <label class="style-opt">
+            <input type="radio" name="visualStyle" value="photo" onchange="onStyleChange()" />
+            <span class="ico">🖼️</span>
+            <span><b>Chỉ ảnh</b><span class="desc">Mỗi cảnh một ảnh gốc + phụ đề lời kể. Không tiêu đề, không đồ
+                hoạ</span></span>
+          </label>
+          <label class="style-opt">
+            <input type="radio" name="visualStyle" value="article" onchange="onStyleChange()" />
+            <span class="ico">📰</span>
+            <span><b>Từ bài báo</b><span class="desc">Dán link — tự lấy nội dung + ảnh trong bài, một nút ra
+                video</span></span>
+          </label>
         </div>
-        <div>
-          <label>Hạ nhạc khi có lời</label>
-          <select id="musicDuck">
-            <option value="0.25">0.25 — chuẩn</option>
-            <option value="0.15">0.15 — hạ sâu</option>
-            <option value="0.4">0.40 — hạ nhẹ</option>
-            <option value="1">1.00 — tắt ducking</option>
-          </select>
+
+        <!-- Ý TƯỞNG MỘT CÂU (Đầy đủ / Chỉ ảnh) -->
+        <div class="not-article">
+          <div class="label-row">Ý tưởng</div>
+          <textarea id="brief" rows="2" placeholder="VD: Dựng cho tôi video về Trấn Thành"
+            onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();generateSpec();}"></textarea>
+          <div class="actions">
+            <button class="btn primary lg" id="genBtn" onclick="generateSpec()">✨ Viết kịch bản bằng AI</button>
+            <button class="btn ghost lg" onclick="startBlank()">✍️ Tự viết từ đầu</button>
+          </div>
         </div>
-        <div>
-          <label>Tiếng chuyển cảnh</label>
-          <select id="sfxOn">
-            <option value="1">Bật</option>
-            <option value="0">Tắt</option>
-          </select>
+
+        <!-- TỪ BÀI BÁO -->
+        <div class="article-only">
+          <div class="label-row">Link bài báo</div>
+          <div class="url-field" id="urlField">
+            <span class="site-logo" id="siteLogo" aria-hidden="true">🔗</span>
+            <input id="articleUrl" type="url" autocomplete="off" spellcheck="false"
+              placeholder="https://kenh14.vn/ten-bai-viet….chn" oninput="onArticleUrlInput()"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();makeFromArticle();}" />
+            <button class="btn ghost sm" type="button" onclick="pasteArticleUrl()">📋 Dán</button>
+          </div>
+
+          <div class="peek hidden" id="articlePeek">
+            <img class="peek-cover" id="peekCover" alt="" referrerpolicy="no-referrer" />
+            <div class="peek-body">
+              <div class="peek-site">
+                <span class="site-logo sm" id="peekLogo"></span>
+                <b id="peekSiteName"></b><span class="muted" id="peekHost"></span>
+              </div>
+              <div class="peek-title" id="peekTitle"></div>
+              <div class="muted small" id="peekMeta"></div>
+            </div>
+          </div>
+
+          <input id="articleExtra" class="mt-3" placeholder="Dặn thêm (không bắt buộc) — vd: chỉ 6 cảnh, giọng kể hài hước"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();makeFromArticle();}" />
+          <div class="actions">
+            <button class="btn primary lg" id="articleBtn" onclick="makeFromArticle()">📰 Tạo video từ bài báo</button>
+          </div>
         </div>
-      </div>
-      <div style="font-size:12px;opacity:.72;margin-top:6px">
-        Muốn dùng nhạc riêng: bỏ file vào <code>public/audio/</code> rồi sửa
-        <code>music.src</code> trong spec JSON. Ducking tự hạ nhạc đúng lúc có giọng đọc,
-        tính từ mốc từng từ nên không cần chỉnh tay.
-      </div>
+        <div class="notice" id="aiHint">Mẹo: nhấn <b>Ctrl + Enter</b> trong ô trên để viết nhanh.</div>
+      </section>
+
+      <!-- BƯỚC 2 — KỊCH BẢN (chế độ bài báo: AI tự viết, ẩn đi) -->
+      <section class="card not-article">
+        <div class="step-head">
+          <span class="step-no">2</span>
+          <div>
+            <h2>Kịch bản</h2>
+            <p class="muted" id="scenesSub">Mỗi cảnh là một đoạn lời đọc kèm hình ảnh. Bấm vào cảnh để sửa.</p>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn ghost sm" id="toggleAllBtn" onclick="toggleAllScenes()">Thu gọn tất cả</button>
+        </div>
+
+        <div class="empty" id="scenesEmpty">
+          <div class="big">📝</div>
+          <div><b>Chưa có cảnh nào</b></div>
+          <div class="small">Nhập ý tưởng ở bước 1 để AI viết, hoặc bấm <b>Thêm cảnh</b> để tự viết.</div>
+        </div>
+        <div id="scenes"></div>
+        <button class="btn dashed" onclick="addSceneAndOpen()">➕ Thêm cảnh</button>
+      </section>
     </div>
 
-    <h2 style="margin:20px 0 12px">Các cảnh</h2>
-    <div id="scenes"></div>
-    <button class="btn-add" onclick="addScene()">➕ Thêm cảnh</button>
-  </div>
+    <!-- CỘT GIỮA — BƯỚC 3: GIỌNG ĐỌC, PHỤ ĐỀ & ÂM THANH -->
+    <section class="card settings-col" id="settingsBox">
+      <div class="step-head">
+        <span class="step-no"><span class="not-article">3</span><span class="article-only">2</span></span>
+        <div>
+          <h2>Giọng đọc, phụ đề &amp; âm thanh</h2>
+          <p class="muted">Áp dụng cho cả video.</p>
+        </div>
+      </div>
 
-  <!-- CỘT PHẢI: kết quả (dính) -->
-  <div class="col-right">
-    <div class="result-panel">
-      <h2>Kết quả</h2>
-      <button class="btn-primary render-btn" id="renderBtn" onclick="render()">🎬 Render video</button>
-      <span class="status" id="status"></span>
+      <div class="settings-grid">
+        <fieldset>
+          <legend>📝 Thông tin</legend>
+          <label class="field"><span>Tên video</span>
+            <input id="title" placeholder="VD: 5 mẹo học code nhanh" />
+          </label>
+          <label class="field"><span>Loại video</span>
+            <select id="template">
+              <option value="CodeExplainer">Dạy lập trình</option>
+              <option value="StoryHook">Kể chuyện</option>
+              <option value="ProductReview">Review sản phẩm</option>
+              <option value="ListicleTop5">Danh sách top</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>🎙️ Giọng đọc</legend>
+          <label class="field"><span>Giọng</span>
+            <select id="voiceId">
+              <optgroup label="Microsoft Edge — miễn phí, cần mạng">
+                <option value="vi-VN-NamMinhNeural" data-provider="edge">Nam miền Bắc — NamMinh</option>
+                <option value="vi-VN-HoaiMyNeural" data-provider="edge">Nữ miền Bắc — HoaiMy</option>
+              </optgroup>
+              <optgroup label="Piper — chạy trên máy, không cần mạng">
+                <option value="maiphuong" data-provider="piper">Mai Phương (nữ)</option>
+                <option value="ngochuyen" data-provider="piper">Ngọc Huyền (nữ)</option>
+                <option value="ngochuyennew" data-provider="piper">Ngọc Huyền — bản mới (nữ)</option>
+                <option value="phuongtrang" data-provider="piper">Phương Trang (nữ)</option>
+                <option value="tranthanh3870" data-provider="piper">Trấn Thành (nam)</option>
+                <option value="adam1" data-provider="piper">Adam (nam)</option>
+              </optgroup>
+              <optgroup label="Piper — giọng kho">
+                <option value="vi_VN-vais1000-medium" data-provider="piper">VAIS 1000 — rõ nhất</option>
+                <option value="vi_VN-25hours_single-low" data-provider="piper">25hours single</option>
+                <option value="vi_VN-vivos-x_low" data-provider="piper">VIVOS — giọng 0</option>
+              </optgroup>
+            </select>
+          </label>
+          <label class="field"><span>Tốc độ đọc</span>
+            <div class="range"><input id="speed" type="range" min="0.5" max="2" step="0.05" value="1.15" /><output
+                id="speedVal"></output></div>
+          </label>
+          <label class="field"><span>Cao độ</span>
+            <div class="range"><input id="pitch" type="range" min="-12" max="12" step="1" value="-1" /><output
+                id="pitchVal"></output></div>
+            <div class="hint hidden" id="pitchNote">Giọng Piper không đổi được cao độ.</div>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>💬 Phụ đề &amp; nền</legend>
+          <label class="field mixed-only"><span>Nền video</span>
+            <select id="background">
+              <option value="tech">Tech — mưa nhị phân xanh</option>
+              <option value="claude-dark">Tối ấm — tối giản</option>
+              <option value="claude-cream">Kem sáng — kiểu tạp chí</option>
+              <option value="spider">Neon tím</option>
+              <option value="aurora">Quầng sáng màu</option>
+              <option value="solid">Đen phẳng</option>
+            </select>
+          </label>
+          <label class="field"><span>Kiểu phụ đề</span>
+            <select id="capStyle">
+              <option value="auto">Tự động (theo nền)</option>
+              <option value="clean-minimal">Chỉ tô màu chữ</option>
+              <option value="tiktok-bold">Khối màu + VIẾT HOA</option>
+              <option value="outline-pop">Chữ viền đen dày (dễ đọc trên ảnh sáng)</option>
+              <option value="chip-glow">Mỗi từ một ô, phát sáng</option>
+              <option value="tech">Khối màu kiểu tech</option>
+              <option value="claude">Tô màu nhấn kiểu tối giản</option>
+            </select>
+          </label>
+          <div class="grid2">
+            <label class="field"><span>Vị trí</span>
+              <select id="capPos">
+                <option value="lower-third">Phía dưới</option>
+                <option value="center">Giữa màn hình</option>
+                <option value="top">Phía trên</option>
+              </select>
+            </label>
+            <label class="field"><span>Màu nhấn</span>
+              <input id="capColor" type="color" value="#3be8a0" style="height:40px;padding:3px" />
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>🎵 Âm thanh</legend>
+          <label class="field"><span>Nhạc nền</span>
+            <select id="musicSrc">
+              <option value="">Không có nhạc</option>
+              <option value="sfx/ambient-tech.wav">Nhạc nền tech (không bản quyền)</option>
+            </select>
+          </label>
+          <label class="field"><span>Âm lượng nhạc</span>
+            <div class="range"><input id="musicVol" type="range" min="0" max="1" step="0.05" value="0.2" /><output
+                id="musicVolVal"></output></div>
+          </label>
+          <label class="field"><span>Hạ nhạc khi có lời đọc</span>
+            <select id="musicDuck">
+              <option value="0.25">Vừa (khuyên dùng)</option>
+              <option value="0.15">Hạ sâu</option>
+              <option value="0.4">Hạ nhẹ</option>
+              <option value="1">Không hạ</option>
+            </select>
+          </label>
+          <label class="field switch"><span style="margin:0">Tiếng chuyển cảnh</span>
+            <input id="sfxOn" type="checkbox" checked /><span class="track"></span>
+          </label>
+        </fieldset>
+      </div>
+    </section>
+
+    <!-- CỘT PHẢI — XUẤT VIDEO -->
+    <aside class="card side">
+      <h2>Xuất video</h2>
+      <!-- Log trực tiếp từ server — chỉ hiện trong lúc viết kịch bản / render, xong thì ẩn. -->
+      <div class="ticker hidden" id="ticker" aria-live="polite"></div>
+      <button class="btn primary xl" id="renderBtn" onclick="render()">🎬 Render video</button>
+      <div class="status" id="status"></div>
       <div id="result">
-        <div class="placeholder">Video sẽ hiện ở đây sau khi Render.<br />Điền nội dung bên trái rồi bấm nút trên.</div>
+        <div class="placeholder">Video sẽ hiện ở đây<br />sau khi Render xong.</div>
       </div>
-    </div>
-  </div>
-</div>
+      <button class="btn ghost sm w100 mt-3" onclick="exportJson()">⬇ Tải file kịch bản (JSON)</button>
+    </aside>
+  </main>
 
-</div><!-- /viewEditor -->
-
-<!-- MÀN QUẢN LÝ: liệt kê + xóa video/spec -->
-<div id="viewManage" class="hidden">
-  <div style="max-width:1000px;margin:0 auto;padding:22px 20px 60px">
-    <div class="toolbar">
-      <button class="btn-ghost" onclick="loadLibrary()">🔄 Làm mới</button>
-      <button class="btn-ghost" style="color:var(--danger)" onclick="deleteSelected()">🗑 Xóa mục đã chọn</button>
-      <div class="spacer"></div>
-      <span id="libCount" class="hint"></span>
+  <!-- ======================================================================
+     MÀN THƯ VIỆN
+     ====================================================================== -->
+  <div id="viewManage" class="lib hidden">
+    <div class="lib-bar">
+      <h2 style="margin-right:auto">Thư viện video</h2>
+      <span id="libCount" class="muted small"></span>
+      <button class="btn ghost sm" onclick="loadLibrary()">🔄 Làm mới</button>
+      <button class="btn ghost sm danger" onclick="deleteSelected()">🗑 Xoá mục đã chọn</button>
     </div>
     <div id="libList"></div>
   </div>
-</div>
 
-<!-- MODAL ĐĂNG TIKTOK: chuẩn bị caption + mở thư mục + mở tab upload -->
-<div id="publishModal" class="modal-bg hidden" onclick="if(event.target===this) closePublish()">
-  <div class="modal">
-    <h3>📤 Đăng lên TikTok</h3>
-    <div class="hint" id="pubTitle"></div>
-
-    <div class="step">
-      <div class="no">1</div>
-      <div class="body">
-        <label>Caption + hashtag (sửa thoải mái)</label>
-        <textarea id="pubCaption" rows="9"></textarea>
-        <button class="btn-ghost" onclick="copyCaption()">📋 Copy caption</button>
-        <span id="pubCopyMsg" class="hint"></span>
-        <label style="margin-top:14px">Hashtag — bấm để copy từng cái</label>
-        <div class="tags" id="pubTags"></div>
+  <!-- ======================================================================
+     MODAL KẾT NỐI AI — key lưu trong trình duyệt trên máy này
+     ====================================================================== -->
+  <div id="aiModal" class="modal-bg hidden" onclick="if(event.target===this) closeAi()">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>🤖 Kết nối AI</h3>
+        <div class="spacer"></div>
+        <button class="icon-btn" onclick="closeAi()" title="Đóng">✕</button>
       </div>
-    </div>
+      <p class="muted small" style="margin-top:0">AI dùng để viết kịch bản từ ý tưởng của bạn. Chỉ cần làm một lần.</p>
 
-    <div class="step">
-      <div class="no">2</div>
-      <div class="body">
-        <label>File video để kéo thả</label>
-        <button class="btn-ghost" onclick="revealVideo()">📁 Mở thư mục chứa MP4</button>
-        <span id="pubRevealMsg" class="hint"></span>
-        <div class="path" id="pubPath"></div>
+      <label class="field"><span>Chọn dịch vụ AI</span>
+        <select id="aiProvider" onchange="onProviderChange()"></select>
+        <div class="hint" id="aiProviderNote"></div>
+      </label>
+
+      <label class="field"><span>Dán key vào đây</span>
+        <div class="key-row">
+          <input id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Dán key…" />
+          <button class="btn ghost" type="button" onclick="toggleKey()" id="aiKeyEye">👁 Hiện</button>
+        </div>
+      </label>
+
+      <label class="field hidden" id="aiBaseUrlRow"><span>Địa chỉ API</span>
+        <input id="aiBaseUrl" placeholder="https://openrouter.ai/api/v1" />
+      </label>
+
+      <details class="adv">
+        <summary>Tuỳ chọn thêm</summary>
+        <label class="field"><span>Model <em>— để trống là dùng mặc định</em></span>
+          <input id="aiModel" />
+        </label>
+      </details>
+
+      <div class="actions" style="margin-top:6px">
+        <button class="btn primary" id="aiSaveBtn" onclick="saveAi()">💾 Lưu &amp; kiểm tra</button>
+        <button class="btn ghost danger" onclick="clearAi()">🗑 Xoá key</button>
       </div>
-    </div>
-
-    <div class="step">
-      <div class="no">3</div>
-      <div class="body">
-        <label>Mở trang upload rồi kéo file vào, dán caption</label>
-        <button class="btn-tiktok" onclick="openTikTokUpload()">🚀 Mở TikTok Upload</button>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:22px">
-      <button class="btn-ghost" onclick="closePublish()">Đóng</button>
+      <div class="notice hidden" id="aiTestMsg"></div>
+      <p class="hint" style="margin-top:14px">🔒 Key chỉ lưu trong trình duyệt trên máy này và chỉ gửi tới dịch vụ AI
+        bạn chọn.</p>
     </div>
   </div>
-</div>
 
-<template id="sceneTpl">
-  <div class="card scene">
-    <div class="scene-head">
-      <span class="tag">Cảnh <span class="num"></span></span>
-      <select class="layout" style="width:auto" onchange="onLayout(this)">
-        <option value="hook">hook (chữ lớn)</option>
-        <option value="graphic">graphic (đồ hoạ động)</option>
-        <option value="code">code (cửa sổ code)</option>
-        <option value="image">image (ảnh minh họa)</option>
-        <option value="bullet">bullet (gạch đầu dòng)</option>
-        <option value="product">product (ảnh nền)</option>
-        <option value="compare">compare (so sánh)</option>
-        <option value="cta">cta (kêu gọi)</option>
-      </select>
-      <select class="trans" style="width:auto">
-        <option value="fade">fade</option>
-        <option value="slide-up">slide-up</option>
-        <option value="slide-left">slide-left</option>
-        <option value="wipe">wipe</option>
-        <option value="zoom">zoom</option>
-        <option value="blur">blur</option>
-        <option value="glow">glow</option>
-        <option value="none">none</option>
-      </select>
-      <div class="spacer"></div>
-      <button class="icon-btn" title="Lên" onclick="moveScene(this,-1)">↑</button>
-      <button class="icon-btn" title="Xuống" onclick="moveScene(this,1)">↓</button>
-      <button class="icon-btn" title="Xóa" onclick="this.closest('.scene').remove();renumber()">✕</button>
-    </div>
+  <!-- ======================================================================
+     MODAL ĐĂNG TIKTOK
+     ====================================================================== -->
+  <div id="publishModal" class="modal-bg hidden" onclick="if(event.target===this) closePublish()">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>📤 Đăng lên TikTok</h3>
+        <div class="spacer"></div>
+        <button class="icon-btn" onclick="closePublish()" title="Đóng">✕</button>
+      </div>
+      <div class="muted small" id="pubTitle"></div>
 
-    <div style="margin-bottom:12px">
-      <label>Lời đọc (narration) — sẽ được đọc thành tiếng</label>
-      <textarea class="narration" rows="2" placeholder="VD: Hàm map biến đổi từng phần tử…"></textarea>
-    </div>
+      <div class="pstep">
+        <div class="no">1</div>
+        <div class="body">
+          <div class="field-title">Caption + hashtag <em>(sửa thoải mái)</em></div>
+          <textarea id="pubCaption" rows="8"></textarea>
+          <button class="btn ghost sm" onclick="copyCaption()">📋 Copy caption</button>
+          <span id="pubCopyMsg" class="muted small"></span>
+          <div class="field-title" style="margin-top:14px">Hashtag <em>— bấm để copy từng cái</em></div>
+          <div class="tags" id="pubTags"></div>
+        </div>
+      </div>
 
-    <div class="f-heading" style="margin-bottom:12px">
-      <div class="row">
-        <div style="flex:0 0 96px">
-          <label>Icon</label>
-          <input class="icon" placeholder="🚀" />
-        </div>
-        <div style="flex:2">
-          <label>Tiêu đề hiện trên màn (heading)</label>
-          <input class="heading" placeholder="VD: Bước 1 — Nền tảng Web" />
+      <div class="pstep">
+        <div class="no">2</div>
+        <div class="body">
+          <div class="field-title">File video để kéo thả</div>
+          <button class="btn ghost sm" onclick="revealVideo()">📁 Mở thư mục chứa MP4</button>
+          <span id="pubRevealMsg" class="muted small"></span>
+          <div class="path" id="pubPath"></div>
         </div>
       </div>
-      <div style="margin-top:12px">
-        <label>Từ khoá tô sáng (emphasis) — cách nhau bằng dấu phẩy</label>
-        <input class="emphasis" placeholder="VD: đoạn nổi bật, bằng AI" />
-      </div>
-      <div style="margin-top:12px">
-        <label>Chip dưới tiêu đề (chips) — mỗi dòng 1 chip</label>
-        <textarea class="chips" rows="2" placeholder="@star 75.868 sao&#10;MIT&#10;* @flame 9,2K fork&#10;$ docker compose up -d"></textarea>
-        <div style="font-size:12px;opacity:.72;margin-top:4px">
-          <code>@star Chữ</code> chip thường có icon · <code>MIT</code> chip trơn ·
-          <code>* @flame Chữ</code> chip <b>nhấn</b> · <code>$ lệnh</code> chip <b>terminal</b>.
-          Dùng cho số liệu đếm được (sao, license, phiên bản), 3–5 chip mỗi cảnh.
-        </div>
-      </div>
-    </div>
 
-    <div class="f-graphic hidden" style="margin-bottom:12px">
-      <div class="row">
-        <div>
-          <label>Loại đồ hoạ (graphic.kind)</label>
-          <select class="graphicKind">
-            <option value="feature-cards">feature-cards (thẻ liệt kê)</option>
-            <option value="stat-big">stat-big (con số lớn)</option>
-            <option value="checklist">checklist (nên / không nên)</option>
-            <option value="steps">steps (các bước có thứ tự)</option>
-            <option value="architecture">architecture (sơ đồ luồng)</option>
-            <option value="bar-chart">bar-chart (so sánh số liệu)</option>
-            <option value="range-bar">range-bar (dải min–max)</option>
-            <option value="highlight-timeline">highlight-timeline (dòng thời gian)</option>
-            <option value="chat-ai">chat-ai (khung chat AI)</option>
-            <option value="device-editor">device-editor (máy đang xử lý)</option>
-          </select>
+      <div class="pstep">
+        <div class="no">3</div>
+        <div class="body">
+          <div class="field-title">Mở trang upload, kéo file vào, dán caption</div>
+          <button class="btn tiktok sm" onclick="openTikTokUpload()">🚀 Mở TikTok Upload</button>
         </div>
-        <div style="flex:2">
-          <label>Phụ đề nhỏ dưới tiêu đề (subtitle)</label>
-          <input class="graphicSubtitle" placeholder="VD: Nhanh · Riêng tư" />
-        </div>
-      </div>
-      <div style="margin-top:12px">
-        <label>Nhãn (labels) — mỗi dòng 1 mục. Cú pháp theo từng loại:</label>
-        <textarea class="graphicLabels" rows="3" placeholder="@zap Cắt tự động&#10;@chat Phụ đề AI"></textarea>
-        <div style="font-size:12px;opacity:.72;line-height:1.7;margin-top:6px">
-          <b>feature-cards</b> <code>@zap Nhanh</code> hoặc <code>⚡ Nhanh</code> ·
-          <b>stat-big</b> <code>73%:Tin tuyển dụng yêu cầu AI</code> ·
-          <b>checklist</b> <code>+ Nên làm</code> / <code>- Nên tránh</code> ·
-          <b>steps</b> chữ thường ·
-          <b>architecture</b> <code>@server API</code>, dùng <code>+</code> cho 2 thành phần cùng tầng ·
-          <b>bar-chart</b> <code>Tên:80</code> ·
-          <b>range-bar</b> <code>Junior:12-20 triệu</code> ·
-          <b>chat-ai</b> <code>u:…</code> / <code>a:…</code><br />
-          Icon <code>@tên</code> đổi màu theo theme (tốt hơn emoji). Có:
-          <code>code terminal bug file git package layers boxes cpu db server cloud network lock shield globe mobile monitor settings wrench gauge ai brain chat send zap rocket flame star award target play eye search filter check check-circle x x-circle warn idea money trend-up trend-down users user clock calendar book grad work</code>
-        </div>
-      </div>
-      <div class="row" style="margin-top:12px">
-        <div>
-          <label>Mốc thời gian (timeline) — cách nhau bằng dấu phẩy</label>
-          <input class="graphicTimestamps" placeholder="0:05, 0:10, 0:15" />
-        </div>
-        <div>
-          <label>Timecode (device-editor)</label>
-          <input class="graphicTimecode" placeholder="00:02:17" />
-        </div>
-      </div>
-    </div>
-
-    <div class="f-bullets hidden" style="margin-bottom:12px">
-      <label>Các gạch đầu dòng (mỗi dòng 1 ý; có thể mở đầu bằng emoji)</label>
-      <textarea class="bullets" rows="3" placeholder="🐳 Docker cơ bản&#10;🐙 Git và GitHub"></textarea>
-    </div>
-
-    <div class="f-code hidden">
-      <div class="row">
-        <div><label>Tên file</label><input class="codeTitle" placeholder="map.js" /></div>
-        <div><label>Dòng tô sáng (vd: 2 hoặc 2,3)</label><input class="codeHl" placeholder="2" /></div>
-      </div>
-      <div style="margin-top:12px">
-        <label>Code (giữ ngắn ~6-9 dòng)</label>
-        <textarea class="code code" rows="5" placeholder="const nums = [1, 2, 3];&#10;const doubled = nums.map(n => n * 2);&#10;console.log(doubled);"></textarea>
-      </div>
-      <div style="margin-top:12px">
-        <label>Kết quả console (output)</label>
-        <textarea class="output code" rows="2" placeholder="[ 2, 4, 6 ]"></textarea>
-      </div>
-    </div>
-
-    <div class="f-media hidden" style="margin-top:12px">
-      <div class="row">
-        <div>
-          <label>Loại nền</label>
-          <select class="mediaKind">
-            <option value="pexels-video">🎬 Video thật Pexels — NỀN TOÀN MÀN (từ khóa tiếng Anh)</option>
-            <option value="pexels">📷 Ảnh thật Pexels — khung ảnh gọn (từ khóa tiếng Anh)</option>
-            <option value="generate">🎨 AI tạo ảnh — khung ảnh gọn (mô tả tiếng Anh)</option>
-            <option value="color">Màu</option>
-            <option value="image">Ảnh (URL/file)</option>
-            <option value="video">Video (URL/file) — nền toàn màn</option>
-          </select>
-        </div>
-        <div style="flex:2">
-          <label>Nguồn (từ khóa, mã màu #..., URL, hoặc images/ten.jpg)</label>
-          <input class="mediaSrc" placeholder="coding on laptop" />
-        </div>
-      </div>
-      <div class="hint" style="margin-top:8px">
-        🎬 <b>Video</b> chạy full-bleed làm nền cả cảnh (đã tự nhuộm theo tông nền + phủ mưa nhị phân)
-        · 📷 <b>Ảnh</b> hiện trong khung gọn dưới tiêu đề.
       </div>
     </div>
   </div>
-</template>
 
-<script>
-const $ = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  <!-- ======================================================================
+     MẪU MỘT CẢNH
+     ====================================================================== -->
+  <template id="sceneTpl">
+    <details class="scene" open>
+      <summary class="scene-sum">
+        <span class="scene-no num">1</span>
+        <span class="scene-type"></span>
+        <span class="scene-preview"></span>
+        <span class="scene-dur"></span>
+        <span class="scene-tools">
+          <button class="icon-btn" title="Chuyển lên" onclick="moveScene(event,this,-1)">↑</button>
+          <button class="icon-btn" title="Chuyển xuống" onclick="moveScene(event,this,1)">↓</button>
+          <button class="icon-btn" title="Nhân bản cảnh" onclick="dupScene(event,this)">⧉</button>
+          <button class="icon-btn danger" title="Xoá cảnh" onclick="removeScene(event,this)">✕</button>
+        </span>
+      </summary>
 
-function onLayout(sel) {
-  const c = sel.closest('.scene');
-  const layout = sel.value;
-  const show = (cls, on) => c.querySelector(cls).classList.toggle('hidden', !on);
-  show('.f-heading', true);
-  show('.f-bullets', layout === 'bullet' || layout === 'compare');
-  show('.f-code', layout === 'code');
-  show('.f-graphic', layout === 'graphic');
-  // Ảnh nền dùng được cho MỌI cảnh (trừ code có cửa sổ riêng): hook/cta/bullet/graphic… đều có thể có ảnh nền.
-  show('.f-media', layout !== 'code');
-}
+      <div class="scene-body">
+        <div class="grid2 mixed-only">
+          <label class="field"><span>Loại cảnh</span>
+            <select class="layout"></select>
+          </label>
+          <label class="field f-heading"><span>Tiêu đề trên màn hình</span>
+            <input class="heading" placeholder="VD: Bước 1 — Cài đặt" />
+          </label>
+        </div>
 
-function renumber() { $$('.scene .num').forEach((n,i)=> n.textContent = i+1); }
+        <label class="field"><span>Lời đọc <em>— giọng đọc sẽ đọc đoạn này, và nó hiện thành phụ đề</em></span>
+          <textarea class="narration" rows="3"
+            placeholder="VD: Muốn học code nhanh? Đây là năm mẹo mình ước biết sớm hơn."></textarea>
+        </label>
 
-function addScene(data) {
-  const tpl = $('#sceneTpl').content.cloneNode(true);
-  $('#scenes').appendChild(tpl);
-  const c = $('#scenes').lastElementChild;
-  if (data) {
-    c.querySelector('.layout').value = data.layout || 'hook';
-    c.querySelector('.trans').value = data.transitionIn || 'fade';
-    c.querySelector('.narration').value = data.narration || '';
-    c.querySelector('.heading').value = data.heading || '';
-    c.querySelector('.icon').value = data.icon || '';
-    c.querySelector('.bullets').value = (data.bullets||[]).join('\n');
-    c.querySelector('.codeTitle').value = data.codeTitle || '';
-    c.querySelector('.codeHl').value = (data.codeHighlight||[]).join(',');
-    c.querySelector('.code').value = data.code || '';
-    c.querySelector('.output').value = data.output || '';
-    c.querySelector('.emphasis').value = (data.emphasis||[]).join(', ');
-    c.querySelector('.chips').value = (data.chips||[]).join('\n');
-    if (data.graphic) {
-      c.querySelector('.graphicKind').value = data.graphic.kind || 'feature-cards';
-      c.querySelector('.graphicSubtitle').value = data.graphic.subtitle || '';
-      c.querySelector('.graphicLabels').value = (data.graphic.labels||[]).join('\n');
-      c.querySelector('.graphicTimestamps').value = (data.graphic.timestamps||[]).join(', ');
-      c.querySelector('.graphicTimecode').value = data.graphic.timecode || '';
+        <!-- Gạch đầu dòng / so sánh -->
+        <div class="sub-box f-bullets hidden">
+          <label class="field"><span class="bullets-label">Các dòng <em>— mỗi dòng một ý</em></span>
+            <textarea class="bullets" rows="3" placeholder="🐳 Docker cơ bản&#10;🐙 Git và GitHub"></textarea>
+          </label>
+        </div>
+
+        <!-- Đồ hoạ động -->
+        <div class="sub-box f-graphic hidden">
+          <div class="grid2">
+            <label class="field"><span>Kiểu đồ hoạ</span>
+              <select class="graphicKind"></select>
+            </label>
+            <label class="field"><span>Dòng phụ dưới tiêu đề</span>
+              <input class="graphicSubtitle" placeholder="VD: Nhanh · Riêng tư" />
+            </label>
+          </div>
+          <label class="field f-labels"><span>Nội dung <em>— mỗi dòng một mục</em></span>
+            <textarea class="graphicLabels mono" rows="4"></textarea>
+            <div class="hint kind-hint"></div>
+          </label>
+          <label class="field f-timestamps hidden"><span>Mốc thời gian <em>— cách nhau bằng dấu phẩy</em></span>
+            <input class="graphicTimestamps" placeholder="0:05, 0:10, 0:15" />
+          </label>
+          <label class="field f-timecode hidden"><span>Timecode</span>
+            <input class="graphicTimecode" placeholder="00:02:17" />
+          </label>
+        </div>
+
+        <!-- Cửa sổ code -->
+        <div class="sub-box f-code hidden">
+          <div class="grid2">
+            <label class="field"><span>Tên file</span><input class="codeTitle" placeholder="map.js" /></label>
+            <label class="field"><span>Dòng tô sáng <em>— vd 2 hoặc 2,3</em></span><input class="codeHl"
+                placeholder="2" /></label>
+          </div>
+          <label class="field"><span>Code <em>— tối đa 37 ký tự mỗi dòng, dài hơn sẽ bị cắt</em></span>
+            <textarea class="code mono" rows="5"
+              placeholder="const nums = [1, 2, 3];&#10;console.log(nums.map(n => n * 2));"></textarea>
+          </label>
+          <label class="field"><span>Kết quả hiện ở ô console</span>
+            <textarea class="output mono" rows="2" placeholder="[ 2, 4, 6 ]"></textarea>
+          </label>
+        </div>
+
+        <!-- Hình ảnh -->
+        <div class="f-media">
+          <div class="grid3">
+            <label class="field"><span class="media-src-label">Hình ảnh</span>
+              <input class="mediaSrc" />
+            </label>
+            <label class="field"><span>Nguồn</span>
+              <select class="mediaKind"></select>
+            </label>
+          </div>
+          <div class="hint media-hint" style="margin:-8px 0 14px"></div>
+        </div>
+
+        <details class="adv mixed-only">
+          <summary>Tuỳ chọn thêm — hiệu ứng, từ nhấn, chip, icon</summary>
+          <div class="grid2">
+            <label class="field"><span>Hiệu ứng vào cảnh</span>
+              <select class="trans"></select>
+            </label>
+            <label class="field"><span>Icon cạnh tiêu đề</span>
+              <input class="icon" placeholder="🚀" />
+            </label>
+          </div>
+          <label class="field"><span>Từ tô màu trong tiêu đề <em>— cách nhau bằng dấu phẩy</em></span>
+            <input class="emphasis" placeholder="VD: năm mẹo, sớm hơn" />
+          </label>
+          <label class="field"><span>Chip dưới tiêu đề <em>— mỗi dòng một chip</em></span>
+            <textarea class="chips mono" rows="2"
+              placeholder="@star 75.868 sao&#10;MIT&#10;* @flame Nổi bật&#10;$ npm install"></textarea>
+            <div class="hint"><code>@star Chữ</code> chip có icon · <code>MIT</code> chip trơn · <code>* Chữ</code> chip
+              nổi bật · <code>$ lệnh</code> chip dòng lệnh</div>
+          </label>
+        </details>
+      </div>
+    </details>
+  </template>
+
+  <script>
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
-    if (data.media) {
-      c.querySelector('.mediaKind').value = data.media.kind || 'color';
-      c.querySelector('.mediaSrc').value = data.media.src || '';
-    }
-  }
-  onLayout(c.querySelector('.layout'));
-  renumber();
-}
 
-function moveScene(btn, dir) {
-  const c = btn.closest('.scene');
-  if (dir<0 && c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling);
-  if (dir>0 && c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c);
-  renumber();
-}
+    /* ======================================================================
+       DỮ LIỆU TĨNH — tên thân thiện cho người dùng, giá trị gửi server giữ nguyên
+       ====================================================================== */
 
-function collectSpec() {
-  const scenes = $$('.scene').map((c, i) => {
-    const layout = c.querySelector('.layout').value;
-    const s = {
-      id: 's' + (i+1),
-      narration: c.querySelector('.narration').value.trim(),
-      layout,
-      transitionIn: c.querySelector('.trans').value,
+    const LAYOUTS = {
+      hook: 'Mở đầu — chữ lớn',
+      graphic: 'Đồ hoạ động',
+      code: 'Cửa sổ code',
+      bullet: 'Gạch đầu dòng',
+      compare: 'So sánh sai / đúng',
+      image: 'Ảnh minh hoạ',
+      product: 'Giới thiệu sản phẩm',
+      cta: 'Kết thúc — kêu gọi',
     };
-    const heading = c.querySelector('.heading').value.trim();
-    if (heading) s.heading = heading;
-    const icon = c.querySelector('.icon').value.trim();
-    if (icon) s.icon = icon;
-    const emphasis = c.querySelector('.emphasis').value.split(',').map(x=>x.trim()).filter(Boolean);
-    if (emphasis.length) s.emphasis = emphasis;
-    const chips = c.querySelector('.chips').value.split('\n').map(x=>x.trim()).filter(Boolean);
-    if (chips.length) s.chips = chips;
-    if (layout === 'graphic') {
-      const g = { kind: c.querySelector('.graphicKind').value };
-      const sub = c.querySelector('.graphicSubtitle').value.trim(); if (sub) g.subtitle = sub;
-      const labels = c.querySelector('.graphicLabels').value.split('\n').map(x=>x.trim()).filter(Boolean); if (labels.length) g.labels = labels;
-      const ts = c.querySelector('.graphicTimestamps').value.split(',').map(x=>x.trim()).filter(Boolean); if (ts.length) g.timestamps = ts;
-      const tc = c.querySelector('.graphicTimecode').value.trim(); if (tc) g.timecode = tc;
-      s.graphic = g;
+
+    const TRANSITIONS = {
+      fade: 'Mờ dần', 'slide-up': 'Trượt lên', 'slide-left': 'Trượt ngang', wipe: 'Quét ngang',
+      zoom: 'Phóng to', blur: 'Nhoè rồi nét', glow: 'Loé sáng', none: 'Không hiệu ứng',
+    };
+
+    const ICON_NAMES = 'code terminal bug file git package layers boxes cpu db server cloud network lock shield globe mobile monitor settings wrench gauge ai brain chat send zap rocket flame star award target play eye search filter check check-circle x x-circle warn idea money trend-up trend-down users user clock calendar book grad work';
+
+    /** Mỗi kiểu đồ hoạ: tên, cách viết nội dung, ví dụ. Chỉ hiện hướng dẫn của kiểu đang chọn. */
+    const GRAPHIC_KINDS = {
+      'feature-cards': {
+        label: 'Thẻ tính năng', ph: '@zap Cắt tự động\n@chat Phụ đề AI\n@lock Riêng tư',
+        hint: 'Mỗi dòng một thẻ. Thêm icon bằng <code>@tên</code> ở đầu dòng.', icons: true
+      },
+      steps: {
+        label: 'Các bước', ph: 'Cài Node.js\nTạo dự án\nChạy thử',
+        hint: 'Mỗi dòng một bước, chữ thường — tự đánh số. <b>Không</b> dùng <code>@icon</code>.'
+      },
+      checklist: {
+        label: 'Nên / không nên', ph: '+ Viết test\n+ Đặt tên rõ ràng\n- Đẩy key lên GitHub',
+        hint: 'Mở đầu bằng <code>+ </code> là nên làm, <code>- </code> là nên tránh.'
+      },
+      'stat-big': {
+        label: 'Con số lớn', ph: '73%:Tin tuyển dụng yêu cầu AI',
+        hint: 'Viết <code>Con số:Mô tả</code>. Chỉ dùng số liệu có nguồn.'
+      },
+      'bar-chart': { label: 'Biểu đồ cột', ph: 'Trước:35\nSau:92', hint: 'Viết <code>Tên:số</code>.' },
+      'range-bar': { label: 'Dải giá trị', ph: 'Junior:12-20 triệu\nSenior:35-60 triệu', hint: 'Viết <code>Tên:khoảng</code>.' },
+      architecture: {
+        label: 'Sơ đồ luồng', ph: '@mobile App\n@server API + @lock Auth\n@db Database',
+        hint: 'Mỗi dòng một tầng, <code>@tên Chữ</code>. Hai thành phần cùng tầng nối bằng <code> + </code>.', icons: true
+      },
+      'highlight-timeline': {
+        label: 'Dòng thời gian', ph: 'Mở đầu\nCao trào\nKết thúc',
+        hint: 'Mỗi dòng một mốc, chữ thường.', timestamps: true
+      },
+      'chat-ai': {
+        label: 'Khung chat AI', ph: 'u:Viết giúp mình hàm cộng hai số\na:Đây là hàm add…',
+        hint: '<code>u:</code> là người hỏi, <code>a:</code> là AI trả lời.'
+      },
+      'device-editor': { label: 'Máy đang xử lý', ph: '', hint: '', timecode: true, noLabels: true },
+    };
+
+    /** Nguồn hình ảnh. `photo`: có dùng được ở chế độ Chỉ ảnh không (ở đó chỉ nhận ảnh). */
+    const MEDIA_KINDS = [
+      { v: '', label: 'Không dùng', photo: false, ph: '' },
+      { v: 'pexels-video', label: '🎬 Video thật (Pexels)', photo: false, ph: 'Từ khoá tiếng Anh — vd: coding laptop night' },
+      { v: 'pexels', label: '📷 Ảnh thật (Pexels)', photo: true, ph: 'Từ khoá tiếng Anh — vd: comedian on stage' },
+      { v: 'generate', label: '🎨 AI vẽ ảnh', photo: true, ph: 'Mô tả tiếng Anh — vd: cozy home office at sunset' },
+      { v: 'image', label: '🖼️ Ảnh từ file / link', photo: true, ph: 'images/ten.jpg hoặc https://…' },
+      { v: 'video', label: '🎞️ Video từ file / link', photo: false, ph: 'video/ten.mp4 hoặc https://…' },
+      { v: 'color', label: '🎨 Màu phẳng', photo: false, ph: '#1e1e2e' },
+    ];
+
+    /** Tiếng Việt đọc khoảng 3,2 âm tiết/giây ở tốc độ 1 — chỉ để ƯỚC LƯỢNG thời lượng. */
+    const SYLLABLES_PER_SEC = 3.2;
+
+    /* ======================================================================
+       GIAO DIỆN SÁNG / TỐI
+       ====================================================================== */
+    const THEME_STORE = 'videoStudio.theme';
+    function themeMode() {
+      try { return localStorage.getItem(THEME_STORE) || 'system'; } catch { return 'system'; }
     }
-    if (layout === 'bullet' || layout === 'compare') {
-      const b = c.querySelector('.bullets').value.split('\n').map(x=>x.trim()).filter(Boolean);
-      if (b.length) s.bullets = b;
+    function applyTheme() {
+      const mode = themeMode();
+      const dark = mode === 'dark' || (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      $$('.seg button').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
     }
-    if (layout === 'code') {
-      s.code = c.querySelector('.code').value;
-      const ct = c.querySelector('.codeTitle').value.trim(); if (ct) s.codeTitle = ct;
-      const out = c.querySelector('.output').value; if (out.trim()) s.output = out;
-      const hl = c.querySelector('.codeHl').value.split(',').map(x=>parseInt(x.trim(),10)).filter(n=>!isNaN(n));
-      if (hl.length) s.codeHighlight = hl;
+    function setTheme(mode) {
+      try { localStorage.setItem(THEME_STORE, mode); } catch { }
+      applyTheme();
     }
-    if (layout !== 'code') {
+    // "Theo máy": máy đổi sáng/tối (vd tự chuyển buổi tối) thì trang đổi theo ngay.
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (themeMode() === 'system') applyTheme(); });
+
+    /* ======================================================================
+       TIỆN ÍCH
+       ====================================================================== */
+    function fillSelect(sel, entries, value) {
+      sel.innerHTML = entries.map(([v, label]) => `<option value="${escapeHtml(v)}">${escapeHtml(label)}</option>`).join('');
+      if (value !== undefined) sel.value = value;
+    }
+    function lines(text) { return String(text || '').split('\n').map((x) => x.trim()).filter(Boolean); }
+    /** Lựa chọn ở ô "Kiểu video": mixed | photo | article. */
+    function currentMode() { return (document.querySelector('input[name="visualStyle"]:checked') || {}).value || 'mixed'; }
+    /** Kiểu HÌNH ẢNH ghi vào spec. Video từ bài báo dựng bằng ảnh của bài → "photo". */
+    function currentStyle() { return currentMode() === 'article' ? 'photo' : currentMode(); }
+    function speedValue() { return parseFloat($('#speed').value) || 1; }
+    function estimateSec(text) {
+      const n = String(text || '').trim().split(/\s+/).filter(Boolean).length;
+      return n ? n / (SYLLABLES_PER_SEC * speedValue()) + 0.35 : 0;
+    }
+    function fmtDur(sec) {
+      const s = Math.round(sec);
+      return s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
+    }
+    function fmtSize(b) { if (!b) return ''; const mb = b / 1048576; return mb >= 1 ? mb.toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB'; }
+
+    /** Đồng hồ chạy trong lúc chờ — render mất vài phút, nhìn số giây nhảy đỡ tưởng bị treo. */
+    function startTimer(el, label) {
+      const t0 = Date.now();
+      const tick = () => {
+        const s = Math.floor((Date.now() - t0) / 1000);
+        el.innerHTML = `<span class="spinner"></span>${label} <b>${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}</b>`;
+      };
+      tick();
+      const id = setInterval(tick, 1000);
+      return () => clearInterval(id);
+    }
+    function setNotice(el, kind, html) {
+      el.className = 'notice' + (kind ? ' ' + kind : '');
+      el.innerHTML = html;
+      el.classList.remove('hidden');
+    }
+
+    /* ======================================================================
+       KIỂU VIDEO (Đầy đủ / Chỉ ảnh)
+       ====================================================================== */
+    const STYLE_STORE = 'videoStudio.visualStyle';
+
+    function setStyle(value) {
+      const v = ['photo', 'article'].includes(value) ? value : 'mixed';
+      const el = document.querySelector(`input[name="visualStyle"][value="${v}"]`);
+      if (el) el.checked = true;
+      onStyleChange();
+    }
+    function onStyleChange() {
+      const style = currentStyle();
+      document.body.dataset.style = style;
+      document.body.dataset.mode = currentMode();
+      try { localStorage.setItem(STYLE_STORE, currentMode()); } catch { }
+      // Lời nhắc mặc định theo chế độ — chỉ khi ô nhắc đang trống việc (không đè kết quả/lỗi).
+      const hint = $('#aiHint');
+      if (hint.className === 'notice') {
+        hint.innerHTML = currentMode() === 'article'
+          ? 'Dán link → bấm <b>Tạo video từ bài báo</b>. Video dựng bằng ảnh trong bài + phụ đề lời kể.'
+          : 'Mẹo: nhấn <b>Ctrl + Enter</b> trong ô trên để viết nhanh.';
+      }
+      $$('#scenes .scene').forEach((c) => fillMediaKinds(c));
+      refreshAll();
+    }
+
+    /* ======================================================================
+       CẢNH
+       ====================================================================== */
+
+    /**
+     * Trường mà FORM quản lý. Mọi trường KHÁC của cảnh (tailPadSec, media.fit, media.focus…)
+     * được giữ nguyên từ kịch bản gốc khi Render — trước đây form dựng lại cảnh từ đầu nên
+     * âm thầm làm rơi mất chúng.
+     */
+    const MANAGED_SCENE_KEYS = new Set(['id', 'narration', 'layout', 'transitionIn', 'heading', 'icon', 'emphasis',
+      'chips', 'graphic', 'bullets', 'code', 'codeTitle', 'output', 'codeHighlight', 'media']);
+
+    function fillMediaKinds(c) {
+      const sel = c.querySelector('.mediaKind');
+      const photo = currentStyle() === 'photo';
+      const keep = sel.value;
+      const allowed = MEDIA_KINDS.filter((k) => !photo || k.photo);
+      fillSelect(sel, allowed.map((k) => [k.v, k.label]));
+      // Chế độ Chỉ ảnh không nhận video/màu → đổi sang ảnh Pexels, giữ nguyên từ khoá đã gõ.
+      sel.value = allowed.some((k) => k.v === keep) ? keep : (photo ? 'pexels' : '');
+    }
+
+    function refreshScene(c) {
+      const all = $$('#scenes .scene');
+      const i = all.indexOf(c);
+      const photo = currentStyle() === 'photo';
+      const layout = c.querySelector('.layout').value;
+
+      c.querySelector('.num').textContent = i + 1;
+      c.querySelector('.scene-type').textContent = photo
+        ? (i === 0 ? 'Mở đầu' : i === all.length - 1 && all.length > 1 ? 'Kết thúc' : 'Ảnh + lời kể')
+        : LAYOUTS[layout];
+
+      const text = c.querySelector('.narration').value.trim();
+      const pv = c.querySelector('.scene-preview');
+      pv.textContent = text || 'Chưa có lời đọc';
+      pv.classList.toggle('empty-text', !text);
+      c.querySelector('.scene-dur').textContent = text ? '≈' + fmtDur(estimateSec(text)) : '';
+
+      const show = (sel, on) => c.querySelector(sel).classList.toggle('hidden', !on);
+      show('.f-bullets', !photo && (layout === 'bullet' || layout === 'compare'));
+      show('.f-graphic', !photo && layout === 'graphic');
+      show('.f-code', !photo && layout === 'code');
+      show('.f-media', photo || layout !== 'code');
+      c.querySelector('.bullets-label').innerHTML = layout === 'compare'
+        ? 'Hai vế <em>— dòng 1 là cách sai, dòng 2 là cách đúng</em>'
+        : 'Các dòng <em>— mỗi dòng một ý</em>';
+
+      // Hướng dẫn chỉ của đúng kiểu đồ hoạ đang chọn.
+      const kind = GRAPHIC_KINDS[c.querySelector('.graphicKind').value] || GRAPHIC_KINDS['feature-cards'];
+      show('.f-labels', !kind.noLabels);
+      show('.f-timestamps', !!kind.timestamps);
+      show('.f-timecode', !!kind.timecode);
+      c.querySelector('.graphicLabels').placeholder = kind.ph;
+      c.querySelector('.kind-hint').innerHTML = kind.hint +
+        (kind.icons ? `<br />Icon có sẵn: <code style="white-space:normal">${ICON_NAMES}</code>` : '');
+
+      // Hình ảnh: nhãn và gợi ý theo nguồn đang chọn.
+      const mk = MEDIA_KINDS.find((k) => k.v === c.querySelector('.mediaKind').value) || MEDIA_KINDS[0];
+      const src = c.querySelector('.mediaSrc');
+      src.placeholder = mk.ph || 'Chọn nguồn bên cạnh trước';
+      src.disabled = !mk.v;
+      c.querySelector('.media-src-label').textContent = photo ? 'Ảnh của cảnh' : 'Hình ảnh / nền';
+      c.querySelector('.media-hint').textContent = photo
+        ? 'Ảnh hiển thị nguyên bản, toàn màn hình — không làm mờ, không chỉnh màu.'
+        : !mk.v ? 'Cảnh này không dùng hình.'
+          : mk.v === 'pexels-video' || mk.v === 'video' ? 'Video chạy toàn màn hình làm nền, chữ nằm đè lên trên.'
+            : mk.v === 'color' ? 'Nền một màu phẳng.'
+              : 'Ảnh hiện trong khung gọn dưới tiêu đề.';
+    }
+
+    function refreshAll() {
+      const cards = $$('#scenes .scene');
+      cards.forEach(refreshScene);
+      $('#scenesEmpty').classList.toggle('hidden', cards.length > 0);
+      $('#toggleAllBtn').classList.toggle('hidden', cards.length < 2);
+      $('#toggleAllBtn').textContent = cards.some((c) => c.open) ? 'Thu gọn tất cả' : 'Mở tất cả';
+      updateStats();
+    }
+
+    function addScene(data = {}) {
+      const frag = $('#sceneTpl').content.cloneNode(true);
+      const c = frag.querySelector('.scene');
+      fillSelect(c.querySelector('.layout'), Object.entries(LAYOUTS), data.layout || 'hook');
+      fillSelect(c.querySelector('.trans'), Object.entries(TRANSITIONS), data.transitionIn || 'fade');
+      fillSelect(c.querySelector('.graphicKind'), Object.entries(GRAPHIC_KINDS).map(([k, v]) => [k, v.label]),
+        data.graphic?.kind || 'feature-cards');
+      $('#scenes').appendChild(frag);
+
+      c.dataset.extra = JSON.stringify(data);
+      c.querySelector('.narration').value = data.narration || '';
+      c.querySelector('.heading').value = data.heading || '';
+      c.querySelector('.icon').value = data.icon || '';
+      c.querySelector('.emphasis').value = (data.emphasis || []).join(', ');
+      c.querySelector('.chips').value = (data.chips || []).join('\n');
+      c.querySelector('.bullets').value = (data.bullets || []).join('\n');
+      c.querySelector('.codeTitle').value = data.codeTitle || '';
+      c.querySelector('.codeHl').value = (data.codeHighlight || []).join(',');
+      c.querySelector('.code').value = data.code || '';
+      c.querySelector('.output').value = data.output || '';
+      c.querySelector('.graphicSubtitle').value = data.graphic?.subtitle || '';
+      c.querySelector('.graphicLabels').value = (data.graphic?.labels || []).join('\n');
+      c.querySelector('.graphicTimestamps').value = (data.graphic?.timestamps || []).join(', ');
+      c.querySelector('.graphicTimecode').value = data.graphic?.timecode || '';
+
+      fillMediaKinds(c);
+      if (data.media) {
+        const sel = c.querySelector('.mediaKind');
+        if ([...sel.options].some((o) => o.value === data.media.kind)) sel.value = data.media.kind;
+        c.querySelector('.mediaSrc').value = data.media.src || '';
+      }
+      return c;
+    }
+
+    function addSceneAndOpen() {
+      const all = $$('#scenes .scene');
+      const photo = currentStyle() === 'photo';
+      // Cảnh đầu tiên mặc định là "Mở đầu"; các cảnh sau mặc định dạng chữ đơn giản.
+      const c = addScene({ layout: all.length === 0 ? 'hook' : 'bullet', ...(photo ? { media: { kind: 'pexels', src: '' } } : {}) });
+      refreshAll();
+      c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      c.querySelector('.narration').focus();
+    }
+
+    function moveScene(ev, btn, dir) {
+      ev.preventDefault(); ev.stopPropagation();
+      const c = btn.closest('.scene');
+      if (dir < 0 && c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling);
+      if (dir > 0 && c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c);
+      refreshAll();
+    }
+    function dupScene(ev, btn) {
+      ev.preventDefault(); ev.stopPropagation();
+      const c = btn.closest('.scene');
+      const all = $$('#scenes .scene');
+      const copy = addScene(sceneFromCard(c, all.indexOf(c), all.length));
+      c.after(copy);
+      refreshAll();
+    }
+    function removeScene(ev, btn) {
+      ev.preventDefault(); ev.stopPropagation();
+      const c = btn.closest('.scene');
+      if (c.querySelector('.narration').value.trim() && !confirm('Xoá cảnh này?')) return;
+      c.remove();
+      refreshAll();
+    }
+    function toggleAllScenes() {
+      const cards = $$('#scenes .scene');
+      const open = !cards.some((c) => c.open);
+      cards.forEach((c) => (c.open = open));
+      refreshAll();
+    }
+
+    /** Đọc một cảnh từ form thành object đúng schema, giữ lại các trường form không quản lý. */
+    function sceneFromCard(c, i, total) {
+      const photo = currentStyle() === 'photo';
+      const extra = JSON.parse(c.dataset.extra || '{}');
+      const s = Object.fromEntries(Object.entries(extra).filter(([k]) => !MANAGED_SCENE_KEYS.has(k)));
+      s.id = 's' + (i + 1);
+      s.narration = c.querySelector('.narration').value.trim();
+      s.transitionIn = c.querySelector('.trans').value;
+
       const kind = c.querySelector('.mediaKind').value;
       const src = c.querySelector('.mediaSrc').value.trim();
-      if (src) s.media = { kind, src };
+      const media = kind && src
+        ? { ...(extra.media ? Object.fromEntries(Object.entries(extra.media).filter(([k]) => k === 'fit' || k === 'focus')) : {}), kind, src }
+        : null;
+
+      if (photo) {
+        // Chỉ ảnh: loại cảnh theo vị trí (đúng luật hệ thống) — người dùng không phải chọn.
+        s.layout = i === 0 ? 'hook' : i === total - 1 && total > 1 ? 'cta' : 'image';
+        if (media) s.media = media;
+        return s;
+      }
+
+      const layout = c.querySelector('.layout').value;
+      s.layout = layout;
+      const heading = c.querySelector('.heading').value.trim();
+      if (heading) s.heading = heading;
+      const icon = c.querySelector('.icon').value.trim();
+      if (icon) s.icon = icon;
+      const emphasis = c.querySelector('.emphasis').value.split(',').map((x) => x.trim()).filter(Boolean);
+      if (emphasis.length) s.emphasis = emphasis;
+      const chips = lines(c.querySelector('.chips').value);
+      if (chips.length) s.chips = chips;
+
+      if (layout === 'graphic') {
+        const g = { kind: c.querySelector('.graphicKind').value };
+        const sub = c.querySelector('.graphicSubtitle').value.trim(); if (sub) g.subtitle = sub;
+        const labels = lines(c.querySelector('.graphicLabels').value); if (labels.length) g.labels = labels;
+        const ts = c.querySelector('.graphicTimestamps').value.split(',').map((x) => x.trim()).filter(Boolean); if (ts.length) g.timestamps = ts;
+        const tc = c.querySelector('.graphicTimecode').value.trim(); if (tc) g.timecode = tc;
+        s.graphic = g;
+      }
+      if (layout === 'bullet' || layout === 'compare') {
+        const b = lines(c.querySelector('.bullets').value);
+        if (b.length) s.bullets = b;
+      }
+      if (layout === 'code') {
+        s.code = c.querySelector('.code').value;
+        const ct = c.querySelector('.codeTitle').value.trim(); if (ct) s.codeTitle = ct;
+        const out = c.querySelector('.output').value; if (out.trim()) s.output = out;
+        const hl = c.querySelector('.codeHl').value.split(',').map((x) => parseInt(x.trim(), 10)).filter((n) => !isNaN(n));
+        if (hl.length) s.codeHighlight = hl;
+      } else if (media) {
+        s.media = media;
+      }
+      return s;
     }
-    return s;
-  }).filter(s => s.narration);
 
-  return {
-    meta: {
-      title: $('#title').value.trim() || 'video',
-      template: $('#template').value,
-      width: 1080, height: 1920, fps: 30, locale: 'vi-VN',
-      background: $('#background').value,
-    },
-    voice: {
-      provider: ($('#voiceId').selectedOptions[0] || {}).dataset?.provider || 'edge',
-      voiceId: $('#voiceId').value,
-      speed: parseFloat($('#speed').value) || 1,
-      pitch: parseInt($('#pitch').value, 10) || 0,
-    },
-    captions: {
-      style: $('#capStyle').value,
-      position: $('#capPos').value,
-      maxWordsPerLine: 4,
-      highlightColor: $('#capColor').value,
-    },
-    sfx: { enabled: $('#sfxOn').value === '1', volume: 0.35 },
-    ...($('#musicSrc').value
-      ? { music: {
-            src: $('#musicSrc').value,
-            volume: parseFloat($('#musicVol').value) || 0.35,
-            duck: parseFloat($('#musicDuck').value),
-          } }
-      : {}),
-    scenes,
-  };
-}
+    /* ======================================================================
+       KỊCH BẢN ↔ FORM
+       ====================================================================== */
 
-function setStatus(html) { $('#status').innerHTML = html; }
+    /**
+     * Kịch bản nạp gần nhất (từ AI hoặc file đã lưu). Khi Render, form chỉ ghi đè những ô
+     * nó hiển thị; mọi thứ khác — nhất là PHÁT ÂM (voice.pronunciations) mà AI viết cho từ
+     * tiếng Anh — giữ nguyên. Bản trước dựng lại kịch bản từ số không nên làm rơi mất.
+     */
+    let baseSpec = null;
 
-async function render() {
-  const spec = collectSpec();
-  if (spec.scenes.length === 0) { setStatus('<span class="err">Cần ít nhất 1 cảnh có lời đọc.</span>'); return; }
-  $('#renderBtn').disabled = true;
-  setStatus('<span class="spinner"></span> Đang dựng video… (30–90s)');
-  try {
-    const res = await fetch('/api/render', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(spec) });
-    const data = await res.json();
-    if (!data.ok) {
-      const extra = data.issues ? '\n' + data.issues.join('\n') : '';
-      setStatus('<span class="err">❌ ' + (data.error||'Lỗi') + extra + '</span>');
-    } else {
-      setStatus('✅ Xong — video ' + Math.round(data.durationSec) + 's');
-      $('#result').innerHTML =
-        '<div class="preview"><video controls autoplay muted src="'+data.videoUrl+'"></video>' +
-        '<div style="margin-top:10px"><a class="dl" href="'+data.videoUrl+'" download="'+data.slug+'.mp4">⬇ Tải MP4</a>' +
-        ' &nbsp; <span class="hint">Spec đã lưu: specs/'+data.specName+'</span></div>' +
-        '<button class="btn-tiktok" style="width:100%;margin-top:10px" onclick="openPublish(\''+data.slug+'\')">📤 Đăng TikTok</button></div>';
+    function collectSpec() {
+      const base = baseSpec ? JSON.parse(JSON.stringify(baseSpec)) : {};
+      const cards = $$('#scenes .scene');
+      const scenes = cards.map((c, i) => sceneFromCard(c, i, cards.length)).filter((s) => s.narration);
+      scenes.forEach((s, i) => (s.id = 's' + (i + 1)));
+
+      const voiceOpt = $('#voiceId').selectedOptions[0];
+      const provider = voiceOpt?.dataset.provider || 'edge';
+      const voice = { ...(base.voice || {}), provider, voiceId: $('#voiceId').value, speed: speedValue() };
+      // Piper KHÔNG đọc cao độ; gửi kèm chỉ làm đổi khoá cache → phải tổng hợp giọng lại vô ích.
+      if (provider === 'piper') delete voice.pitch;
+      else voice.pitch = parseInt($('#pitch').value, 10) || 0;
+
+      const spec = {
+        ...base,
+        meta: {
+          ...(base.meta || {}),
+          title: $('#title').value.trim() || 'video',
+          template: $('#template').value,
+          width: 1080, height: 1920, fps: 30, locale: 'vi-VN',
+          background: $('#background').value,
+          visualStyle: currentStyle(),
+        },
+        voice,
+        captions: {
+          maxWordsPerLine: 4,
+          ...(base.captions || {}),
+          style: $('#capStyle').value,
+          position: $('#capPos').value,
+          // Ô chọn màu luôn trả chữ thường (#3be8a0); màu không đổi thì giữ nguyên cách viết gốc.
+          highlightColor: (base.captions?.highlightColor || '').toLowerCase() === $('#capColor').value
+            ? base.captions.highlightColor : $('#capColor').value,
+        },
+        sfx: { volume: 0.35, ...(base.sfx || {}), enabled: $('#sfxOn').checked },
+        scenes,
+      };
+      if ($('#musicSrc').value) {
+        spec.music = { ...(base.music || {}), src: $('#musicSrc').value, volume: parseFloat($('#musicVol').value), duck: parseFloat($('#musicDuck').value) };
+      } else {
+        delete spec.music;
+      }
+      return spec;
     }
-  } catch (e) {
-    setStatus('<span class="err">❌ ' + e.message + '</span>');
-  } finally {
-    $('#renderBtn').disabled = false;
-  }
-}
 
-function exportJson() {
-  const blob = new Blob([JSON.stringify(collectSpec(), null, 2)], { type:'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = (($('#title').value.trim()||'video')) + '.json';
-  a.click();
-}
+    function selectOrAdd(sel, value, label, attrs = {}) {
+      if (!value) return;
+      if (![...sel.options].some((o) => o.value === value)) {
+        // Giá trị không có sẵn trong danh sách (vd giọng tự thêm) → thêm vào thay vì âm thầm
+        // nhảy sang lựa chọn đầu tiên. Bản trước đổi giọng của kịch bản mà không báo.
+        const o = document.createElement('option');
+        o.value = value; o.textContent = label;
+        Object.entries(attrs).forEach(([k, v]) => (o.dataset[k] = v));
+        sel.appendChild(o);
+      }
+      sel.value = value;
+    }
 
-async function loadSpecList() {
-  try {
-    const { specs } = await (await fetch('/api/specs')).json();
-    const sel = $('#loadSelect');
-    specs.forEach(f => { const o=document.createElement('option'); o.value=f; o.textContent=f; sel.appendChild(o); });
-  } catch {}
-}
+    function fillForm(spec) {
+      baseSpec = JSON.parse(JSON.stringify(spec));
+      $('#title').value = spec.meta?.title || '';
+      $('#template').value = spec.meta?.template || 'StoryHook';
+      $('#background').value = spec.meta?.background || 'claude-dark';
+      selectOrAdd($('#voiceId'), spec.voice?.voiceId, `${spec.voice?.voiceId} (từ kịch bản)`, { provider: spec.voice?.provider || 'edge' });
+      $('#speed').value = spec.voice?.speed ?? 1;
+      $('#pitch').value = spec.voice?.pitch ?? 0;
+      $('#capStyle').value = spec.captions?.style || 'auto';
+      $('#capPos').value = spec.captions?.position || 'lower-third';
+      $('#capColor').value = spec.captions?.highlightColor || '#3be8a0';
+      selectOrAdd($('#musicSrc'), spec.music?.src || '', spec.music?.src);
+      if (!spec.music) $('#musicSrc').value = '';
+      $('#musicVol').value = spec.music?.volume ?? 0.2;
+      $('#musicDuck').value = String(spec.music?.duck ?? 0.25);
+      $('#sfxOn').checked = spec.sfx?.enabled ?? true;
 
-/* ---- Tạo bằng AI: một câu → spec → đổ vào form ---- */
+      // Kiểu video đặt TRƯỚC khi dựng cảnh để danh sách nguồn ảnh đúng ngay từ đầu.
+      // Đang ở chế độ bài báo mà spec là kiểu ảnh (chính spec bài báo vừa viết) → giữ nguyên chế độ.
+      const keepArticle = currentMode() === 'article' && spec.meta?.visualStyle === 'photo';
+      if (!keepArticle) {
+        const el = document.querySelector(`input[name="visualStyle"][value="${spec.meta?.visualStyle === 'photo' ? 'photo' : 'mixed'}"]`);
+        if (el) el.checked = true;
+      }
+      document.body.dataset.style = currentStyle();
+      document.body.dataset.mode = currentMode();
 
-// Bật/tắt ô AI theo việc người dùng đã cắm key chưa. Hiện một ô bấm vào là báo lỗi
-// thì tệ hơn hẳn so với nói thẳng từ đầu là cần cắm gì.
-async function checkLlm() {
-  try {
-    const s = await (await fetch('/api/llm')).json();
-    if (s.ready) {
-      $('#aiHint').innerHTML = 'Nhập một câu là đủ. AI viết xong sẽ đổ vào form bên dưới — đọc lại, sửa chỗ nào chưa ưng, rồi mới Render. <span class="hint">(' + s.provider + '/' + s.model + ')</span>';
-    } else {
+      $('#scenes').innerHTML = '';
+      (spec.scenes || []).forEach((s) => addScene(s));
+      // Kịch bản dài thì gập các cảnh lại — nhìn được cả mạch truyện trong một màn hình.
+      if ((spec.scenes || []).length > 3) $$('#scenes .scene').forEach((c) => (c.open = false));
+      onSettingsChange();
+      onStyleChange();
+    }
+
+    function startBlank() {
+      const has = $$('#scenes .scene').some((c) => c.querySelector('.narration').value.trim());
+      if (has && !confirm('Bắt đầu kịch bản mới? Kịch bản đang có sẽ bị xoá khỏi form.')) return;
+      baseSpec = null;
+      $('#scenes').innerHTML = '';
+      $('#title').value = '';
+      $('#loadSelect').value = '';
+      addSceneAndOpen();
+    }
+
+    async function loadSpec(name) {
+      if (!name) return;
+      try {
+        fillForm(await (await fetch('/api/spec/' + encodeURIComponent(name))).json());
+        setNotice($('#aiHint'), 'ok', `Đã mở <b>${escapeHtml(name.replace(/\.json$/, ''))}</b>. Sửa ở bước 2 rồi bấm Render.`);
+      } catch (e) {
+        setNotice($('#aiHint'), 'err', 'Không mở được dự án: ' + escapeHtml(e.message));
+      }
+    }
+    async function loadSpecList() {
+      try {
+        const { specs } = await (await fetch('/api/specs')).json();
+        const sel = $('#loadSelect');
+        const keep = sel.value;
+        sel.innerHTML = '<option value="">📂 Mở dự án đã lưu…</option>' +
+          specs.map((f) => `<option value="${escapeHtml(f)}">${escapeHtml(f.replace(/\.json$/, ''))}</option>`).join('');
+        sel.value = specs.includes(keep) ? keep : '';
+      } catch { }
+    }
+    function refreshSpecDropdown() { loadSpecList(); }
+
+    /* ======================================================================
+       CÀI ĐẶT + THỐNG KÊ + KIỂM TRA TRƯỚC KHI RENDER
+       ====================================================================== */
+    function onSettingsChange() {
+      const speed = speedValue();
+      $('#speedVal').textContent = speed.toFixed(2) + '×';
+      const pitch = parseInt($('#pitch').value, 10) || 0;
+      $('#pitchVal').textContent = (pitch > 0 ? '+' : '') + pitch;
+      const piper = $('#voiceId').selectedOptions[0]?.dataset.provider === 'piper';
+      $('#pitch').disabled = piper;
+      $('#pitchNote').classList.toggle('hidden', !piper);
+      const hasMusic = !!$('#musicSrc').value;
+      $('#musicVol').disabled = !hasMusic;
+      $('#musicDuck').disabled = !hasMusic;
+      $('#musicVolVal').textContent = Math.round(parseFloat($('#musicVol').value) * 100) + '%';
+
+      refreshAll();
+    }
+
+    /** Nút Render chỉ bấm được khi có ít nhất một cảnh có lời đọc và không có việc đang chạy. */
+    function updateStats() {
+      const hasText = $$('#scenes .scene').some((c) => c.querySelector('.narration').value.trim());
+      $('#renderBtn').disabled = !hasText || logTicker.running();
+    }
+
+    /* ======================================================================
+       LOG TRỰC TIẾP — đúng những dòng server in ra terminal, đẩy qua /api/logs
+       ====================================================================== */
+    const logTicker = (() => {
+      const PROGRESS = /^\[render\]\s+\d+%/;
+      /** Mỗi dòng hiện tối thiểu chừng này — ngắn hơn thì mắt không kịp đọc. */
+      const MIN_SHOW_MS = 450;
+      /** Log dồn dập (vài dòng trong một giây) thì chỉ giữ vài dòng mới nhất chờ hiện. */
+      const MAX_QUEUE = 4;
+
+      let jobs = 0; // số việc đang chạy do trang này bấm (viết kịch bản, render)
+      let queue = [];
+      let animating = false;
+      let current = null;
+      let hideTimer = null;
+      const box = () => $('#ticker');
+
+      /** "[build] scene 2/6" → nhãn tô màu + phần còn lại. */
+      const format = (line) => {
+        const m = /^(\[[^\]]+\])\s*(.*)$/.exec(line);
+        return m ? `<span class="tag">${escapeHtml(m[1])}</span> ${escapeHtml(m[2])}` : escapeHtml(line);
+      };
+
+      function push(line) {
+        // Tiến độ % cập nhật TẠI CHỖ: trượt một lần cho mỗi phần trăm là rối mắt.
+        if (PROGRESS.test(line)) {
+          if (queue.length && PROGRESS.test(queue[queue.length - 1])) { queue[queue.length - 1] = line; return; }
+          if (!queue.length && current && PROGRESS.test(current.textContent)) {
+            current.innerHTML = format(line);
+            current.title = line;
+            return;
+          }
+        }
+        queue.push(line);
+        if (queue.length > MAX_QUEUE) queue = queue.slice(-MAX_QUEUE);
+        if (!animating) showNext();
+      }
+
+      /** Dòng mới trượt từ dưới lên; dòng đang hiện trượt lên rồi biến mất. */
+      function showNext() {
+        const line = queue.shift();
+        if (line === undefined) { animating = false; return; }
+        animating = true;
+        const el = document.createElement('div');
+        el.className = 'tick-line enter';
+        el.innerHTML = format(line);
+        el.title = line;
+        const old = current;
+        box().appendChild(el);
+        if (old) {
+          old.classList.remove('enter');
+          old.classList.add('leave');
+          old.addEventListener('animationend', () => old.remove(), { once: true });
+          setTimeout(() => old.remove(), 600); // phòng khi trình duyệt tắt hiệu ứng
+        }
+        current = el;
+        setTimeout(showNext, MIN_SHOW_MS);
+      }
+
+      function start() {
+        jobs++;
+        clearTimeout(hideTimer);
+        box().classList.remove('hidden', 'closing');
+        updateStats();
+      }
+
+      function stop() {
+        jobs = Math.max(0, jobs - 1);
+        updateStats();
+        if (jobs) return;
+        // Cho dòng cuối kịp hiện rồi mới thu khung lại.
+        hideTimer = setTimeout(() => {
+          box().classList.add('closing');
+          setTimeout(() => {
+            if (jobs) return;
+            box().classList.add('hidden');
+            box().classList.remove('closing');
+            box().innerHTML = '';
+            current = null;
+            queue = [];
+          }, 300);
+        }, Math.min(1500, queue.length * MIN_SHOW_MS + 700));
+      }
+
+      // Một kết nối mở suốt phiên; EventSource tự nối lại nếu server khởi động lại.
+      const es = new EventSource('/api/logs');
+      es.onmessage = (e) => { if (jobs) push(JSON.parse(e.data)); };
+
+      return { start, stop, running: () => jobs > 0 };
+    })();
+
+    /* ======================================================================
+       RENDER
+       ====================================================================== */
+    function setStatus(html) { $('#status').innerHTML = html; }
+
+    async function render() {
+      const spec = collectSpec();
+      if (!spec.scenes.length) { setStatus('<span class="err">Cần ít nhất một cảnh có lời đọc.</span>'); return; }
+      logTicker.start();
+      const stop = startTimer($('#status'), 'Đang dựng video…');
+      try {
+        const res = await fetch('/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(spec) });
+        const data = await res.json();
+        stop();
+        if (!data.ok) {
+          const extra = data.issues ? '\n' + data.issues.join('\n') : '';
+          setStatus('<span class="err">❌ ' + escapeHtml((data.error || 'Lỗi') + extra) + '</span>');
+          return;
+        }
+        // Server đã lưu kịch bản → nó thành nền cho lần sửa tiếp theo.
+        baseSpec = spec;
+        setStatus('✅ Xong — video dài ' + fmtDur(data.durationSec));
+        $('#result').innerHTML =
+          `<div class="preview"><video controls autoplay muted src="${data.videoUrl}"></video></div>` +
+          `<div class="result-actions">` +
+          `<a class="btn ghost sm" href="${data.videoUrl}" download="${escapeHtml(data.slug)}.mp4">⬇ Tải MP4</a>` +
+          `<button class="btn tiktok sm" onclick="openPublish('${escapeHtml(data.slug)}')">📤 Đăng TikTok</button>` +
+          `</div>`;
+        loadSpecList();
+      } catch (e) {
+        stop();
+        setStatus('<span class="err">❌ ' + escapeHtml(e.message) + '</span>');
+      } finally {
+        logTicker.stop();
+      }
+    }
+
+    function exportJson() {
+      const blob = new Blob([JSON.stringify(collectSpec(), null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = ($('#title').value.trim() || 'video') + '.json';
+      a.click();
+    }
+
+    /* ======================================================================
+       KẾT NỐI AI — key lưu trong localStorage của trình duyệt
+       ====================================================================== */
+    const AI_STORE = 'videoStudio.ai';
+    let AI_PROVIDERS = {};
+
+    function loadAi() { try { return JSON.parse(localStorage.getItem(AI_STORE) || 'null'); } catch { return null; } }
+    function storeAi(cfg) { try { cfg ? localStorage.setItem(AI_STORE, JSON.stringify(cfg)) : localStorage.removeItem(AI_STORE); } catch { } }
+    function aiReady() { const c = loadAi(); return !!(c && c.apiKey && AI_PROVIDERS[c.provider]); }
+    function aiFromForm() {
+      return { provider: $('#aiProvider').value, apiKey: $('#aiKey').value.trim(), model: $('#aiModel').value.trim(), baseUrl: $('#aiBaseUrl').value.trim() };
+    }
+    function openAi() { $('#aiModal').classList.remove('hidden'); setTimeout(() => $('#aiKey').focus(), 50); }
+    function closeAi() { $('#aiModal').classList.add('hidden'); }
+
+    function onProviderChange() {
+      const p = AI_PROVIDERS[$('#aiProvider').value];
+      if (!p) return;
+      $('#aiProviderNote').innerHTML = escapeHtml(p.note) + ` <a href="${p.keyUrl}" target="_blank" rel="noopener">Lấy key ở đây ↗</a>`;
+      $('#aiModel').placeholder = p.defaultModel ? 'mặc định: ' + p.defaultModel : 'vd: meta-llama/llama-3.3-70b-instruct';
+      $('#aiBaseUrlRow').classList.toggle('hidden', $('#aiProvider').value !== 'compat');
+    }
+    function toggleKey() {
+      const show = $('#aiKey').type === 'password';
+      $('#aiKey').type = show ? 'text' : 'password';
+      $('#aiKeyEye').textContent = show ? '🙈 Ẩn' : '👁 Hiện';
+    }
+    function renderAiBadge() {
+      const cfg = loadAi();
+      const p = cfg && AI_PROVIDERS[cfg.provider];
+      const ok = !!(p && cfg.apiKey);
+      $('#aiBadge').classList.toggle('ok', ok);
+      $('#aiBadgeText').textContent = ok ? p.label.split(' (')[0] : 'Kết nối AI';
+      if (!ok && !$$('#scenes .scene').length) {
+        setNotice($('#aiHint'), 'warn', 'Chưa kết nối AI. <button class="link" onclick="openAi()">Kết nối ngay</button> — chỉ mất một phút — hoặc bấm <b>Tự viết từ đầu</b>.');
+      }
+    }
+
+    async function initAi() {
+      try { AI_PROVIDERS = (await (await fetch('/api/llm/providers')).json()).providers; } catch { return; }
+      fillSelect($('#aiProvider'), Object.entries(AI_PROVIDERS).map(([id, p]) => [id, p.label]));
+      const cfg = loadAi();
+      if (cfg) {
+        $('#aiProvider').value = cfg.provider;
+        $('#aiKey').value = cfg.apiKey || '';
+        $('#aiModel').value = cfg.model || '';
+        $('#aiBaseUrl').value = cfg.baseUrl || '';
+      }
+      onProviderChange();
+      renderAiBadge();
+    }
+
+    /**
+     * Server báo model DÙNG THẬT. Nếu khác model đang chọn (model cũ bị nhà cung cấp gỡ và
+     * hệ thống đã tự đổi) thì lưu lại. Không lưu khi trùng mặc định: lưu cứng mặc định vào
+     * trình duyệt là lần sau bản cập nhật đổi mặc định, người dùng vẫn kẹt ở model cũ.
+     */
+    function adoptModel(used) {
+      const cfg = loadAi();
+      const p = cfg && AI_PROVIDERS[cfg.provider];
+      if (!used || !p) return '';
+      const current = cfg.model || p.defaultModel;
+      if (used === current) return '';
+      cfg.model = used === p.defaultModel ? '' : used;
+      storeAi(cfg);
+      $('#aiModel').value = cfg.model;
+      return ` Model "${escapeHtml(current)}" không còn dùng được — đã tự chuyển sang "${escapeHtml(used)}".`;
+    }
+
+    async function saveAi() {
+      const cfg = aiFromForm();
+      const msg = $('#aiTestMsg');
+      if (!cfg.apiKey) { setNotice(msg, 'err', 'Chưa dán key.'); return; }
+      storeAi(cfg);
+      renderAiBadge();
+      $('#aiSaveBtn').disabled = true;
+      setNotice(msg, 'busy', '<span class="spinner"></span>Đã lưu. Đang kiểm tra key…');
+      try {
+        const res = await fetch('/api/llm/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ llm: cfg }) });
+        const data = await res.json();
+        if (data.ok) {
+          const switched = adoptModel(data.model);
+          setNotice(msg, 'ok', '✅ Kết nối thành công.' + switched);
+          if (!$$('#scenes .scene').length) setNotice($('#aiHint'), 'ok', '✅ Đã kết nối AI. Nhập ý tưởng ở trên rồi bấm <b>Viết kịch bản bằng AI</b>.');
+          // Có đổi model thì để mở cho người dùng đọc thông báo; không thì tự đóng.
+          if (!switched) setTimeout(closeAi, 900);
+        } else {
+          setNotice(msg, 'err', '❌ ' + escapeHtml(data.error || 'Key không dùng được'));
+        }
+      } catch (e) {
+        setNotice(msg, 'err', '❌ ' + escapeHtml(e.message));
+      } finally {
+        $('#aiSaveBtn').disabled = false;
+      }
+    }
+    function clearAi() {
+      storeAi(null);
+      $('#aiKey').value = ''; $('#aiModel').value = ''; $('#aiBaseUrl').value = '';
+      setNotice($('#aiTestMsg'), '', 'Đã xoá key khỏi trình duyệt.');
+      renderAiBadge();
+    }
+
+    /* ======================================================================
+       TỪ BÀI BÁO — dán link → logo báo + xem trước → một nút: viết kịch bản + render
+       ====================================================================== */
+    /** Link trong một đoạn chữ (server tách y như vậy). */
+    const findLink = (text) => (/https?:\/\/[^\s"'<>]+/i.exec(text) || [])[0] || '';
+    const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
+
+    let peekSeq = 0;
+    let peekTimer = null;
+    /** Kết quả xem trước của link đang nằm trong ô (null = chưa có / đang tải). */
+    let lastPeek = null;
+
+    /** Logo báo: ảnh thật nếu lấy được, không thì chữ cái đầu tên báo, chưa có link thì 🔗. */
+    function setSiteLogo(el, { icon, name, loading } = {}) {
+      el.classList.remove('letter');
+      if (loading) { el.innerHTML = '<span class="spinner"></span>'; return; }
+      if (icon) {
+        const img = new Image();
+        img.alt = '';
+        img.onerror = () => setSiteLogo(el, { name });
+        img.src = icon;
+        el.replaceChildren(img);
+        return;
+      }
+      if (name) { el.classList.add('letter'); el.textContent = name.trim().charAt(0).toUpperCase(); return; }
+      el.textContent = '🔗';
+    }
+
+    function onArticleUrlInput() {
+      const link = findLink($('#articleUrl').value);
+      clearTimeout(peekTimer);
+      $('#urlField').classList.remove('err');
+      if (!link) {
+        peekSeq++;
+        lastPeek = null;
+        $('#articlePeek').classList.add('hidden');
+        setSiteLogo($('#siteLogo'));
+        return;
+      }
+      if (lastPeek && lastPeek.input === link) return;
+      lastPeek = null;
+      setSiteLogo($('#siteLogo'), { loading: true });
+      peekTimer = setTimeout(() => peekLink(link), 300);
+    }
+
+    async function peekLink(link) {
+      const seq = ++peekSeq;
+      const hint = $('#aiHint');
+      let data;
+      try {
+        data = await (await fetch('/api/article/peek?url=' + encodeURIComponent(link))).json();
+      } catch (e) {
+        data = { ok: false, error: e.message };
+      }
+      if (seq !== peekSeq) return; // người dùng đã đổi link khác trong lúc chờ
+      lastPeek = { input: link, ...data };
+
+      if (!data.ok) {
+        setSiteLogo($('#siteLogo'), { name: hostOf(link) });
+        $('#articlePeek').classList.add('hidden');
+        $('#urlField').classList.add('err');
+        setNotice(hint, 'err', '❌ ' + escapeHtml(data.error || 'Không mở được link.'));
+        return;
+      }
+      setSiteLogo($('#siteLogo'), { icon: data.icon, name: data.siteName });
+      setSiteLogo($('#peekLogo'), { icon: data.icon, name: data.siteName });
+      $('#peekSiteName').textContent = data.siteName;
+      $('#peekHost').textContent = data.site;
+      $('#peekTitle').textContent = data.title || '(không có tiêu đề)';
+      $('#peekMeta').textContent = data.readable
+        ? `${data.images} ảnh · khoảng ${data.words.toLocaleString('vi-VN')} chữ`
+        : 'Không đọc được nội dung bài';
+      const cover = $('#peekCover');
+      cover.classList.toggle('hidden', !data.cover);
+      cover.onerror = () => cover.classList.add('hidden');
+      if (data.cover) cover.src = data.cover;
+      $('#articlePeek').classList.remove('hidden');
+
+      if (!data.readable) {
+        $('#urlField').classList.add('err');
+        setNotice(hint, 'warn', '⚠️ ' + escapeHtml(data.error));
+      } else {
+        setNotice(hint, 'ok', `Bài của <b>${escapeHtml(data.siteName)}</b> — bấm <b>Tạo video từ bài báo</b>. ` +
+          'Giọng đọc, phụ đề, nhạc chỉnh ở cột bên cạnh trước khi bấm.');
+      }
+    }
+
+    async function pasteArticleUrl() {
+      try {
+        const text = await navigator.clipboard.readText();
+        $('#articleUrl').value = findLink(text) || text.trim();
+        onArticleUrlInput();
+      } catch {
+        $('#articleUrl').focus();
+        setNotice($('#aiHint'), 'warn', 'Trình duyệt không cho đọc clipboard — bấm vào ô link rồi nhấn <b>Ctrl + V</b>.');
+      }
+    }
+
+    /** Một nút: đọc bài + tải ảnh + AI viết kịch bản (server) → render luôn, không qua bước sửa. */
+    async function makeFromArticle() {
+      const link = findLink($('#articleUrl').value);
+      const hint = $('#aiHint');
+      if (!link) {
+        $('#urlField').classList.add('err');
+        setNotice(hint, 'warn', 'Dán link bài báo vào ô trên trước đã.');
+        $('#articleUrl').focus();
+        return;
+      }
+      if (lastPeek && lastPeek.input === link && (!lastPeek.ok || !lastPeek.readable)) {
+        setNotice(hint, 'err', '❌ ' + escapeHtml(lastPeek.error || 'Link này không đọc được.'));
+        return;
+      }
+      if (!aiReady()) { setNotice(hint, 'warn', 'Cần kết nối AI trước.'); openAi(); return; }
+      if (logTicker.running()) { setNotice(hint, 'warn', 'Đang có việc chạy, đợi xong đã.'); return; }
+
+      const btn = $('#articleBtn');
+      btn.disabled = true;
+      logTicker.start();
+      const extra = $('#articleExtra').value.trim();
+      const stop = startTimer(hint, 'Đang đọc bài báo, tải ảnh và viết kịch bản…');
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brief: extra ? `${link} ${extra}` : link, llm: loadAi(), visualStyle: 'photo' }),
+        });
+        const data = await res.json();
+        stop();
+        if (!data.ok) { setNotice(hint, 'err', '❌ ' + escapeHtml(data.error || 'Lỗi')); return; }
+        baseSpec = null;
+        fillForm(data.spec);
+        const a = data.article || {};
+        setNotice(hint, 'ok',
+          `✅ Đã viết ${data.spec.scenes.length} cảnh từ bài <b>“${escapeHtml(a.title || '')}”</b> ` +
+          `(${escapeHtml(a.siteName || a.site || '')}, ${a.images ?? 0} ảnh).${adoptModel(data.model)} ` +
+          'Đang dựng video — xem tiến độ ở cột <b>Xuất video</b>.');
+        $('#renderBtn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await render();
+      } catch (e) {
+        stop();
+        setNotice(hint, 'err', '❌ ' + escapeHtml(e.message));
+      } finally {
+        btn.disabled = false;
+        logTicker.stop();
+      }
+    }
+
+    async function generateSpec() {
+      const brief = $('#brief').value.trim();
+      const hint = $('#aiHint');
+      if (!brief) { setNotice(hint, 'warn', 'Nhập ý tưởng vào ô trên trước đã.'); $('#brief').focus(); return; }
+      // Dán nhầm link vào ô ý tưởng → chuyển sang chế độ bài báo, có logo + xem trước.
+      if (/^https?:\/\/\S+$/i.test(brief)) {
+        setStyle('article');
+        $('#articleUrl').value = brief;
+        $('#brief').value = '';
+        onArticleUrlInput();
+        return;
+      }
+      if (!aiReady()) {
+        setNotice(hint, 'warn', 'Cần kết nối AI trước.');
+        openAi();
+        return;
+      }
+      const has = $$('#scenes .scene').some((c) => c.querySelector('.narration').value.trim());
+      if (has && !confirm('AI sẽ viết kịch bản mới và thay kịch bản đang có. Tiếp tục?')) return;
+
       $('#genBtn').disabled = true;
-      $('#brief').disabled = true;
-      $('#brief').placeholder = 'Cần cắm key LLM vào .env trước';
-      $('#aiHint').innerHTML = '<span class="err">Chưa cắm key AI.</span> Mở file <code>.env</code> và thêm <code>GEMINI_API_KEY=...</code> (có tầng miễn phí), hoặc <code>OPENAI_API_KEY</code> / <code>ANTHROPIC_API_KEY</code>. Rồi khởi động lại server.';
+      logTicker.start();
+      setNotice(hint, 'busy', '');
+      const stop = startTimer(hint, 'AI đang viết kịch bản…');
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brief, llm: loadAi(), visualStyle: currentStyle() }),
+        });
+        const data = await res.json();
+        stop();
+        if (!data.ok) { setNotice(hint, 'err', '❌ ' + escapeHtml(data.error || 'Lỗi')); return; }
+        fillForm(data.spec);
+        setNotice(hint, 'ok', `✅ Đã viết xong ${data.spec.scenes.length} cảnh.${adoptModel(data.model)} Đọc lại ở bước 2 rồi bấm <b>Render video</b>.`);
+        $('#scenes').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (e) {
+        stop();
+        setNotice(hint, 'err', '❌ ' + escapeHtml(e.message));
+      } finally {
+        $('#genBtn').disabled = false;
+        logTicker.stop();
+      }
     }
-  } catch {}
-}
 
-async function generateSpec() {
-  const brief = $('#brief').value.trim();
-  if (!brief) { $('#aiHint').innerHTML = '<span class="err">Nhập chủ đề đã.</span>'; return; }
-  $('#genBtn').disabled = true;
-  const old = $('#aiHint').innerHTML;
-  $('#aiHint').innerHTML = '<span class="spinner"></span> Đang viết kịch bản… (10–40s)';
-  try {
-    const res = await fetch('/api/generate', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ brief })
-    });
-    const data = await res.json();
-    if (!data.ok) { $('#aiHint').innerHTML = '<span class="err">❌ ' + (data.error||'Lỗi') + '</span>'; return; }
-    fillForm(data.spec);
-    $('#aiHint').innerHTML = '✅ Đã viết xong ' + data.spec.scenes.length + ' cảnh. Đọc lại bên dưới rồi bấm <b>Render video</b>.';
-    setStatus('Kịch bản đã sẵn sàng — bấm Render khi bạn ưng.');
-  } catch (e) {
-    $('#aiHint').innerHTML = '<span class="err">❌ ' + e.message + '</span>';
-  } finally {
-    $('#genBtn').disabled = false;
-    if ($('#aiHint').innerHTML.includes('spinner')) $('#aiHint').innerHTML = old;
-  }
-}
+    /* ======================================================================
+       CHUYỂN MÀN + THƯ VIỆN
+       ====================================================================== */
+    function switchView(v) {
+      $('#viewEditor').classList.toggle('hidden', v !== 'editor');
+      $('#viewManage').classList.toggle('hidden', v !== 'manage');
+      $('#navEditor').classList.toggle('active', v === 'editor');
+      $('#navManage').classList.toggle('active', v === 'manage');
+      if (v === 'manage') loadLibrary();
+    }
 
-/** Đổ một spec vào form. Tách riêng để cả "nạp spec đã lưu" và "tạo bằng AI" dùng chung. */
-function fillForm(spec) {
-  $('#title').value = spec.meta.title;
-  $('#template').value = spec.meta.template;
-  $('#background').value = spec.meta.background || 'solid';
-  $('#voiceId').value = spec.voice.voiceId || 'vi-VN-NamMinhNeural';
-  $('#speed').value = spec.voice.speed ?? 1.15;
-  $('#pitch').value = spec.voice.pitch ?? -1;
-  $('#capStyle').value = spec.captions.style;
-  $('#capPos').value = spec.captions.position;
-  $('#capColor').value = spec.captions.highlightColor || '#61afef';
-  $('#musicSrc').value = spec.music?.src || '';
-  $('#musicVol').value = spec.music?.volume ?? 0.35;
-  $('#musicDuck').value = String(spec.music?.duck ?? 0.25);
-  $('#sfxOn').value = (spec.sfx?.enabled ?? true) ? '1' : '0';
-  $('#scenes').innerHTML = '';
-  spec.scenes.forEach(addScene);
-}
-
-async function loadSpec(name) {
-  if (!name) return;
-  fillForm(await (await fetch('/api/spec/'+encodeURIComponent(name))).json());
-}
-
-/* ---- Màn quản lý ---- */
-function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function fmtSize(b){ if(!b) return ''; const mb=b/1048576; return mb>=1 ? mb.toFixed(1)+' MB' : Math.round(b/1024)+' KB'; }
-
-function switchView(v){
-  $('#viewEditor').classList.toggle('hidden', v!=='editor');
-  $('#viewManage').classList.toggle('hidden', v!=='manage');
-  $('#navEditor').classList.toggle('active', v==='editor');
-  $('#navManage').classList.toggle('active', v==='manage');
-  if(v==='manage') loadLibrary();
-}
-
-async function loadLibrary(){
-  const list = $('#libList');
-  list.innerHTML = '<div class="hint">Đang tải…</div>';
-  try {
-    const { items } = await (await fetch('/api/library')).json();
-    $('#libCount').textContent = items.length + ' mục';
-    if(!items.length){ list.innerHTML = '<div class="hint">Chưa có video/spec nào.</div>'; return; }
-    list.innerHTML = items.map(it => `
-      <div class="card librow">
-        <input type="checkbox" class="libChk" value="${it.slug}" style="width:auto" />
-        <div style="flex:1;min-width:0">
+    async function loadLibrary() {
+      const list = $('#libList');
+      list.innerHTML = '<div class="muted">Đang tải…</div>';
+      try {
+        const { items } = await (await fetch('/api/library')).json();
+        $('#libCount').textContent = items.length + ' mục';
+        if (!items.length) { list.innerHTML = '<div class="card empty"><div class="big">🎞️</div><b>Chưa có video nào</b></div>'; return; }
+        list.innerHTML = items.map((it) => `
+      <div class="card librow" data-title="${escapeHtml(it.title)}">
+        <input type="checkbox" class="libChk" value="${escapeHtml(it.slug)}" />
+        <div style="flex:1;min-width:200px">
           <div class="title">${escapeHtml(it.title)}</div>
-          <div class="hint">${it.slug} · ${it.hasVideo ? '🎬 '+fmtSize(it.videoSize) : '⚠️ chưa render'}${it.hasSpec ? ' · 📄 spec' : ''}</div>
+          <div class="muted small">${it.hasVideo ? '🎬 ' + fmtSize(it.videoSize) : '⚠️ chưa render'}${it.hasSpec ? ' · 📄 có kịch bản' : ''}</div>
         </div>
-        ${it.hasVideo ? `<button class="btn-ghost" onclick="window.open('/video/${it.slug}','_blank')">▶ Xem</button>` : ''}
-        ${it.hasVideo ? `<button class="btn-tiktok" onclick="openPublish('${it.slug}')">📤 TikTok</button>` : ''}
-        ${it.hasSpec ? `<button class="btn-ghost" onclick="editItem('${it.slug}')">✏️ Sửa</button>` : ''}
-        <button class="btn-ghost" style="color:var(--danger)" onclick="deleteItem('${it.slug}', this)">🗑 Xóa</button>
+        ${it.hasVideo ? `<button class="btn ghost sm" onclick="window.open('/video/${escapeHtml(it.slug)}','_blank')">▶ Xem</button>` : ''}
+        ${it.hasSpec ? `<button class="btn ghost sm" onclick="editItem('${escapeHtml(it.slug)}')">✏️ Sửa</button>` : ''}
+        ${it.hasVideo ? `<button class="btn tiktok sm" onclick="openPublish('${escapeHtml(it.slug)}')">📤 TikTok</button>` : ''}
+        <button class="btn ghost sm danger" onclick="deleteItem('${escapeHtml(it.slug)}', this)">🗑</button>
       </div>`).join('');
-    list.querySelectorAll('.librow').forEach((row,i)=> row.dataset.title = items[i].title);
-  } catch(e){ list.innerHTML = '<div class="err">Lỗi tải danh sách: '+e.message+'</div>'; }
-}
+      } catch (e) {
+        list.innerHTML = '<div class="notice err">Lỗi tải danh sách: ' + escapeHtml(e.message) + '</div>';
+      }
+    }
+    async function deleteItem(slug, btn) {
+      const title = btn.closest('.librow').dataset.title || slug;
+      if (!confirm('Xoá "' + title + '"?\nXoá cả video, âm thanh và kịch bản — không khôi phục được.')) return;
+      await fetch('/api/item/' + encodeURIComponent(slug), { method: 'DELETE' });
+      await loadLibrary();
+      refreshSpecDropdown();
+    }
+    async function deleteSelected() {
+      const slugs = $$('.libChk:checked').map((c) => c.value);
+      if (!slugs.length) { alert('Chưa chọn mục nào (tích ô vuông bên trái).'); return; }
+      if (!confirm('Xoá ' + slugs.length + ' mục đã chọn? Không khôi phục được.')) return;
+      for (const s of slugs) await fetch('/api/item/' + encodeURIComponent(s), { method: 'DELETE' });
+      await loadLibrary();
+      refreshSpecDropdown();
+    }
+    async function editItem(slug) {
+      $('#loadSelect').value = slug + '.json';
+      await loadSpec(slug + '.json');
+      switchView('editor');
+      window.scrollTo({ top: 0 });
+    }
 
-async function deleteItem(slug, btn){
-  const title = btn.closest('.librow').dataset.title || slug;
-  if(!confirm('Xóa "'+title+'"?\n(Xóa cả video, audio và file spec — không khôi phục được)')) return;
-  await fetch('/api/item/'+encodeURIComponent(slug), { method:'DELETE' });
-  await loadLibrary();
-  refreshSpecDropdown();
-}
+    /* ======================================================================
+       ĐĂNG TIKTOK
+       ====================================================================== */
+    let pubSlug = null;
 
-async function deleteSelected(){
-  const slugs = $$('.libChk:checked').map(c=>c.value);
-  if(!slugs.length){ alert('Chưa chọn mục nào (tích ô vuông bên trái).'); return; }
-  if(!confirm('Xóa '+slugs.length+' mục đã chọn? Không khôi phục được.')) return;
-  for(const s of slugs){ await fetch('/api/item/'+encodeURIComponent(s), { method:'DELETE' }); }
-  await loadLibrary();
-  refreshSpecDropdown();
-}
+    async function openPublish(slug) {
+      pubSlug = slug;
+      $('#pubCopyMsg').textContent = '';
+      $('#pubRevealMsg').textContent = '';
+      $('#pubCaption').value = 'Đang chuẩn bị…';
+      $('#pubPath').textContent = '';
+      $('#pubTags').innerHTML = '';
+      $('#publishModal').classList.remove('hidden');
+      try {
+        const res = await fetch('/api/publish/' + encodeURIComponent(slug));
+        if (!res.ok) throw new Error('server chưa có API đăng TikTok — chạy lại `pnpm web`');
+        const data = await res.json();
+        $('#pubTitle').textContent = data.title + (data.hasVideo ? '' : ' — ⚠️ chưa có file MP4, cần render trước');
+        $('#pubCaption').value = data.caption || '';
+        $('#pubPath').textContent = data.videoPath;
+        renderTagChips(data.hashtags || []);
+      } catch (e) {
+        $('#pubCaption').value = '';
+        $('#pubTitle').innerHTML = '<span style="color:var(--danger)">Lỗi tải caption: ' + escapeHtml(e.message) + '</span>';
+      }
+    }
+    function renderTagChips(tags) {
+      $('#pubTags').innerHTML = tags
+        .map((t) => `<button class="tagchip" onclick="copyTag(this,'${escapeHtml(t)}')">#${escapeHtml(t)} <span class="ico">📋</span></button>`)
+        .join('');
+    }
+    async function copyTag(el, tag) {
+      await copyText('#' + tag);
+      const ico = el.querySelector('.ico');
+      ico.textContent = '✅';
+      setTimeout(() => { ico.textContent = '📋'; }, 1200);
+    }
+    function closePublish() { $('#publishModal').classList.add('hidden'); pubSlug = null; }
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+      }
+    }
+    async function copyCaption() { await copyText($('#pubCaption').value); $('#pubCopyMsg').textContent = ' ✅ đã copy'; }
+    async function revealVideo() {
+      if (!pubSlug) return;
+      const data = await (await fetch('/api/reveal/' + encodeURIComponent(pubSlug), { method: 'POST' })).json();
+      $('#pubRevealMsg').innerHTML = data.ok ? ' ✅ đã mở thư mục' : '<span style="color:var(--danger)"> ' + escapeHtml(data.error) + '</span>';
+    }
+    function openTikTokUpload() { window.open('https://www.tiktok.com/upload', '_blank', 'noopener'); }
 
-async function editItem(slug){
-  await loadSpec(slug + '.json');
-  switchView('editor');
-  window.scrollTo({ top:0 });
-}
+    /* ======================================================================
+       KHỞI TẠO
+       ====================================================================== */
 
-/* ---- Đăng TikTok (bán tự động: caption + file + tab upload) ---- */
-let pubSlug = null;
+    // Một bộ lắng nghe cho cả danh sách cảnh — cảnh thêm sau cũng tự có, không phải gắn lại.
+    $('#scenes').addEventListener('input', (e) => {
+      const c = e.target.closest('.scene');
+      if (c) { refreshScene(c); updateStats(); }
+    });
+    $('#scenes').addEventListener('change', (e) => {
+      const c = e.target.closest('.scene');
+      if (c) { refreshScene(c); updateStats(); }
+    });
+    $('#scenes').addEventListener('toggle', () => refreshAll(), true);
+    ['#speed', '#pitch', '#voiceId', '#musicSrc', '#musicVol', '#musicDuck', '#capStyle', '#capPos', '#background', '#sfxOn']
+      .forEach((s) => { $(s).addEventListener('input', onSettingsChange); $(s).addEventListener('change', onSettingsChange); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      closeAi(); closePublish();
+    });
 
-async function openPublish(slug){
-  pubSlug = slug;
-  $('#pubCopyMsg').textContent = '';
-  $('#pubRevealMsg').textContent = '';
-  $('#pubCaption').value = 'Đang chuẩn bị…';
-  $('#pubPath').textContent = '';
-  $('#pubTags').innerHTML = '';
-  $('#publishModal').classList.remove('hidden');
-  try {
-    const res = await fetch('/api/publish/'+encodeURIComponent(slug));
-    if(!res.ok) throw new Error('server chưa có API đăng TikTok — chạy lại `pnpm web`');
-    const data = await res.json();
-    $('#pubTitle').textContent = data.title + (data.hasVideo ? '' : ' — ⚠️ chưa có file MP4, cần render trước');
-    $('#pubCaption').value = data.caption || '';
-    $('#pubPath').textContent = data.videoPath;
-    renderTagChips(data.hashtags || []);
-  } catch(e){
-    $('#pubCaption').value = '';
-    $('#pubTitle').innerHTML = '<span class="err">Lỗi tải caption: '+e.message+'</span>';
-  }
-}
-
-function renderTagChips(tags){
-  $('#pubTags').innerHTML = tags
-    .map(t => `<button class="tagchip" onclick="copyTag(this,'${t}')">#${escapeHtml(t)} <span class="ico">📋</span></button>`)
-    .join('');
-}
-
-async function copyTag(el, tag){
-  await copyText('#'+tag);
-  const ico = el.querySelector('.ico');
-  ico.textContent = '✅';
-  setTimeout(() => { ico.textContent = '📋'; }, 1200);
-}
-
-function closePublish(){ $('#publishModal').classList.add('hidden'); pubSlug = null; }
-
-async function copyText(text){
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    // Trình duyệt chặn clipboard API → fallback textarea ẩn + execCommand.
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    ta.remove();
-  }
-}
-
-async function copyCaption(){
-  await copyText($('#pubCaption').value);
-  $('#pubCopyMsg').textContent = ' ✅ đã copy';
-}
-
-async function revealVideo(){
-  if(!pubSlug) return;
-  const res = await fetch('/api/reveal/'+encodeURIComponent(pubSlug), { method:'POST' });
-  const data = await res.json();
-  $('#pubRevealMsg').innerHTML = data.ok
-    ? ' ✅ đã mở thư mục'
-    : '<span class="err"> ' + data.error + '</span>';
-}
-
-function openTikTokUpload(){ window.open('https://www.tiktok.com/upload', '_blank', 'noopener'); }
-
-function refreshSpecDropdown(){
-  const sel = $('#loadSelect');
-  sel.innerHTML = '<option value="">📂 Nạp spec đã lưu…</option>';
-  loadSpecList();
-}
-
-// Khởi tạo: 3 cảnh mẫu cho video code
-addScene({ layout:'hook', icon:'🚀', heading:'ĐỪNG DÙNG FOR NỮA!', narration:'Còn dùng vòng lặp for à? Ba hàm này thay thế được hết!', transitionIn:'fade' });
-addScene({ layout:'code', heading:'map — biến đổi mỗi phần tử', codeTitle:'map.js',
-  code:'const nums = [1, 2, 3];\nconst doubled = nums.map(n => n * 2);\nconsole.log(doubled);',
-  codeHighlight:[2], output:'[ 2, 4, 6 ]', narration:'Hàm map biến đổi từng phần tử, trả về mảng mới.', transitionIn:'slide-up' });
-addScene({ layout:'cta', icon:'🔔', heading:'Theo dõi để xem tiếp 👇', narration:'Lưu lại và theo dõi để xem tập sau nhé!', transitionIn:'fade' });
-loadSpecList();
-checkLlm();
-</script>
+    applyTheme();
+    try { setStyle(localStorage.getItem(STYLE_STORE)); } catch { setStyle('mixed'); }
+    onSettingsChange();
+    loadSpecList();
+    initAi();
+  </script>
 </body>
+
 </html>

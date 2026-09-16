@@ -24,7 +24,9 @@ import { BEAT, useDrift, useEnter, usePulse } from "../motion";
 export { ClaudeHeading } from "./Heading";
 
 /**
- * ClaudeLayouts — BỘ LAYOUT DUY NHẤT cho mọi theme. Bố cục giống nhau ở mọi theme;
+ * ClaudeLayouts — bộ layout của kiểu hình ảnh "Đầy đủ" (visualStyle "mixed"), dùng cho mọi theme.
+ * Kiểu "Chỉ ảnh" KHÔNG dùng layout nào — chỉ ảnh gốc + phụ đề (xem SceneWrapper).
+ * Bố cục giống nhau ở mọi theme;
  * màu và chất liệu đọc hết từ Palette (useTheme) → đổi theme là đổi cả video, đồng bộ.
  *
  * Hai quy ước về media:

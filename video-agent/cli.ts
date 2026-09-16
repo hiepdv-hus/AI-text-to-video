@@ -7,7 +7,8 @@ import { buildSpec, slugify } from "./pipeline/build.ts";
 import { renderVideo } from "./pipeline/render.ts";
 import { cleanWorkspace } from "./pipeline/clean.ts";
 import { authorSpec } from "./pipeline/author.ts";
-import { resolveLlm, LLM_SETUP_HINT } from "./pipeline/llm.ts";
+import { loadArticle, splitArticleBrief } from "./pipeline/article.ts";
+import { parseLlmConfig } from "./pipeline/llm.ts";
 import { getProvider, estimateDurationSec, evenWordTimings } from "./pipeline/tts.ts";
 import { normalizeVietnamese } from "./pipeline/normalize.ts";
 import type { Voice } from "./src/schema.ts";
@@ -48,20 +49,39 @@ const VIETNAMESE_VOICES: Record<string, { id: string; note: string }[]> = {
   mock: [{ id: "default", note: "Im lặng + timing đều — chạy offline không cần API key" }],
 };
 
+/** Đọc giá trị sau một cờ, vd `--key abc` → "abc". */
+function flagValue(flags: string[], name: string): string | undefined {
+  const i = flags.indexOf(name);
+  return i >= 0 ? flags[i + 1] : undefined;
+}
+
 /**
- * pnpm video make "<một câu chủ đề>" [--spec-only]
+ * pnpm video make "<chủ đề>" --ai gemini --key <key> [--style photo] [--model …] [--base-url …] [--spec-only]
+ *   --style photo  → mỗi cảnh một ảnh làm nền (mặc định: đầy đủ video + đồ hoạ)
+ *   "<chủ đề>" là link bài báo (vd Kênh 14) → kể lại bài đó bằng chính ảnh trong bài
  *
- * Đường đi đầy đủ, không cần đụng JSON: câu chữ → LLM viết spec → specs/<slug>.json
- * → TTS + timing → MP4.
+ * Bản dòng lệnh của nút "Tạo bằng AI" — dành cho người chạy tay / chạy hàng loạt.
+ * Người dùng cuối KHÔNG cần lệnh này: họ dán key trên giao diện `pnpm web`.
  */
 async function cmdMake(brief?: string, ...flags: string[]) {
-  if (!brief) {
-    throw new Error('Thiếu nội dung. Vd: pnpm video make "Dựng cho tôi video về Trấn Thành"');
+  if (!brief || brief.startsWith("--")) {
+    throw new Error('Thiếu nội dung. Vd: pnpm video make "Dựng cho tôi video về Trấn Thành" --ai gemini --key <key>');
   }
-  const llm = resolveLlm();
-  if (!llm) throw new Error(LLM_SETUP_HINT);
+  const llm = parseLlmConfig({
+    provider: flagValue(flags, "--ai"),
+    apiKey: flagValue(flags, "--key"),
+    model: flagValue(flags, "--model"),
+    baseUrl: flagValue(flags, "--base-url"),
+  });
 
-  const { spec, attempts } = await authorSpec(brief, (m) => console.log(m));
+  const visualStyle = flagValue(flags, "--style") === "photo" ? "photo" : "mixed";
+  // Brief chứa link bài báo → đọc bài + tải ảnh của bài, như trên giao diện.
+  const link = splitArticleBrief(brief);
+  const article = link ? await loadArticle(link.url, (m) => console.log(m)) : undefined;
+  const { spec, attempts } = await authorSpec(link ? link.extra : brief, llm, (m) => console.log(m), {
+    visualStyle,
+    article,
+  });
   const slug = slugify(spec.meta.title);
   const specPath = path.resolve(process.cwd(), "specs", `${slug}.json`);
   await fs.mkdir(path.dirname(specPath), { recursive: true });
@@ -274,8 +294,8 @@ async function main() {
           [
             "Video Agent CLI",
             "",
-            '  pnpm video make "<chủ đề>"  MỘT CÂU → spec → MP4 (cần key LLM trong .env)',
-            "                              thêm --spec-only để dừng lại ở bước JSON",
+            '  pnpm video make "<chủ đề>" --ai gemini --key <key>   MỘT CÂU → spec → MP4',
+            "      (--ai: gemini | openai | anthropic | compat; thêm --spec-only để dừng ở JSON)",
             "",
             "  pnpm video build   <spec>   spec → out/<slug>/props.json",
             "  pnpm video render  <spec>   build + render → out/<slug>/final.mp4",

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { existsSync } from "node:fs";
-import { readdir, rm, stat } from "node:fs/promises";
+import { readFile, readdir, rm, stat } from "node:fs/promises";
 import { OUT_DIR } from "./build.ts";
 import { cleanRemotionTmp } from "./render.ts";
 
@@ -75,6 +75,35 @@ async function liveSlugs(root: string): Promise<Set<string>> {
   return live;
 }
 
+/** Mã thư mục ảnh bài báo được nhắc tới trong specs/*.json và out/<slug>/*.json. */
+async function referencedArticleKeys(root: string): Promise<Set<string>> {
+  const files: string[] = [];
+  const jsonIn = async (dir: string) => {
+    try {
+      for (const f of await readdir(dir)) if (f.endsWith(".json")) files.push(path.join(dir, f));
+    } catch {
+      /* chưa có thư mục */
+    }
+  };
+  await jsonIn(path.join(root, "specs"));
+  try {
+    for (const d of await readdir(OUT_DIR, { withFileTypes: true })) {
+      if (d.isDirectory()) await jsonIn(path.join(OUT_DIR, d.name));
+    }
+  } catch {
+    /* chưa có out/ */
+  }
+  const keys = new Set<string>();
+  for (const f of files) {
+    try {
+      for (const m of (await readFile(f, "utf8")).matchAll(/articles\/([0-9a-f]{12})\//g)) keys.add(m[1]!);
+    } catch {
+      /* file vừa biến mất */
+    }
+  }
+  return keys;
+}
+
 export async function cleanWorkspace(opts: { apply: boolean; stock: boolean }): Promise<CleanReport> {
   const root = process.cwd();
   const live = await liveSlugs(root);
@@ -88,6 +117,18 @@ export async function cleanWorkspace(opts: { apply: boolean; stock: boolean }): 
       if (!d.isDirectory() || live.has(d.name)) continue;
       const p = path.join(base, d.name);
       targets.push({ label: `public/${kind}/${d.name} (mồ côi)`, path: p, bytes: await dirSize(p) });
+    }
+  }
+
+  // Ảnh bài báo nằm theo MÃ LINK (public/articles/<mã>), không theo slug — còn spec hay
+  // bản build nào nhắc tới mã đó thì giữ.
+  const articlesDir = path.join(root, "public", "articles");
+  if (existsSync(articlesDir)) {
+    const used = await referencedArticleKeys(root);
+    for (const d of await readdir(articlesDir, { withFileTypes: true })) {
+      if (!d.isDirectory() || used.has(d.name)) continue;
+      const p = path.join(articlesDir, d.name);
+      targets.push({ label: `public/articles/${d.name} (ảnh bài báo không còn dùng)`, path: p, bytes: await dirSize(p) });
     }
   }
 

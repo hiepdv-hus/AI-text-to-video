@@ -218,6 +218,14 @@ export const metaSchema = z.object({
   background: z
     .enum(["claude-dark", "claude-cream", "solid", "tech", "aurora", "spider"])
     .default("claude-dark"),
+  /**
+   * Kiểu hình ảnh của CẢ video:
+   *   mixed  (mặc định) — như trước: video thật làm nền cảnh mở/kết, cảnh giữa là đồ hoạ,
+   *          code, ảnh ĐÓNG KHUNG gọn dưới tiêu đề.
+   *   photo  — MỖI CẢNH một ẢNH GỐC toàn màn (không mờ, không phủ, không chuyển động) +
+   *          phụ đề lời kể. Không vẽ layout, tiêu đề, đồ hoạ hay nền tech.
+   */
+  visualStyle: z.enum(["mixed", "photo"]).default("mixed"),
   /** Thanh thương hiệu kiểu "SpiderAI News" (overlay trên mọi scene). Bỏ trống = không hiện. */
   brand: z
     .object({
