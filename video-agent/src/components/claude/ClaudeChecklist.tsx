@@ -4,7 +4,7 @@ import { Check, X } from "lucide-react";
 import type { Palette } from "../../theme/claude";
 import { cardSurface, isTech } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
-import { BEAT, useDrift, useEnter } from "../motion";
+import { BEAT, useEnter, useFloatPx } from "../motion";
 
 /**
  * ClaudeChecklist — danh sách ĐÚNG / SAI cho graphic.kind = "checklist".
@@ -68,7 +68,7 @@ export const ClaudeChecklist: React.FC<{ labels?: string[]; p: Palette }> = ({ l
 const Row: React.FC<{ item: Item; index: number; dense: boolean; p: Palette }> = ({ item, index, dense, p }) => {
   const e = useEnter(5 + index * BEAT.stagger, { damping: 17, stiffness: 180, mass: 0.75 });
   const mark = useEnter(9 + index * BEAT.stagger, BEAT.pop);
-  const float = useDrift(index, 0.15) * 3;
+  const float = useFloatPx(index, 0.15, 3);
 
   const bad = p.isDark ? BAD_DARK : BAD_LIGHT;
   const color = item.ok ? p.accent : bad;

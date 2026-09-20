@@ -4,7 +4,7 @@ import type { Palette } from "../../theme/claude";
 import { cardSurface, isTech } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
 import { EMOJI_FAMILY } from "../fontsEmoji";
-import { BEAT, useDrift, useEnter, usePulse, useSweep } from "../motion";
+import { BEAT, useEnter, useFloatPx, usePulse, useSweep } from "../motion";
 
 /**
  * TechTimeline — mốc thời gian cho graphic.kind = "highlight-timeline".
@@ -94,7 +94,7 @@ const Row: React.FC<{
 }> = ({ index, last, time, icon, text, p }) => {
   const e = useEnter(5 + index * (BEAT.stagger + 3));
   const op = interpolate(e, [0, 0.45], [0, 1], { extrapolateRight: "clamp" });
-  const float = useDrift(index, 0.14) * 3;
+  const float = useFloatPx(index, 0.14, 3);
   const pulse = usePulse(0.4, index);
 
   return (

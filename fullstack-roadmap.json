@@ -1,0 +1,82 @@
+{
+  "tieu_de": "Từ số 0 học Fullstack mất bao lâu?",
+  "mo_ta": "Lộ trình và thời gian thực tế để trở thành lập trình viên Fullstack từ con số 0.",
+  "ngon_ngu": "vi",
+  "cau_tra_loi_ngan": "Trung bình 12–24 tháng nếu học nghiêm túc mỗi ngày. Đủ để đi làm ở mức Junior thường mất khoảng 6–12 tháng.",
+  "cac_yeu_to_anh_huong": [
+    "Thời gian học mỗi ngày (2 giờ hay 8 giờ)",
+    "Có nền tảng tư duy logic / toán hay không",
+    "Học một mình hay có lộ trình / mentor",
+    "Mức độ luyện tập qua dự án thực tế",
+    "Mục tiêu: đi làm Junior hay thành thạo Senior"
+  ],
+  "cac_kich_ban_thoi_gian": [
+    {
+      "cuong_do": "Bán thời gian (1–2 giờ/ngày)",
+      "thoi_gian_di_lam_duoc": "12–18 tháng",
+      "ghi_chu": "Phù hợp người đang đi học hoặc đi làm việc khác"
+    },
+    {
+      "cuong_do": "Toàn thời gian (6–8 giờ/ngày)",
+      "thoi_gian_di_lam_duoc": "4–8 tháng",
+      "ghi_chu": "Giống mô hình bootcamp, tiến bộ rất nhanh"
+    },
+    {
+      "cuong_do": "Trung bình (3–4 giờ/ngày)",
+      "thoi_gian_di_lam_duoc": "8–12 tháng",
+      "ghi_chu": "Nhịp độ bền vững, phổ biến nhất"
+    }
+  ],
+  "lo_trinh": [
+    {
+      "giai_doan": 1,
+      "ten": "Nền tảng Web",
+      "thoi_luong": "1–2 tháng",
+      "noi_dung": ["HTML", "CSS", "Responsive Design", "Git & GitHub"]
+    },
+    {
+      "giai_doan": 2,
+      "ten": "Ngôn ngữ lập trình",
+      "thoi_luong": "2–3 tháng",
+      "noi_dung": ["JavaScript cơ bản đến nâng cao", "ES6+", "DOM", "Async / Promise / Fetch API"]
+    },
+    {
+      "giai_doan": 3,
+      "ten": "Frontend Framework",
+      "thoi_luong": "2–3 tháng",
+      "noi_dung": ["React (hoặc Vue)", "Component & State", "Routing", "Gọi API"]
+    },
+    {
+      "giai_doan": 4,
+      "ten": "Backend",
+      "thoi_luong": "2–3 tháng",
+      "noi_dung": ["Node.js & Express", "REST API", "Authentication (JWT)", "Xử lý logic server"]
+    },
+    {
+      "giai_doan": 5,
+      "ten": "Cơ sở dữ liệu",
+      "thoi_luong": "1–2 tháng",
+      "noi_dung": ["SQL (PostgreSQL/MySQL)", "NoSQL (MongoDB)", "Thiết kế schema", "Quan hệ dữ liệu"]
+    },
+    {
+      "giai_doan": 6,
+      "ten": "Triển khai & Nâng cao",
+      "thoi_luong": "1–2 tháng",
+      "noi_dung": ["Deploy (Vercel, Render, VPS)", "CI/CD cơ bản", "Docker", "Bảo mật & Tối ưu"]
+    },
+    {
+      "giai_doan": 7,
+      "ten": "Dự án thực tế & Portfolio",
+      "thoi_luong": "Liên tục",
+      "noi_dung": ["2–3 dự án fullstack hoàn chỉnh", "Đưa lên GitHub", "Chuẩn bị phỏng vấn"]
+    }
+  ],
+  "loi_khuyen": [
+    "Học đến đâu làm dự án đến đó, đừng chỉ xem lý thuyết",
+    "Không cần học hết mọi công nghệ mới đi làm được",
+    "Chọn 1 stack và đi sâu (ví dụ: React + Node + PostgreSQL)",
+    "Kiên trì quan trọng hơn tốc độ — học đều đặn mỗi ngày",
+    "Xây portfolio sớm để tăng cơ hội xin việc"
+  ],
+  "ket_luan": "Không có con số chính xác cho tất cả mọi người. Với 3–4 giờ mỗi ngày và luyện tập qua dự án thật, bạn có thể đi làm Junior Fullstack sau khoảng 8–12 tháng. Điều quan trọng nhất là học nhất quán và làm nhiều dự án thực tế."
+}

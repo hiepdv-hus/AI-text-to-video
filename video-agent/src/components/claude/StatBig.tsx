@@ -4,7 +4,7 @@ import type { Palette } from "../../theme/claude";
 import { isTech } from "../../theme/claude";
 import { tokens } from "../../theme/tokens";
 import { TEXT_STACK } from "../textStack";
-import { BEAT, useDrift, useEnter, usePulse } from "../motion";
+import { BEAT, useEnter, useFloatPx, usePulse } from "../motion";
 
 /**
  * StatBig — CON SỐ LỚN cho graphic.kind = "stat-big".
@@ -109,7 +109,7 @@ const Item: React.FC<{ stat: Stat; index: number; solo: boolean; size: number; p
   p,
 }) => {
   const e = useEnter(4 + index * (BEAT.stagger + 2), { damping: 15, stiffness: 150, mass: 0.8 });
-  const float = useDrift(index, 0.13) * (solo ? 4 : 2.5);
+  const float = useFloatPx(index, 0.13, solo ? 4 : 2.5);
   const pulse = usePulse(0.3, index);
 
   // Số đếm lên cùng nhịp phóng to. Đếm xong thì con số "chốt" lại — mắt bắt được

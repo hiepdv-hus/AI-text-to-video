@@ -8,7 +8,7 @@ import { EMOJI_FAMILY } from "./fontsEmoji";
 import { MONO_FAMILY } from "./fontsMono";
 import { HeadingBlock } from "./claude/Heading";
 import { ChipRow } from "./claude/ChipRow";
-import { useDrift, useSweep } from "./motion";
+import { useFloatPx, useSweep } from "./motion";
 
 /**
  * CodeLayout — cửa sổ code kiểu VS Code cho video lập trình.
@@ -79,7 +79,7 @@ export const CodeLayout: React.FC<{ scene: BuiltScene; height: number }> = ({ sc
   // khối code đọc ra là "đang được gõ" chứ không phải ảnh chụp màn hình dán vào.
   const caretLine = Math.min(Math.floor(frame / REVEAL_PER_LINE), Math.max(lines.length - 1, 0));
   const caretOn = useSweep(1.06) < 0.55;
-  const windowFloat = useDrift(0, 0.11) * 3;
+  const windowFloat = useFloatPx(0, 0.11, 3);
 
   const glass = ide.backdrop !== "none" ? { backdropFilter: ide.backdrop, WebkitBackdropFilter: ide.backdrop } : {};
 

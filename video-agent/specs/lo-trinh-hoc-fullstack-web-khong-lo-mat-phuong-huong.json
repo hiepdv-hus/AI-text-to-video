@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "title": "Lộ trình học Fullstack Web không lo mất phương hướng",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "claude-dark",
+    "visualStyle": "mixed"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Học IT sáu tháng mà vẫn chưa làm nổi một ứng dụng hoàn chỉnh? Đừng vội trách AI hay bảo bản thân không hợp.",
+      "layout": "hook",
+      "heading": "HỌC 6 THÁNG CHƯA RA APP?",
+      "media": {
+        "kind": "pexels-video",
+        "src": "frustrated developer night keyboard",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "chưa làm nổi"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Vấn đề là bạn đang học lan man. Thấy Python hay thì nhảy sang, nghe AI hot lại chạy theo khi nền tảng còn hổng.",
+      "layout": "graphic",
+      "heading": "Sai lầm khiến bạn kẹt lại",
+      "emphasis": [
+        "học lan man"
+      ],
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "checklist",
+        "subtitle": "Thói quen học khiến người mới bế tắc",
+        "labels": [
+          "- Nhảy ngôn ngữ liên tục",
+          "- Học lý thuyết không làm project",
+          "+ Đặt cược vào một ecosystem",
+          "+ Tập trung làm dự án thực tế"
+        ]
+      }
+    },
+    {
+      "id": "s3",
+      "narration": "Muốn chắc gốc, hãy bám chặt hệ sinh thái JavaScript. Bắt đầu từ HTML, CSS, JavaScript vững rồi mới lên ReactJS.",
+      "layout": "graphic",
+      "heading": "Chặng 1 — Nền tảng Frontend",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Thứ tự học Frontend chuẩn",
+        "labels": [
+          "HTML & CSS dựng giao diện",
+          "JavaScript xử lý logic",
+          "ReactJS làm Web App"
+        ]
+      }
+    },
+    {
+      "id": "s4",
+      "narration": "Sang Backend, dùng Node.js và Express để tạo REST API, kết nối Database xử lý dữ liệu thực tế.",
+      "layout": "code",
+      "heading": "Chặng 2 — Xây dựng Backend",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "code": "import express from 'express';\nconst app = express();\n\napp.get('/api', (req, res) => {\n  res.json({ status: 'online' });\n});",
+      "codeLang": "javascript",
+      "codeTitle": "server.js",
+      "codeHighlight": [
+        4,
+        5
+      ],
+      "output": "{ \"status\": \"online\" }"
+    },
+    {
+      "id": "s5",
+      "narration": "Sau cùng, dùng AI như trợ lý để tăng tốc viết code, hoàn thiện dự án Fullstack đưa vào CV ghi điểm với nhà tuyển dụng.",
+      "layout": "graphic",
+      "heading": "Chặng 3 — Tích hợp AI & CV",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Bứt phá ở giai đoạn cuối",
+        "labels": [
+          "@ai AI Coding tăng tốc gõ code",
+          "@db Quản lý Database & Auth",
+          "@rocket Deploy sản phẩm lên web"
+        ]
+      }
+    },
+    {
+      "id": "s6",
+      "narration": "Nếu đang không biết nên học theo thứ tự nào, Inbox cho mình chữ LỘ TRÌNH, mình gửi bạn bản roadmap Fullstack miễn phí nhé!",
+      "layout": "cta",
+      "heading": "Nhận Roadmap Miễn Phí 👇",
+      "chips": [
+        "@star Lộ trình Fullstack",
+        "Miễn phí 100%"
+      ],
+      "media": {
+        "kind": "pexels-video",
+        "src": "developer coding modern office sunset",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "chữ LỘ TRÌNH"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1.05,
+    "pitch": 0,
+    "pronunciations": {
+      "Fullstack": "Phun tắc",
+      "Frontend": "Phron end",
+      "Backend": "Bách end",
+      "JavaScript": "Gia va sờ kíp",
+      "ReactJS": "Ri ắc Dây ết",
+      "Node.js": "Nốt Dây ết",
+      "Express": "Éch p rết",
+      "API": "A PI",
+      "Database": "Đa ta bê sơ",
+      "Inbox": "In bốc",
+      "roadmap": "Rốt máp",
+      "Python": "Py thơn",
+      "HTML": "Hát Tê Em En",
+      "CSS": "Xê Éch Éch",
+      "CV": "Xi vi"
+    }
+  },
+  "captions": {
+    "style": "auto",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#3BE8A0"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.05,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": false,
+    "volume": 0.35
+  }
+}

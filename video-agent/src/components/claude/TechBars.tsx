@@ -3,7 +3,7 @@ import { interpolate } from "remotion";
 import type { Palette } from "../../theme/claude";
 import { isTech } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
-import { BEAT, useDrift, useEnter, useSweep } from "../motion";
+import { BEAT, useEnter, useFloatPx, useSweep } from "../motion";
 
 /**
  * TechBars — biểu đồ thanh NGANG cho graphic.kind = "bar-chart".
@@ -76,7 +76,7 @@ const Bar: React.FC<{ row: Row; index: number; max: number; isPeak: boolean; p: 
 }) => {
   const e = useEnter(6 + index * BEAT.stagger, { damping: 20, stiffness: 110, mass: 0.9 });
   const sweep = useSweep(2.8, index * 0.22);
-  const float = useDrift(index, 0.15) * (isPeak ? 2.6 : 1.4);
+  const float = useFloatPx(index, 0.15, isPeak ? 2.6 : 1.4);
   const pct = (row.value / max) * 92;
 
   return (

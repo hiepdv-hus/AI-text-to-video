@@ -3,7 +3,7 @@ import { interpolate } from "remotion";
 import type { Palette } from "../../theme/claude";
 import { isTech } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
-import { BEAT, useDrift, useEnter, usePulse } from "../motion";
+import { BEAT, useEnter, useFloatPx, usePulse } from "../motion";
 
 /**
  * RangeBar — DẢI GIÁ TRỊ min–max cho graphic.kind = "range-bar".
@@ -84,7 +84,7 @@ const Range: React.FC<{ row: Row; index: number; scale: number; isPeak: boolean;
   p,
 }) => {
   const e = useEnter(6 + index * BEAT.stagger, { damping: 20, stiffness: 115, mass: 0.9 });
-  const float = useDrift(index, 0.15) * (isPeak ? 2.6 : 1.4);
+  const float = useFloatPx(index, 0.15, isPeak ? 2.6 : 1.4);
   const pulse = usePulse(0.34, index);
 
   const left = (row.min / scale) * 100;

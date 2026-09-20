@@ -205,6 +205,29 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { providers: LLM_PROVIDERS });
     }
 
+    // Danh sách giọng Google vi-VN cho dropdown — NẠP ĐỘNG từ API thật để tên giọng
+    // (nhất là Chirp3-HD, đặt theo tên sao và hay đổi) luôn khớp, khỏi hardcode sai gây
+    // lỗi 400 lúc render. Key chỉ dùng phía server, KHÔNG trả về client.
+    if (req.method === "GET" && pathname === "/api/tts/voices") {
+      const key = process.env.GOOGLE_TTS_API_KEY;
+      if (!key) return sendJson(res, 200, { ok: true, hasKey: false, voices: [] });
+      try {
+        const r = await fetch(`https://texttospeech.googleapis.com/v1/voices?languageCode=vi-VN&key=${key}`);
+        if (!r.ok) return sendJson(res, 200, { ok: false, hasKey: true, error: `Google ${r.status}`, voices: [] });
+        const data = (await r.json()) as { voices?: Array<{ name: string; languageCodes?: string[]; ssmlGender?: string }> };
+        // Xếp theo chất lượng: Chirp3-HD > Neural2 > WaveNet > Standard.
+        const rank = (n: string) =>
+          n.includes("Chirp3-HD") ? 0 : n.includes("Neural2") ? 1 : n.includes("Wavenet") ? 2 : 3;
+        const voices = (data.voices ?? [])
+          .filter((v) => (v.languageCodes ?? []).includes("vi-VN"))
+          .map((v) => ({ name: v.name, gender: v.ssmlGender ?? "", rank: rank(v.name) }))
+          .sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name));
+        return sendJson(res, 200, { ok: true, hasKey: true, voices });
+      } catch (err) {
+        return sendJson(res, 200, { ok: false, hasKey: true, error: (err as Error).message, voices: [] });
+      }
+    }
+
     // Thử key ngay lúc người dùng dán, trước khi họ tốn 30 giây chờ viết kịch bản.
     // KEY KHÔNG BAO GIỜ ĐƯỢC GHI LOG hay lưu xuống đĩa — nó chỉ sống trong lượt gọi này.
     if (req.method === "POST" && pathname === "/api/llm/test") {

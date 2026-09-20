@@ -6,7 +6,7 @@ import { CLAUDE_LAYOUTS } from "./claude/ClaudeLayouts";
 import { SceneBackdrop, coversFrame, useImageIsBackdrop } from "./SceneBackdrop";
 import { TechBackground } from "./TechBackground";
 import { useTheme, isTech, ThemeContext } from "../theme/claude";
-import { useDrift, useExit } from "./motion";
+import { useExit } from "./motion";
 
 /**
  * SceneWrapper — ghép 1 scene: nền + foreground layout + audio + karaoke caption.
@@ -109,10 +109,15 @@ function contentStyle(
   const base = enterStyle(kind, frame);
   const exitOut = 1 - exit; // 0 → 1 trong BEAT.exitFrames frame cuối
   const enterTransform = typeof base.transform === "string" ? base.transform : "";
+  // LÀM TRÒN về số nguyên pixel. parallax + breathe chỉ dịch ~0,1px mỗi frame; ở vị trí
+  // lệch pixel, Chrome (render bằng CPU, không GPU) rasterize lại chữ với anti-alias khác
+  // nhau từng khung → viền chữ "bò" và nhoè, xuất ra video trông như bị mờ/rung. Ghim chữ
+  // vào lưới pixel giữ nét tuyệt đối; chuyển động chậm nên bước nhảy 1px gần như không thấy.
+  const ty = Math.round(parallaxY - exitOut * 46);
   return {
     ...base,
     opacity: (typeof base.opacity === "number" ? base.opacity : 1) * exit,
-    transform: `${enterTransform} translateY(${parallaxY - exitOut * 46}px) scale(${1 + exitOut * 0.05})`.trim(),
+    transform: `${enterTransform} translateY(${ty}px) scale(${1 + exitOut * 0.05})`.trim(),
   };
 }
 
@@ -164,12 +169,6 @@ export const SceneWrapper: React.FC<{
   }, [theme, coversBg]);
 
   const exit = useExit(scene.durationInFrames);
-  // Parallax: nền phóng vào (SceneBackdrop) trong khi nội dung trôi NGƯỢC lên rất chậm.
-  // Hai lớp đi khác chiều là cách rẻ nhất để khung hình có chiều sâu thay vì phẳng lì.
-  const parallax = interpolate(frame, [0, scene.durationInFrames], [10, -10], {
-    extrapolateRight: "clamp",
-  });
-  const breathe = useDrift(1, 0.09) * 3;
 
   return (
     <ThemeContext.Provider value={scenePalette}>
@@ -199,10 +198,10 @@ export const SceneWrapper: React.FC<{
           {rainOverVideo && <TechBackground variant="overlay" />}
         </AbsoluteFill>
 
-        {/* NỘI DUNG — transitionIn + parallax + pha RA ở cuối cảnh.
-            Chế độ "Chỉ ảnh" không có lớp này: trên màn hình chỉ có ảnh và phụ đề lời kể. */}
+        {/* NỘI DUNG — transitionIn + pha RA ở cuối cảnh (không còn parallax/thở: nội dung
+            đứng yên giữa cảnh). Chế độ "Chỉ ảnh" không có lớp này: chỉ ảnh và phụ đề lời kể. */}
         {!imageIsBackdrop && (
-          <AbsoluteFill style={contentStyle(scene.transitionIn, frame, exit, parallax + breathe)}>
+          <AbsoluteFill style={contentStyle(scene.transitionIn, frame, exit, 0)}>
             <Layout scene={scene} height={height} />
           </AbsoluteFill>
         )}

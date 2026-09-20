@@ -19,7 +19,7 @@ import { TechArchitecture } from "./TechArchitecture";
 import { RangeBar } from "./RangeBar";
 import { HeadingBlock } from "./Heading";
 import { ChipRow } from "./ChipRow";
-import { BEAT, useDrift, useEnter, usePulse } from "../motion";
+import { BEAT, useEnter, useFloatPx, usePulse } from "../motion";
 
 export { ClaudeHeading } from "./Heading";
 
@@ -88,7 +88,7 @@ const Framed: React.FC<{ src: string; height: number; p: Palette; delay?: number
   // Ken Burns liên tục cho ảnh tĩnh: 1.2%/giây. Không có nó thì cảnh layout "image"
   // đứng chết trong khi giọng đọc vẫn chạy — đúng thứ làm video trông như slide.
   const kenBurns = 1 + (frame / fps) * 0.012;
-  const float = useDrift(2, 0.12) * 3;
+  const float = useFloatPx(2, 0.12, 3);
   const tick: React.CSSProperties = { position: "absolute", width: 26, height: 26, borderColor: p.accent, borderStyle: "solid" };
   return (
     <div
@@ -134,7 +134,7 @@ const Framed: React.FC<{ src: string; height: number; p: Palette; delay?: number
 /** Icon cảnh — bật vào rồi bồng bềnh nhẹ, để nó không phải một hình dán bất động. */
 const Icon: React.FC<{ icon: string; p: Palette }> = ({ icon, p }) => {
   const e = useEnter(0, BEAT.pop);
-  const float = useDrift(5, 0.22) * 6;
+  const float = useFloatPx(5, 0.22, 6);
   return (
     <div
       style={{
@@ -228,7 +228,7 @@ const Bullet: React.FC<LProps> = ({ scene, height }) => {
 const BulletRow: React.FC<{ index: number; text: string; p: Palette }> = ({ index, text, p }) => {
   const tech = isTech(p);
   const e = useEnter(6 + index * BEAT.stagger, { damping: 18, stiffness: 160, mass: 0.8 });
-  const float = useDrift(index, 0.16) * 3;
+  const float = useFloatPx(index, 0.16, 3);
   return (
     <div
       style={{
@@ -278,7 +278,7 @@ const Compare: React.FC<LProps> = ({ scene, height }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const b = scene.bullets ?? [];
-  const drift = useDrift(0, 0.15) * 3;
+  const drift = useFloatPx(0, 0.15, 3);
   const row = (text: string, ok: boolean, delay: number) => {
     const e = spring({ frame: frame - delay, fps, config: { damping: 18, stiffness: 160, mass: 0.8 } });
     // Hai vế trôi NGƯỢC chiều nhau — chúng đang đối lập nhau, chuyển động nên nói lên điều đó.

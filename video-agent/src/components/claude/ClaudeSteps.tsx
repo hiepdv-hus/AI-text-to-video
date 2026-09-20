@@ -3,7 +3,7 @@ import { interpolate } from "remotion";
 import type { Palette } from "../../theme/claude";
 import { cardSurface, isTech } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
-import { BEAT, useDrift, useEnter, usePulse } from "../motion";
+import { BEAT, useEnter, useFloatPx, usePulse } from "../motion";
 
 /**
  * ClaudeSteps — sơ đồ CÁC BƯỚC cho graphic.kind = "steps".
@@ -34,7 +34,7 @@ export const ClaudeSteps: React.FC<{ labels?: string[]; p: Palette }> = ({ label
 const Step: React.FC<{ index: number; text: string; last: boolean; p: Palette }> = ({ index, text, last, p }) => {
   const e = useEnter(5 + index * (BEAT.stagger + 3), { damping: 16, stiffness: 170, mass: 0.75 });
   const op = interpolate(e, [0, 0.45], [0, 1], { extrapolateRight: "clamp" });
-  const float = useDrift(index, 0.15) * 3;
+  const float = useFloatPx(index, 0.15, 3);
   const pulse = usePulse(0.38, index);
 
   return (

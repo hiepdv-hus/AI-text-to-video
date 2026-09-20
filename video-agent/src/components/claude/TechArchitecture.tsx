@@ -4,7 +4,7 @@ import { evolvePath } from "@remotion/paths";
 import type { Palette } from "../../theme/claude";
 import { cardSurface, isTech } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
-import { BEAT, useDrift, useEnter, useSweep } from "../motion";
+import { BEAT, useEnter, useFloatPx, useSweep } from "../motion";
 import { Glyph, parseLabel } from "./Icon";
 
 /**
@@ -86,7 +86,7 @@ const Node: React.FC<{ raw: string; delay: number; index: number; dense: boolean
   p,
 }) => {
   const e = useEnter(delay, { damping: 17, stiffness: 185, mass: 0.75 });
-  const float = useDrift(index, 0.14) * 2.6;
+  const float = useFloatPx(index, 0.14, 2.6);
   const parsed = parseLabel(raw);
   const box = dense ? 46 : 54;
 

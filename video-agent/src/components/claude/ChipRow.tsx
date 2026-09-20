@@ -3,7 +3,7 @@ import { interpolate } from "remotion";
 import type { Palette } from "../../theme/claude";
 import { isTech } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
-import { BEAT, useDrift, useEnter } from "../motion";
+import { BEAT, useEnter, useFloatPx } from "../motion";
 import { Glyph, parseLabel } from "./Icon";
 
 /**
@@ -84,7 +84,7 @@ const ChipView: React.FC<{ chip: Chip; index: number; delay: number; p: Palette 
   p,
 }) => {
   const e = useEnter(delay + index * 3, BEAT.pop);
-  const float = useDrift(index, 0.19) * 1.8;
+  const float = useFloatPx(index, 0.19, 1.8);
   const parsed = parseLabel(chip.raw);
 
   const term = chip.kind === "term";

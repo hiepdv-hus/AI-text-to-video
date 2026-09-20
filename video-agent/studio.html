@@ -287,6 +287,9 @@
       top: 78px;
       max-height: calc(100vh - 96px);
       overflow-y: auto;
+      /* Luôn chừa chỗ cho thanh cuộn → chiều rộng không đổi khi thanh cuộn
+         ẩn/hiện, tránh vòng lặp reflow gây giật giao diện khi rê chuột vào. */
+      scrollbar-gutter: stable;
     }
 
     /* Màn vừa: cột phải gộp Xuất video (trên) + Cài đặt (dưới). */
@@ -2230,8 +2233,8 @@
       const voiceOpt = $('#voiceId').selectedOptions[0];
       const provider = voiceOpt?.dataset.provider || 'edge';
       const voice = { ...(base.voice || {}), provider, voiceId: $('#voiceId').value, speed: speedValue() };
-      // Piper KHÔNG đọc cao độ; gửi kèm chỉ làm đổi khoá cache → phải tổng hợp giọng lại vô ích.
-      if (provider === 'piper') delete voice.pitch;
+      // Piper & Google KHÔNG đọc cao độ; gửi kèm chỉ làm đổi khoá cache → tổng hợp lại vô ích.
+      if (provider === 'piper' || provider === 'google') delete voice.pitch;
       else voice.pitch = parseInt($('#pitch').value, 10) || 0;
 
       const spec = {
@@ -2352,9 +2355,14 @@
       $('#speedVal').textContent = speed.toFixed(2) + '×';
       const pitch = parseInt($('#pitch').value, 10) || 0;
       $('#pitchVal').textContent = (pitch > 0 ? '+' : '') + pitch;
-      const piper = $('#voiceId').selectedOptions[0]?.dataset.provider === 'piper';
-      $('#pitch').disabled = piper;
-      $('#pitchNote').classList.toggle('hidden', !piper);
+      // Piper và Google (Chirp3-HD/Neural2) đều KHÔNG đổi được cao độ qua API hiện tại.
+      const prov = $('#voiceId').selectedOptions[0]?.dataset.provider;
+      const noPitch = prov === 'piper' || prov === 'google';
+      $('#pitch').disabled = noPitch;
+      $('#pitchNote').textContent = prov === 'google'
+        ? 'Giọng Google không đổi được cao độ.'
+        : 'Giọng Piper không đổi được cao độ.';
+      $('#pitchNote').classList.toggle('hidden', !noPitch);
       const hasMusic = !!$('#musicSrc').value;
       $('#musicVol').disabled = !hasMusic;
       $('#musicDuck').disabled = !hasMusic;
@@ -2541,6 +2549,58 @@
       if (!ok && !$$('#scenes .scene').length) {
         setNotice($('#aiHint'), 'warn', 'Chưa kết nối AI. <button class="link" onclick="openAi()">Kết nối ngay</button> — chỉ mất một phút — hoặc bấm <b>Tự viết từ đầu</b>.');
       }
+    }
+
+    /**
+     * Nạp giọng Google vi-VN vào dropdown (Chirp3-HD/Neural2/WaveNet). Nạp ĐỘNG từ server
+     * để tên giọng luôn khớp API thật. Giữ Edge làm mặc định (không cần key); người dùng
+     * tự chọn giọng Google khi muốn. Không có key → chèn dòng gợi ý cách bật.
+     */
+    async function initVoices() {
+      let data;
+      try { data = await (await fetch('/api/tts/voices')).json(); } catch { return; }
+      const sel = $('#voiceId');
+      const prev = sel.value;                              // giữ nguyên lựa chọn hiện tại
+      $$('optgroup[data-google]', sel).forEach((g) => g.remove()); // tránh nhân đôi khi nạp lại
+
+      if (!data || !data.hasKey || !(data.voices || []).length) {
+        const og = document.createElement('optgroup');
+        og.dataset.google = '1';
+        og.label = 'Google Cloud — thêm GOOGLE_TTS_API_KEY vào .env để hiện giọng';
+        const o = document.createElement('option');
+        o.disabled = true;
+        o.textContent = data && data.error ? ('Lỗi Google: ' + data.error) : 'Chưa có GOOGLE_TTS_API_KEY';
+        og.appendChild(o);
+        sel.insertBefore(og, sel.firstChild);
+        sel.value = prev;
+        return;
+      }
+
+      const kindOf = (n) => n.includes('Chirp3-HD') ? 'Chirp3-HD' : n.includes('Neural2') ? 'Neural2' : n.includes('Wavenet') ? 'Wavenet' : 'Standard';
+      const KIND_LABEL = { 'Chirp3-HD': 'Google Chirp3-HD — tự nhiên nhất', 'Neural2': 'Google Neural2', 'Wavenet': 'Google WaveNet', 'Standard': 'Google Standard' };
+      const gLabel = (g) => g === 'FEMALE' ? 'nữ' : g === 'MALE' ? 'nam' : '';
+      const nice = (n) => n.replace(/^vi-VN-/, '').replace('Chirp3-HD-', 'HD ').replace('Neural2-', 'Neural2 ').replace('Wavenet-', 'WaveNet ').replace('Standard-', 'Standard ');
+
+      const groups = {};
+      for (const v of data.voices) (groups[kindOf(v.name)] ||= []).push(v);
+      const anchor = sel.firstChild;                       // chèn các nhóm Google LÊN ĐẦU
+      for (const kind of ['Chirp3-HD', 'Neural2', 'Wavenet', 'Standard']) {
+        const list = groups[kind];
+        if (!list) continue;
+        const og = document.createElement('optgroup');
+        og.dataset.google = '1';
+        og.label = KIND_LABEL[kind];
+        for (const v of list) {
+          const o = document.createElement('option');
+          o.value = v.name;
+          o.dataset.provider = 'google';
+          const g = gLabel(v.gender);
+          o.textContent = nice(v.name) + (g ? ` (${g})` : '');
+          og.appendChild(o);
+        }
+        sel.insertBefore(og, anchor);
+      }
+      sel.value = prev;                                    // mặc định vẫn là Edge, người dùng tự đổi
     }
 
     async function initAi() {
@@ -2934,6 +2994,7 @@
     onSettingsChange();
     loadSpecList();
     initAi();
+    initVoices().then(onSettingsChange); // nạp giọng Google rồi cập nhật lại trạng thái cao độ
   </script>
 </body>
 

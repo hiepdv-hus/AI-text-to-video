@@ -3,7 +3,7 @@ import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import type { Palette } from "../../theme/claude";
 import { cardSurface, isTech } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
-import { BEAT, useDrift, useEnter } from "../motion";
+import { BEAT, useEnter, useFloatPx } from "../motion";
 
 /**
  * TechDevice — MÁY ĐANG LÀM VIỆC cho graphic.kind = "device-editor".
@@ -138,7 +138,7 @@ export const TechDevice: React.FC<{ timecode?: string; p: Palette }> = ({ timeco
   const { fps } = useVideoConfig();
   const t = frame / fps;
   const e = useEnter(4, BEAT.enter);
-  const float = useDrift(0, 0.12) * 4;
+  const float = useFloatPx(0, 0.12, 4);
 
   // Playhead chạy tới lui — chuyển động liên tục, không phụ thuộc độ dài cảnh nên
   // cảnh dài bao nhiêu nó cũng không "chạy hết rồi đứng".

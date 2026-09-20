@@ -1,7 +1,7 @@
 import React from "react";
 import { interpolate } from "remotion";
 import type { Palette } from "../../theme/claude";
-import { BEAT, useDrift, useEnter } from "../motion";
+import { BEAT, useEnter } from "../motion";
 
 /**
  * Heading.tsx — THỨ BẬC CHỮ dùng chung cho mọi layout (kể cả CodeLayout). Tách khỏi
@@ -160,20 +160,20 @@ const Word: React.FC<{ t: string; hot: boolean; p: Palette; index: number; delay
   delay,
 }) => {
   const e = useEnter(delay + index * 3, hot ? BEAT.pop : BEAT.enter);
-  const drift = useDrift(index, 0.13) * 2.2;
+  // Bỏ chuyển động "thở": chữ chỉ bay lên lúc VÀO rồi đứng yên hẳn (translateY về 0).
+  // Làm tròn pixel để chữ đứng đúng lưới, nét tuyệt đối, không nhoè.
+  const ty = Math.round(interpolate(e, [0, 1], [34, 0]));
+  const blurPx = interpolate(e, [0, 0.7], [10, 0], { extrapolateRight: "clamp" });
   return (
     <span
       style={{
         display: "inline-block",
         color: hot ? p.accent : undefined,
         opacity: interpolate(e, [0, 0.5], [0, 1], { extrapolateRight: "clamp" }),
-        transform: `translateY(${interpolate(e, [0, 1], [34, 0]) + drift}px) scale(${interpolate(
-          e,
-          [0, 1],
-          [0.94, 1],
-        )})`,
+        transform: `translateY(${ty}px) scale(${interpolate(e, [0, 1], [0.94, 1])})`,
         // Nét dần từ mờ: mắt đọc ra là chữ "lấy nét", mượt hơn hẳn fade đơn thuần.
-        filter: `blur(${interpolate(e, [0, 0.7], [10, 0], { extrapolateRight: "clamp" }).toFixed(2)}px)`,
+        // Khi đã vào xong thì BỎ HẲN filter — blur(0px) vẫn giữ chữ trên lớp lọc, làm nét kém.
+        filter: blurPx > 0.05 ? `blur(${blurPx.toFixed(2)}px)` : undefined,
       }}
     >
       {t}

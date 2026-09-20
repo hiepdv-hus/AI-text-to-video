@@ -251,7 +251,8 @@ class GoogleProvider implements TTSProvider {
         body: JSON.stringify({
           input: { text },
           voice: { languageCode: opts.locale, name: opts.voiceId },
-          audioConfig: { audioEncoding: "LINEAR16", sampleRateHertz: 16000, speakingRate: opts.speed },
+          // 24kHz = tần số gốc của giọng Chirp3-HD/WaveNet → giữ trọn độ nét, không hạ mẫu.
+          audioConfig: { audioEncoding: "LINEAR16", sampleRateHertz: 24000, speakingRate: opts.speed },
         }),
       },
     );

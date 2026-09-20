@@ -3,7 +3,7 @@ import { interpolate } from "remotion";
 import type { Palette } from "../../theme/claude";
 import { cardSurface, isTech } from "../../theme/claude";
 import { TEXT_STACK } from "../textStack";
-import { BEAT, useDrift, useEnter } from "../motion";
+import { BEAT, useEnter, useFloatPx } from "../motion";
 import { Glyph, parseLabel, type ParsedLabel } from "./Icon";
 
 /**
@@ -64,7 +64,7 @@ const Card: React.FC<{
   const glyph = <Glyph parsed={parsed} size={Math.round(badge * 0.62)} color={p.accent} p={p} />;
   const e = useEnter(5 + index * BEAT.stagger, { damping: 17, stiffness: 190, mass: 0.75 });
   const op = interpolate(e, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
-  const float = useDrift(index, 0.16) * 3.5;
+  const float = useFloatPx(index, 0.16, 3.5);
 
   return (
           <div

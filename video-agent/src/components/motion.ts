@@ -58,6 +58,18 @@ export function useDrift(index = 0, hz = 0.17): number {
   return Math.sin((frame / fps) * Math.PI * 2 * hz + index * 1.7);
 }
 
+/**
+ * Độ trôi dọc của các khối CÓ CHỮ — HIỆN ĐÃ TẮT (luôn trả 0) theo yêu cầu: bỏ hẳn chuyển
+ * động "thở" để chữ đứng yên tuyệt đối, không rung, không mờ.
+ *
+ * Giữ nguyên chữ ký hàm để mọi widget khỏi phải sửa và để bật lại dễ dàng. Muốn bật lại
+ * chuyển động thở (đã ghim lưới pixel để không nhoè), đổi thân hàm về:
+ *   return Math.round(useDrift(index, hz) * amplitude);
+ */
+export function useFloatPx(index = 0, hz = 0.15, amplitude = 3): number {
+  return 0;
+}
+
 /** Nhịp thở 0..1 (mềm, không tuyến tính) — dùng cho quầng sáng, viền phát sáng. */
 export function usePulse(hz = 0.35, index = 0): number {
   return (useDrift(index, hz) + 1) / 2;
