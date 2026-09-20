@@ -1946,8 +1946,14 @@
     function lines(text) { return String(text || '').split('\n').map((x) => x.trim()).filter(Boolean); }
     /** Lựa chọn ở ô "Kiểu video": mixed | photo | article. */
     function currentMode() { return (document.querySelector('input[name="visualStyle"]:checked') || {}).value || 'mixed'; }
-    /** Kiểu HÌNH ẢNH ghi vào spec. Video từ bài báo dựng bằng ảnh của bài → "photo". */
-    function currentStyle() { return currentMode() === 'article' ? 'photo' : currentMode(); }
+    /** Kiểu HÌNH ẢNH ghi vào spec — trùng luôn với lựa chọn: mixed | photo | article. */
+    function currentStyle() { return currentMode(); }
+    /**
+     * 'photo' và 'article' dựng hình GIỐNG HỆT nhau (ảnh gốc toàn màn, không layout) — khác
+     * nhau chỉ ở lớp giao diện báo do renderer vẽ thêm từ meta.article. Nên mọi chỗ trong
+     * form hỏi "cảnh này có phải kiểu ảnh không" đều hỏi qua hàm này, không so với 'photo'.
+     */
+    function isPhotoLike() { return currentStyle() === 'photo' || currentStyle() === 'article'; }
     function speedValue() { return parseFloat($('#speed').value) || 1; }
     function estimateSec(text) {
       const n = String(text || '').trim().split(/\s+/).filter(Boolean).length;
@@ -1988,15 +1994,14 @@
       onStyleChange();
     }
     function onStyleChange() {
-      const style = currentStyle();
-      document.body.dataset.style = style;
+      document.body.dataset.style = isPhotoLike() ? 'photo' : 'mixed';
       document.body.dataset.mode = currentMode();
       try { localStorage.setItem(STYLE_STORE, currentMode()); } catch { }
       // Lời nhắc mặc định theo chế độ — chỉ khi ô nhắc đang trống việc (không đè kết quả/lỗi).
       const hint = $('#aiHint');
       if (hint.className === 'notice') {
         hint.innerHTML = currentMode() === 'article'
-          ? 'Dán link → bấm <b>Tạo video từ bài báo</b>. Video dựng bằng ảnh trong bài + phụ đề lời kể.'
+          ? 'Dán link → bấm <b>Tạo video từ bài báo</b>. Video kể lại cả bài, dài 2–3 phút, dựng bằng ảnh của bài kèm giao diện báo.'
           : 'Mẹo: nhấn <b>Ctrl + Enter</b> trong ô trên để viết nhanh.';
       }
       $$('#scenes .scene').forEach((c) => fillMediaKinds(c));
@@ -2017,9 +2022,13 @@
 
     function fillMediaKinds(c) {
       const sel = c.querySelector('.mediaKind');
-      const photo = currentStyle() === 'photo';
+      const photo = isPhotoLike();
       const keep = sel.value;
-      const allowed = MEDIA_KINDS.filter((k) => !photo || k.photo);
+      // Kiểu "Từ bài báo" CÓ dùng video — chính là clip nhúng trong bài. Không cho 'video'
+      // vào danh sách thì mọi cảnh video của bài bị đổi thành "ảnh Pexels" ngay lần mở
+      // form đầu tiên, và đường dẫn clip biến thành từ khoá tìm ảnh.
+      const articleVideo = currentStyle() === 'article';
+      const allowed = MEDIA_KINDS.filter((k) => !photo || k.photo || (articleVideo && k.v === 'video'));
       fillSelect(sel, allowed.map((k) => [k.v, k.label]));
       // Chế độ Chỉ ảnh không nhận video/màu → đổi sang ảnh Pexels, giữ nguyên từ khoá đã gõ.
       sel.value = allowed.some((k) => k.v === keep) ? keep : (photo ? 'pexels' : '');
@@ -2028,7 +2037,7 @@
     function refreshScene(c) {
       const all = $$('#scenes .scene');
       const i = all.indexOf(c);
-      const photo = currentStyle() === 'photo';
+      const photo = isPhotoLike();
       const layout = c.querySelector('.layout').value;
 
       c.querySelector('.num').textContent = i + 1;
@@ -2119,7 +2128,7 @@
 
     function addSceneAndOpen() {
       const all = $$('#scenes .scene');
-      const photo = currentStyle() === 'photo';
+      const photo = isPhotoLike();
       // Cảnh đầu tiên mặc định là "Mở đầu"; các cảnh sau mặc định dạng chữ đơn giản.
       const c = addScene({ layout: all.length === 0 ? 'hook' : 'bullet', ...(photo ? { media: { kind: 'pexels', src: '' } } : {}) });
       refreshAll();
@@ -2158,7 +2167,7 @@
 
     /** Đọc một cảnh từ form thành object đúng schema, giữ lại các trường form không quản lý. */
     function sceneFromCard(c, i, total) {
-      const photo = currentStyle() === 'photo';
+      const photo = isPhotoLike();
       const extra = JSON.parse(c.dataset.extra || '{}');
       const s = Object.fromEntries(Object.entries(extra).filter(([k]) => !MANAGED_SCENE_KEYS.has(k)));
       s.id = 's' + (i + 1);
@@ -2168,7 +2177,10 @@
       const kind = c.querySelector('.mediaKind').value;
       const src = c.querySelector('.mediaSrc').value.trim();
       const media = kind && src
-        ? { ...(extra.media ? Object.fromEntries(Object.entries(extra.media).filter(([k]) => k === 'fit' || k === 'focus')) : {}), kind, src }
+        // Giữ lại fit/focus, `caption` (chú thích ảnh của bài) và `durationSec` (độ dài clip
+        // của bài, dùng để lặp): form không có ô cho chúng, dựng lại media từ số không là
+        // mất hết ngay lần Render đầu tiên — clip sẽ đứng hình ở khung cuối.
+        ? { ...(extra.media ? Object.fromEntries(Object.entries(extra.media).filter(([k]) => ['fit', 'focus', 'caption', 'durationSec'].includes(k))) : {}), kind, src }
         : null;
 
       if (photo) {
@@ -2300,12 +2312,13 @@
 
       // Kiểu video đặt TRƯỚC khi dựng cảnh để danh sách nguồn ảnh đúng ngay từ đầu.
       // Đang ở chế độ bài báo mà spec là kiểu ảnh (chính spec bài báo vừa viết) → giữ nguyên chế độ.
-      const keepArticle = currentMode() === 'article' && spec.meta?.visualStyle === 'photo';
+      const keepArticle = currentMode() === 'article' && (spec.meta?.visualStyle === 'article' || spec.meta?.visualStyle === 'photo');
       if (!keepArticle) {
-        const el = document.querySelector(`input[name="visualStyle"][value="${spec.meta?.visualStyle === 'photo' ? 'photo' : 'mixed'}"]`);
+        const want = ['photo', 'article'].includes(spec.meta?.visualStyle) ? spec.meta.visualStyle : 'mixed';
+        const el = document.querySelector(`input[name="visualStyle"][value="${want}"]`);
         if (el) el.checked = true;
       }
-      document.body.dataset.style = currentStyle();
+      document.body.dataset.style = isPhotoLike() ? 'photo' : 'mixed';
       document.body.dataset.mode = currentMode();
 
       $('#scenes').innerHTML = '';
@@ -2800,7 +2813,7 @@
         const a = data.article || {};
         setNotice(hint, 'ok',
           `✅ Đã viết ${data.spec.scenes.length} cảnh từ bài <b>“${escapeHtml(a.title || '')}”</b> ` +
-          `(${escapeHtml(a.siteName || a.site || '')}, ${a.images ?? 0} ảnh).${adoptModel(data.model)} ` +
+          `(${escapeHtml(a.siteName || a.site || '')}, ${a.images ?? 0} ảnh${a.videos ? ` + ${a.videos} video` : ''}).${adoptModel(data.model)} ` +
           'Đang dựng video — xem tiến độ ở cột <b>Xuất video</b>.');
         $('#renderBtn').scrollIntoView({ behavior: 'smooth', block: 'center' });
         await render();

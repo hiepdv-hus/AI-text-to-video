@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "title": "Sơn Tùng M-TP 'ghi điểm' với fan sau sự kiện tại Hà Nội",
+    "template": "StoryHook",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "claude-dark",
+    "visualStyle": "photo"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Sơn Tùng M-TP luôn biết cách gây ấn tượng mỗi khi xuất hiện.",
+      "layout": "hook",
+      "media": {
+        "kind": "image",
+        "src": "articles/0051895a2d2f/anh-3.jpg",
+        "fit": "contain",
+        "focus": "center"
+      },
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Tối 19/9, anh góp mặt tại một sự kiện lớn ở Hà Nội, cùng dàn sao đình đám khác.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/0051895a2d2f/anh-2.jpg",
+        "fit": "cover",
+        "focus": "top"
+      },
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s3",
+      "narration": "Sau màn trình diễn đỉnh cao, Sơn Tùng nhanh chóng di chuyển ra về, được vệ sĩ vây kín.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/0051895a2d2f/anh-1.jpg",
+        "fit": "contain",
+        "focus": "center"
+      },
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s4",
+      "narration": "Tuy nhiên, anh không lên xe ngay mà dừng lại tương tác với người hâm mộ đang chờ.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/0051895a2d2f/anh-1.jpg",
+        "fit": "contain",
+        "focus": "center"
+      },
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s5",
+      "narration": "Trước sự hò reo, nam ca sĩ đã chắp tay cúi chào đầy thân thiện trước khi rời đi.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/0051895a2d2f/anh-1.jpg",
+        "fit": "contain",
+        "focus": "center"
+      },
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s6",
+      "narration": "Hành động này một lần nữa khẳng định sức hút và sự gần gũi của Sơn Tùng với fan.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/0051895a2d2f/anh-3.jpg",
+        "fit": "contain",
+        "focus": "center"
+      },
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s7",
+      "narration": "Theo dõi Kênh 14 để không bỏ lỡ những thông tin nóng hổi khác nhé!",
+      "layout": "cta",
+      "media": {
+        "kind": "image",
+        "src": "articles/0051895a2d2f/anh-3.jpg",
+        "fit": "contain",
+        "focus": "center"
+      },
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "piper",
+    "voiceId": "ngochuyen",
+    "speed": 1.05,
+    "pronunciations": {
+      "Sơn Tùng M-TP": "Sơn Tùng em ti pi",
+      "Kênh 14": "Kênh mười bốn"
+    }
+  },
+  "captions": {
+    "style": "auto",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#FFD400"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.3,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": true,
+    "volume": 0.35
+  }
+}

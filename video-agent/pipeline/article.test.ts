@@ -133,11 +133,28 @@ const SOURCE: ArticleSource = {
     sapo: "Cuộc sống làm nông.",
     paragraphs: ["Beckham trồng rau.", "Victoria nấu ăn."],
     images: [],
+    videos: [],
     source: "Đời sống & Pháp luật",
   },
   images: [
     { id: "anh-1", src: "articles/abcdef123456/anh-1.jpg", width: 1080, height: 1920, caption: "Vườn rau" },
     { id: "anh-2", src: "articles/abcdef123456/anh-2.jpg", width: 1600, height: 900, caption: "Bữa cơm" },
+  ],
+  videos: [],
+};
+
+/** Như SOURCE nhưng bài có kèm một video nhúng đã tải về. */
+const SOURCE_WITH_VIDEO: ArticleSource = {
+  ...SOURCE,
+  videos: [
+    {
+      id: "video-1",
+      src: "articles/abcdef123456/video-1.mp4",
+      width: 1920,
+      height: 1080,
+      durationSec: 12.5,
+      caption: "Beckham dẫn khách đi thăm vườn",
+    },
   ],
 };
 
@@ -204,4 +221,85 @@ test("authorSpec bài báo: AI bịa ảnh không có trong bài → bị nhắc
   const retry = JSON.parse(calls[1]!).messages.at(-1).content as string;
   assert.match(retry, /scene "s2": ảnh "anh-9" không có trong bài/);
   assert.match(retry, /scene "s3": ảnh "sunset beach" không có trong bài/);
+});
+
+/* ------------- Kiểu "article": giao diện báo + độ dài kể hết bài ------------- */
+
+/** Như SOURCE nhưng có ngày đăng dạng ISO — thứ renderer phải nhận ở dạng dd/mm/yyyy. */
+const SOURCE_DATED: ArticleSource = {
+  ...SOURCE,
+  article: { ...SOURCE.article, publishedAt: "2026-09-20T08:30:00+07:00" },
+};
+
+test('kiểu "article": meta.article do chương trình điền, chú thích ảnh đi theo ảnh', async () => {
+  const { result } = await withFake([photoSpec(["anh-1", "anh-2", "anh-1", "anh-2"])], (llm) =>
+    authorSpec("", llm, () => {}, { visualStyle: "article", article: SOURCE_DATED }),
+  );
+  const { spec } = result as Awaited<ReturnType<typeof authorSpec>>;
+
+  assert.equal(spec.meta.visualStyle, "article");
+  assert.deepEqual(spec.meta.article, {
+    siteName: "Kênh 14",
+    title: "Nhà vườn của Beckham",
+    sapo: "Cuộc sống làm nông.",
+    source: "Đời sống & Pháp luật",
+    publishedAt: "20/09/2026", // ISO → ngày đọc được, đổi ở pipeline chứ không ở renderer
+    url: "https://kenh14.vn/nha-vuon.chn",
+  });
+  // Chú thích lấy từ ẢNH được chọn, không phải do AI gõ lại.
+  assert.deepEqual(
+    spec.scenes.map((s) => s.media?.caption),
+    ["Vườn rau", "Bữa cơm", "Vườn rau", "Bữa cơm"],
+  );
+});
+
+test('kiểu "photo" KHÔNG kèm giao diện báo — chỉ "article" mới vẽ măng sét', async () => {
+  const { result } = await withFake([photoSpec(["anh-1", "anh-2", "anh-1", "anh-2"])], (llm) =>
+    authorSpec("", llm, () => {}, { visualStyle: "photo", article: SOURCE_DATED }),
+  );
+  const { spec } = result as Awaited<ReturnType<typeof authorSpec>>;
+  assert.equal(spec.meta.visualStyle, "photo");
+  assert.equal(spec.meta.article, undefined);
+});
+
+test("video từ bài báo được dặn kể HẾT bài, ghi đè luật 30–45 giây của video ngắn", async () => {
+  const { calls } = await withFake([photoSpec(["anh-1", "anh-2", "anh-1", "anh-2"])], (llm) =>
+    authorSpec("", llm, () => {}, { visualStyle: "article", article: SOURCE }),
+  );
+  const prompt = JSON.parse(calls[0]!).messages.at(-1).content as string;
+  assert.match(prompt, /18–30 cảnh/);
+  assert.match(prompt, /2–3 phút/);
+  assert.match(prompt, /KHÔNG áp dụng ở đây/);
+  assert.match(prompt, /KỂ LẠI CẢ BÀI, không phải video tóm tắt/);
+});
+
+test("bài có video: mã video-N → file thật, kèm độ dài để lặp", async () => {
+  const spec = JSON.parse(photoSpec(["anh-1", "video-1", "anh-2", "anh-1"]));
+  const { result } = await withFake([JSON.stringify(spec)], (llm) =>
+    authorSpec("", llm, () => {}, { visualStyle: "article", article: SOURCE_WITH_VIDEO }),
+  );
+  const s = (result as Awaited<ReturnType<typeof authorSpec>>).spec.scenes[1]!;
+  assert.equal(s.media?.kind, "video"); // AI ghi "image", chương trình sửa theo MÃ
+  assert.equal(s.media?.src, "articles/abcdef123456/video-1.mp4");
+  assert.equal(s.media?.durationSec, 12.5);
+  // Clip 1920x1080 là NGANG → contain: để nguyên khung hình, hai dải trống được lớp
+  // nền mờ lấp (NewsBackdrop). Cover sẽ cắt mất hai phần ba clip.
+  assert.equal(s.media?.fit, "contain");
+  assert.equal(s.media?.caption, "Beckham dẫn khách đi thăm vườn");
+});
+
+test("danh sách video được đưa vào lời nhắn cho AI", async () => {
+  const { calls } = await withFake([photoSpec(["anh-1", "anh-2", "anh-1", "anh-2"])], (llm) =>
+    authorSpec("", llm, () => {}, { visualStyle: "article", article: SOURCE_WITH_VIDEO }),
+  );
+  const prompt = JSON.parse(calls[0]!).messages.at(-1).content as string;
+  assert.match(prompt, /### Video của bài — 1 clip/);
+  assert.match(prompt, /video-1 \(13 giây\): Beckham dẫn khách/);
+});
+
+test("bài không có video: không sinh mục video thừa trong lời nhắn", async () => {
+  const { calls } = await withFake([photoSpec(["anh-1", "anh-2", "anh-1", "anh-2"])], (llm) =>
+    authorSpec("", llm, () => {}, { visualStyle: "article", article: SOURCE }),
+  );
+  assert.doesNotMatch(JSON.parse(calls[0]!).messages.at(-1).content as string, /Video của bài/);
 });

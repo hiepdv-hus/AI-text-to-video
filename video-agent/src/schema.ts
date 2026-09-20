@@ -98,6 +98,12 @@ export const mediaSchema = z.object({
    * LẶP clip khi cảnh dài hơn clip (thay vì đứng hình ở khung cuối). Không có = không lặp.
    */
   durationSec: z.number().positive().optional(),
+  /**
+   * Chú thích ảnh THEO BÀI BÁO — pipeline điền từ `<figure>` của bài, AI không tự viết.
+   * Chỉ hiện khi `meta.visualStyle: "article"`. Đây là thứ làm video ra dáng một bài báo
+   * thay vì một slideshow ảnh: người xem biết ảnh này chụp ai, ở đâu.
+   */
+  caption: z.string().optional(),
 });
 export type Media = z.infer<typeof mediaSchema>;
 
@@ -224,8 +230,33 @@ export const metaSchema = z.object({
    *          code, ảnh ĐÓNG KHUNG gọn dưới tiêu đề.
    *   photo  — MỖI CẢNH một ẢNH GỐC toàn màn (không mờ, không phủ, không chuyển động) +
    *          phụ đề lời kể. Không vẽ layout, tiêu đề, đồ hoạ hay nền tech.
+   *   article— như "photo", CỘNG THÊM lớp giao diện BÁO: măng sét tên báo, tiêu đề bài ở
+   *          cảnh mở, chú thích ảnh của bài, dòng nguồn ở cảnh kết. Đọc từ `meta.article`.
    */
-  visualStyle: z.enum(["mixed", "photo"]).default("mixed"),
+  visualStyle: z.enum(["mixed", "photo", "article"]).default("mixed"),
+  /**
+   * Siêu dữ liệu BÀI BÁO nguồn — pipeline điền khi dựng từ link, người dùng không phải gõ.
+   * Chỉ được VẼ LÊN HÌNH khi `visualStyle: "article"`; kiểu khác thì nằm im.
+   *
+   * Tách khỏi `brand` vì hai thứ khác mục đích: `brand` là thương hiệu của KÊNH mình,
+   * `article` là nguồn của BÀI đang kể lại — ghi đè lẫn nhau là mất credit của báo.
+   */
+  article: z
+    .object({
+      /** Tên báo cho người đọc, vd "Kênh 14". */
+      siteName: z.string(),
+      /** Tiêu đề bài gốc — hiện ở cảnh mở. */
+      title: z.string(),
+      /** Sapo (chapeau) — hiện nhỏ dưới tiêu đề ở cảnh mở. Dài quá sẽ bị cắt bớt khi vẽ. */
+      sapo: z.string().optional(),
+      /** Báo gốc mà trang này dẫn lại ("Theo …"). */
+      source: z.string().optional(),
+      /** Ngày đăng dạng đọc được, vd "20/09/2026". */
+      publishedAt: z.string().optional(),
+      /** Link bài — hiện nhỏ ở cảnh kết. */
+      url: z.string().optional(),
+    })
+    .optional(),
   /** Thanh thương hiệu kiểu "SpiderAI News" (overlay trên mọi scene). Bỏ trống = không hiện. */
   brand: z
     .object({

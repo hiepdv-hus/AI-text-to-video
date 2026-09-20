@@ -87,10 +87,23 @@ function techPreset(p: Palette): PresetStyle {
  *  - Safe area: position="center"/"lower-third" chừa 15% dưới cho UI TikTok.
  */
 
+/**
+ * Vị trí phụ đề. Ngoài ba lựa chọn người dùng đặt trong spec còn có một giá trị NỘI BỘ:
+ *
+ *   "clear-burnt-in" — đẩy phụ đề lên quá vùng một phần ba dưới. Dùng cho cảnh chạy CLIP
+ *   CỦA BÀI BÁO: những clip đó thường là video đã dựng sẵn cho mạng xã hội, có phụ đề
+ *   CHÁY SẴN trong hình đúng ở một phần ba dưới. Để phụ đề của mình ở chỗ cũ là hai lớp
+ *   chữ đè nhau, đọc không ra lớp nào.
+ *
+ * Không đưa vào `captionsSchema` vì đây không phải lựa chọn của người dùng — nó do
+ * SceneWrapper tự quyết theo từng cảnh.
+ */
+export type CaptionPosition = Captions["position"] | "clear-burnt-in";
+
 export interface KaraokeCaptionProps {
   words: WordTiming[];
   style: Captions["style"];
-  position: Captions["position"];
+  position: CaptionPosition;
   maxWordsPerLine: number;
   highlightColor: string;
 }
@@ -182,12 +195,16 @@ function presetFor(style: Captions["style"], p: Palette, highlight: string): Pre
   }
 }
 
-function positionStyle(position: Captions["position"]): React.CSSProperties {
+function positionStyle(position: CaptionPosition): React.CSSProperties {
   switch (position) {
     case "top":
       return { top: "10%", height: "18%", alignItems: "flex-start" };
     case "center":
       return { top: 0, bottom: 0, alignItems: "center" };
+    case "clear-burnt-in":
+      // Neo ở 44% tính từ đáy: trên hẳn vùng phụ đề cháy sẵn của clip (thường nằm trong
+      // 25% dưới) VÀ trên cả dải chú thích ảnh của lớp giao diện báo (neo ở 29%, cao ~6%).
+      return { bottom: "44%", height: "20%", alignItems: "flex-end" };
     case "lower-third":
     default:
       // Ngay trên vùng safe 15% dưới; không chồng nội dung ở giữa/ trên.

@@ -9,7 +9,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import type { Media } from "../schema";
+import type { Media, Meta } from "../schema";
 import { useTheme, type Palette } from "../theme/claude";
 import { useDrift } from "./motion";
 
@@ -45,8 +45,12 @@ import { useDrift } from "./motion";
  * prop qua SceneWrapper → Layout vì có ba nơi cần biết (nền, layout, lớp kính mờ của
  * thẻ) và cả ba đều nằm sâu bên dưới; quên luồn ở một chỗ là ảnh hiện hai lần.
  */
-export const ImageBackdropContext = React.createContext(false);
-export const useImageIsBackdrop = () => React.useContext(ImageBackdropContext);
+export const VisualStyleContext = React.createContext<Meta["visualStyle"]>("mixed");
+export const useVisualStyle = () => React.useContext(VisualStyleContext);
+/** Ảnh phủ kín khung ("photo" và "article") hay đóng khung trong layout ("mixed"). */
+export const useImageIsBackdrop = () => useVisualStyle() !== "mixed";
+/** Đang dựng theo lối PHÓNG SỰ (kiểu "article"): có lớp nền mờ, có giao diện báo. */
+export const useNewsLook = () => useVisualStyle() === "article";
 
 /** Media của cảnh có phủ KÍN khung hình (video, hoặc ảnh ở chế độ photo) không. */
 export const coversFrame = (media: Media | undefined, imageIsBackdrop: boolean): boolean =>
@@ -106,9 +110,16 @@ export const SceneBackdrop: React.FC<{
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const imageIsBackdrop = useImageIsBackdrop();
+  const newsLook = useNewsLook();
 
   if (!media) return null;
   if (media.kind === "color") return <AbsoluteFill style={{ backgroundColor: media.src }} />;
+  // Kiểu "Bài báo": ảnh/clip của bài là NỘI DUNG, không phải phông nền — giữ nét, lấp hai
+  // dải trống bằng chính nó (xem NewsBackdrop). Phải đặt TRƯỚC nhánh video bên dưới, vốn
+  // dành cho clip kho làm nền (mờ + phủ tối).
+  if (newsLook && (media.kind === "image" || media.kind === "video")) {
+    return <NewsBackdrop media={media} durationInFrames={durationInFrames} />;
+  }
   // Chế độ "Chỉ ảnh": ảnh GỐC, không đụng gì — xem PhotoBackdrop.
   if (media.kind === "image" && imageIsBackdrop) return <PhotoBackdrop media={media} />;
   // Ảnh ở chế độ "mixed" → đóng khung trong layout, không làm nền.
@@ -181,6 +192,66 @@ export const SceneBackdrop: React.FC<{
  * Đừng thêm hiệu ứng vào đây: người dùng chọn chế độ này chính vì muốn thấy ảnh y nguyên.
  * Muốn ảnh mờ/tối/chuyển động thì đó là chế độ "Đầy đủ".
  */
+/**
+ * NewsBackdrop — cách dựng hình của kiểu "Bài báo", bắt chước lối làm PHÓNG SỰ / BẢN TIN.
+ *
+ * Vấn đề: ảnh và clip trong bài báo gần như luôn NẰM NGANG (16:9), còn khung video là dọc
+ * 9:16. Lấp kín khung (cover) thì cắt mất hai phần ba bức ảnh, thường cắt đúng chỗ có
+ * người; còn để nguyên (contain) thì trên dưới là hai dải ĐEN THUI — nhìn ra ngay là
+ * "ảnh dán vào video", không phải một bản tin.
+ *
+ * Cách các đài truyền hình và kênh tin tức làm: lấy CHÍNH bức ảnh đó, phóng to cho phủ
+ * kín khung, làm mờ mạnh và tối bớt, rồi đặt bản NÉT lên trên. Hai dải trống được lấp
+ * bằng chất liệu cùng màu, cùng bối cảnh — khung hình liền một khối.
+ *
+ * Bản nét KHÔNG bị mờ, KHÔNG bị phủ tối, KHÔNG Ken Burns: ở kiểu này ảnh của bài là NỘI
+ * DUNG, khác hẳn clip kho dùng làm phông ở nhánh trên của file này.
+ */
+const NewsBackdrop: React.FC<{ media: Media; durationInFrames: number }> = ({ media, durationInFrames }) => {
+  const p = useTheme();
+  const { fps } = useVideoConfig();
+  const isVideo = media.kind === "video";
+  const src = resolveSrc(media.src);
+  const origin = focusToOrigin[media.focus];
+
+  // Clip ngắn hơn cảnh → lặp. Cùng công thức với nhánh video nền ở trên.
+  const loopFrames = media.durationSec ? Math.max(1, Math.floor(media.durationSec * fps) - 1) : 0;
+  const looped = (node: React.ReactNode) =>
+    loopFrames > 0 && loopFrames < durationInFrames ? <Loop durationInFrames={loopFrames}>{node}</Loop> : node;
+
+  /**
+   * Lớp NỀN: phóng 1.12 rồi mới làm mờ. Blur lấy màu từ ngoài mép ảnh nên nếu không phóng
+   * dư ra trước, viền khung sẽ có một đường nhạt dần thành trong suốt.
+   */
+  const fillStyle: React.CSSProperties = {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    objectPosition: "50% 50%",
+    filter: "blur(34px) saturate(1.25) brightness(0.62)",
+    transform: "scale(1.12)",
+  };
+  const sharpStyle: React.CSSProperties = {
+    width: "100%",
+    height: "100%",
+    objectFit: media.fit,
+    objectPosition: origin,
+  };
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: p.bg, overflow: "hidden" }}>
+      {/* Mỗi lớp phải tự là AbsoluteFill: con của AbsoluteFill nằm theo luồng thường, hai
+          thẻ cao 100% sẽ xếp DỌC thành hai nửa chứ không chồng lên nhau. */}
+      <AbsoluteFill>
+        {isVideo ? looped(<OffthreadVideo src={src} muted style={fillStyle} />) : <Img src={src} style={fillStyle} />}
+      </AbsoluteFill>
+      <AbsoluteFill>
+        {isVideo ? looped(<OffthreadVideo src={src} muted style={sharpStyle} />) : <Img src={src} style={sharpStyle} />}
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
+};
+
 const PhotoBackdrop: React.FC<{ media: Media }> = ({ media }) => (
   <AbsoluteFill>
     <Img

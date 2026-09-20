@@ -6,7 +6,7 @@
     "height": 1920,
     "fps": 30,
     "locale": "vi-VN",
-    "background": "claude-dark",
+    "background": "claude-cream",
     "visualStyle": "mixed"
   },
   "scenes": [
@@ -253,6 +253,12 @@
       "tailPadSec": 0.5
     }
   ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1,
+    "pitch": -1
+  },
   "captions": {
     "style": "auto",
     "position": "lower-third",
@@ -261,7 +267,7 @@
   },
   "music": {
     "src": "sfx/ambient-tech.wav",
-    "volume": 0.04,
+    "volume": 0.05,
     "duck": 0.25
   },
   "sfx": {

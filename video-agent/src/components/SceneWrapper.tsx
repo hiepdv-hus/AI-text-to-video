@@ -1,12 +1,13 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, staticFile, useCurrentFrame } from "remotion";
 import type { BuiltScene, Captions, Sfx, TransitionKind } from "../schema";
-import { KaraokeCaption } from "./KaraokeCaption";
+import { KaraokeCaption, type CaptionPosition } from "./KaraokeCaption";
 import { CLAUDE_LAYOUTS } from "./claude/ClaudeLayouts";
-import { SceneBackdrop, coversFrame, useImageIsBackdrop } from "./SceneBackdrop";
+import { SceneBackdrop, coversFrame, useImageIsBackdrop, useNewsLook } from "./SceneBackdrop";
 import { TechBackground } from "./TechBackground";
 import { useTheme, isTech, ThemeContext } from "../theme/claude";
 import { useExit } from "./motion";
+import { NewsSceneChrome } from "./NewsChrome";
 
 /**
  * SceneWrapper — ghép 1 scene: nền + foreground layout + audio + karaoke caption.
@@ -134,6 +135,7 @@ export const SceneWrapper: React.FC<{
   //   "mixed" → nền + layout ClaudeLayouts (thẻ, biểu đồ, code, ảnh đóng khung…)
   //   "photo" → CHỈ ẢNH GỐC + phụ đề lời kể. Không layout, không chữ tiêu đề, không đồ hoạ.
   const imageIsBackdrop = useImageIsBackdrop();
+  const newsLook = useNewsLook();
   const Layout = CLAUDE_LAYOUTS[scene.layout];
 
   /**
@@ -169,6 +171,20 @@ export const SceneWrapper: React.FC<{
   }, [theme, coversBg]);
 
   const exit = useExit(scene.durationInFrames);
+
+  /**
+   * Cảnh chạy CLIP CỦA BÀI BÁO thì đẩy phụ đề lên khỏi một phần ba dưới.
+   *
+   * Clip nhúng trong bài báo gần như luôn là video đã dựng sẵn cho mạng xã hội: có logo,
+   * có banner, và có PHỤ ĐỀ CHÁY SẴN ngay trong hình ở đúng chỗ phụ đề của mình. Hai lớp
+   * chữ chồng nhau thì không đọc được lớp nào — đây là thứ chỉ lộ ra khi xem khung hình
+   * thật, không có cách nào biết trước từ spec.
+   *
+   * Chỉ áp cho clip của bài (kiểu "article"), không áp cho clip kho ở kiểu "mixed": clip
+   * Pexels không có phụ đề cháy sẵn, và ở đó phụ đề đã được lớp phủ tối lo cho dễ đọc.
+   */
+  const captionPosition: CaptionPosition =
+    newsLook && scene.media?.kind === "video" ? "clear-burnt-in" : captions.position;
 
   return (
     <ThemeContext.Provider value={scenePalette}>
@@ -206,10 +222,14 @@ export const SceneWrapper: React.FC<{
           </AbsoluteFill>
         )}
 
+        {/* Lớp giao diện báo (kiểu "Từ bài báo"): tiêu đề bài ở cảnh mở, chú thích ảnh ở
+            cảnh giữa, dòng nguồn ở cảnh kết. Tự tắt khi meta.article trống. */}
+        <NewsSceneChrome scene={scene} />
+
         <KaraokeCaption
           words={scene.words}
           style={captions.style}
-          position={captions.position}
+          position={captionPosition}
           maxWordsPerLine={captions.maxWordsPerLine}
           highlightColor={captions.highlightColor}
         />

@@ -108,12 +108,19 @@ VideoSpec {
           background?: "tech"|"claude-dark"|"claude-cream"|"spider"|"aurora"|"solid",
           //   "tech"  = MẶC ĐỊNH cho video lập trình/công nghệ: mưa nhị phân, xanh matrix, nhãn mono
           //   "claude-dark"/"claude-cream" = tối giản ấm (cam đất)
-          visualStyle?: "mixed"|"photo",
+          visualStyle?: "mixed"|"photo"|"article",
           //   "mixed" = MẶC ĐỊNH: pexels-video làm nền hook/cta, ảnh (pexels/generate) ĐÓNG KHUNG
           //   "photo" = CHỈ ẢNH GỐC + PHỤ ĐỀ LỜI KỂ: mọi cảnh có media ảnh ("pexels" + từ khoá
           //             tiếng Anh) hiển thị nguyên bản (không mờ, không phủ tối, không chuyển động);
           //             không video, không nền tech, không tiêu đề, không bullet, không đồ hoạ.
           //             Layout: hook (đầu) / image (giữa) / cta (cuối). Nội dung kể hết trong narration.
+          //   "article" = như "photo" + LỚP GIAO DIỆN BÁO do renderer tự vẽ từ `meta.article`:
+          //             măng sét tên báo + ngày đăng + vạch tiến trình, khối tiêu đề bài ở cảnh mở,
+          //             chú thích ảnh (media.caption) ở cảnh giữa, khối nguồn ở cảnh kết.
+          //             Chỉ dùng khi dựng từ LINK BÀI BÁO; pipeline tự điền `meta.article` và
+          //             `media.caption`, ĐỪNG tự gõ. Video kiểu này dài 2–3 phút (18–30 cảnh),
+          //             kể lại CẢ BÀI chứ không tóm tắt — luật "30–45 giây" ở trên không áp dụng.
+          article?: { siteName, title, sapo?, source?, publishedAt?, url? }, // pipeline điền
           brand?: { name, logo="🕷", hint? } }             // thanh thương hiệu trên + pill gợi ý dưới
   voice: { provider: "edge"|"piper"|"mock"|"elevenlabs"|"azure"|"google",
            voiceId, speed=1, pitch?, pronunciations?: {from: to} }
@@ -130,7 +137,8 @@ VideoSpec {
     heading?, icon?,                     // icon = 1 emoji (vd "🚀","🤖") → huy hiệu cạnh tiêu đề
     chips?: string[],                    // hàng nhãn nhỏ dưới tiêu đề — xem mục CHIP bên dưới
     bullets?: string[],                  // bullet có thể mở đầu bằng emoji, vd "🐳 Docker"
-    media?: { kind:"pexels-video"|"pexels"|"generate"|"image"|"video"|"color", src, fit?, focus? },
+    media?: { kind:"pexels-video"|"pexels"|"generate"|"image"|"video"|"color", src, fit?, focus?,
+              caption? },   // caption: chú thích ảnh của bài báo — pipeline điền, chỉ hiện ở kiểu "article"
     //   "pexels-video"/"video" → chạy FULL-BLEED làm nền cả cảnh (nội dung đè lên trên)
     //   "pexels"/"generate"/"image" → khung ảnh gọn dưới tiêu đề, KHÔNG tràn màn
     emphasis?: string[],                 // cụm từ khoá → tô tím phát sáng trong heading (hook/graphic)

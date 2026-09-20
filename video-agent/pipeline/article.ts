@@ -2,7 +2,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { existsSync, promises as fs } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { ffprobeExe } from "./ffmpeg.ts";
+import { ffprobeExe, ffmpegExe } from "./ffmpeg.ts";
 
 /**
  * article.ts — LINK BÀI BÁO → nội dung + ảnh để dựng video.
@@ -27,6 +27,15 @@ export interface ArticleImage {
   caption: string;
 }
 
+/** Video nhúng trong bài — file thật, không phải ảnh đại diện. */
+export interface ArticleVideo {
+  /** URL file video (.mp4/.mov) lấy từ `data-vid`. */
+  url: string;
+  /** Ảnh đại diện — dùng thay thế nếu tải video hỏng. */
+  thumb?: string;
+  caption: string;
+}
+
 export interface Article {
   url: string;
   /** Tên miền, vd "kenh14.vn". */
@@ -37,6 +46,7 @@ export interface Article {
   sapo: string;
   paragraphs: string[];
   images: ArticleImage[];
+  videos: ArticleVideo[];
   /** "Theo …" — báo gốc mà trang này dẫn lại, nếu có. */
   source?: string;
   publishedAt?: string;
@@ -53,15 +63,35 @@ export interface LocalImage {
   caption: string;
 }
 
+/** Video đã tải về máy, sẵn sàng dùng trong spec. */
+export interface LocalVideo {
+  /** Đường dẫn tương đối với public/, vd "articles/ab12cd34ef56/video-1.mp4". */
+  src: string;
+  /** Mã ngắn cho AI tham chiếu, vd "video-1". */
+  id: string;
+  width: number;
+  height: number;
+  /** Độ dài thật (giây) — composition dùng để LẶP khi cảnh dài hơn clip. */
+  durationSec: number;
+  caption: string;
+}
+
 export interface ArticleSource {
   article: Article;
   images: LocalImage[];
+  videos: LocalVideo[];
 }
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36";
-/** Nhiều hơn thế video cũng không dùng hết — mỗi cảnh một ảnh, video ngắn 6–10 cảnh. */
-const MAX_IMAGES = 12;
+/**
+ * Trần số ảnh lấy về. Video từ bài báo giờ dài 2–3 phút (18–30 cảnh) nên cần nhiều ảnh:
+ * trần 12 cũ khiến một bài 26 ảnh chỉ dùng được gần một nửa, và những cảnh còn lại phải
+ * xài lại ảnh cũ. Một bài báo hiếm khi có quá 40 ảnh trong thân bài.
+ */
+const MAX_IMAGES = 40;
+/** Video nhúng trong một bài thường 1–3 cái; lấy dư chỉ tốn băng thông. */
+const MAX_VIDEOS = 6;
 /** Ảnh nhỏ hơn thế là icon/ảnh chèn phụ — phóng lên khung 1080x1920 sẽ vỡ. */
 const MIN_IMAGE_SIDE = 300;
 
@@ -207,8 +237,11 @@ function imagesIn(body: string): ArticleImage[] {
     });
   }
 
-  // Video nhúng: lấy ẢNH ĐẠI DIỆN (data-thumb) — video không dùng được trong chế độ ảnh.
+  // Video nhúng KHÔNG có file (`data-vid`) thì không dựng được thành clip — lấy ảnh đại
+  // diện của nó làm ảnh tĩnh, như trước. Video CÓ file do videosIn() lo; lấy cả thumb của
+  // nó nữa là cùng một khoảnh khắc xuất hiện hai lần trong video.
   for (const m of body.matchAll(/<div\b[^>]*type="VideoStream"[^>]*>/gi)) {
+    if (attr(m[0], "data-vid")) continue;
     const thumb = attr(m[0], "data-thumb");
     if (!thumb) continue;
     const after = body.slice(m.index!, m.index! + 3000);
@@ -216,12 +249,26 @@ function imagesIn(body: string): ArticleImage[] {
     out.push({ at: m.index!, url: thumb, caption: cap ? textOf(cap) : "" });
   }
 
-  // Trang không dùng <figure>: mọi <img> nằm trong thân bài.
-  if (!out.length) {
-    for (const m of body.matchAll(/<img\b[^>]*>/gi)) {
-      const url = attr(m[0], "data-original") || attr(m[0], "data-src") || attr(m[0], "src");
-      if (url) out.push({ at: m.index!, url, caption: attr(m[0], "alt") ?? "" });
-    }
+  // Mọi <img> còn lại trong thân bài (trang không dùng <figure>, hoặc dùng lẫn lộn).
+  // Quét LUÔN chứ không chỉ khi chưa có ảnh nào: có báo đặt vài ảnh trong <figure> và
+  // phần còn lại là <img> trần — chỉ chạy nhánh này khi danh sách RỖNG là bỏ sót hết
+  // số đó mà không có dấu hiệu gì.
+  //
+  // Phải đọc CẢ kích thước ở đây, không chỉ url: ảnh trong <figure> cũng khớp vòng lặp
+  // này, và nếu bản trùng thiếu w/h thì nó lọt qua bộ lọc ảnh nhỏ bên dưới — tức là mọi
+  // icon 120x80 lại chui vào bài.
+  for (const m of body.matchAll(/<img\b[^>]*>/gi)) {
+    const tag = m[0];
+    const url = attr(tag, "data-original") || attr(tag, "data-src") || attr(tag, "src");
+    if (!url) continue;
+    const num = (v?: string) => (v && /^\d+$/.test(v) ? Number(v) : undefined);
+    out.push({
+      at: m.index!,
+      url,
+      width: num(attr(tag, "w") ?? attr(tag, "width")),
+      height: num(attr(tag, "h") ?? attr(tag, "height")),
+      caption: attr(tag, "alt") ?? "",
+    });
   }
 
   const seen = new Set<string>();
@@ -234,6 +281,32 @@ function imagesIn(body: string): ArticleImage[] {
       return true;
     })
     .map(({ at: _at, ...im }) => im);
+}
+
+/**
+ * Video nhúng trong thân bài.
+ *
+ * `data-vid` là ĐƯỜNG DẪN FILE THẬT (vd "kenh14cdn.com/…/video-recap-….mp4"), thiếu
+ * scheme. Trước đây chỗ này chỉ lấy `data-thumb` rồi coi video như một tấm ảnh tĩnh —
+ * tức là vứt đi đúng phần động nhất của bài. Giờ lấy cả hai: file để dựng, thumb để
+ * thay thế nếu tải file hỏng.
+ */
+function videosIn(body: string): ArticleVideo[] {
+  const out: ArticleVideo[] = [];
+  const seen = new Set<string>();
+  for (const m of body.matchAll(/<div\b[^>]*type="VideoStream"[^>]*>/gi)) {
+    const tag = m[0];
+    const vid = attr(tag, "data-vid");
+    const thumb = attr(tag, "data-thumb");
+    if (!vid) continue;
+    const url = /^https?:\/\//i.test(vid) ? vid : `https://${vid.replace(/^\/+/, "")}`;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    const after = body.slice(m.index!, m.index! + 3000);
+    const cap = /class="VideoCMS_Caption"[^>]*>([\s\S]*?)<\/div>/i.exec(after)?.[1];
+    out.push({ url, thumb, caption: cap ? textOf(cap) : "" });
+  }
+  return out.slice(0, MAX_VIDEOS);
 }
 
 function paragraphsIn(body: string): string[] {
@@ -294,6 +367,7 @@ export function parseArticle(html: string, url: string): Article {
     sapo: byDataRole(html, "sapo") || meta(html, "og:description") || ld?.description || "",
     paragraphs,
     images: images.slice(0, MAX_IMAGES),
+    videos: videosIn(body),
     source: textOf(/class="link-source-text-name"[^>]*>([\s\S]*?)<\/span>/i.exec(html)?.[1] ?? "") || undefined,
     publishedAt: meta(html, "article:published_time"),
   };
@@ -466,6 +540,87 @@ export async function downloadArticleImages(
   return out;
 }
 
+/** Kích thước + độ dài của một file video. null nếu không đọc được (thiếu ffprobe…). */
+function probeVideo(file: string): { width: number; height: number; durationSec: number } | null {
+  const r = spawnSync(
+    ffprobeExe(),
+    ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height:format=duration", "-of", "default=nw=1:nk=1", file],
+    { encoding: "utf8" },
+  );
+  const [w, h, d] = (r.stdout ?? "").trim().split(/\s+/).map(Number);
+  return w && h ? { width: w, height: h, durationSec: d && d > 0 ? d : 0 } : null;
+}
+
+/**
+ * Re-encode video của bài về MP4 / CFR 30 / không tiếng.
+ *
+ * Ba lý do, đều đã gặp thật: (1) báo Việt hay nhúng `.mov` — Chrome trong Remotion decode
+ * không chắc chắn; (2) file gốc có edit-list làm OffthreadVideo báo "No frame found at
+ * position N" khi seek; (3) tiếng gốc của clip sẽ chồng lên giọng đọc TTS.
+ *
+ * Không có ffmpeg thì trả false và giữ file gốc — vẫn chạy được với .mp4 lành lặn.
+ */
+function normalizeArticleVideo(input: string, output: string): boolean {
+  const r = spawnSync(
+    ffmpegExe(),
+    ["-y", "-i", input, "-an", "-vf", "fps=30", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+     "-profile:v", "high", "-preset", "veryfast", "-crf", "21", "-movflags", "+faststart", output],
+    { stdio: "ignore" },
+  );
+  return r.status === 0 && existsSync(output);
+}
+
+/**
+ * Tải video của bài về public/articles/<mã-link>/video-N.mp4.
+ *
+ * Cùng quy ước thư mục với ảnh. Video nào tải/đọc hỏng thì BỎ QUA chứ không làm hỏng cả
+ * lượt dựng — bài vẫn còn ảnh để kể; `loadArticle` sẽ lấy ảnh đại diện của video đó bù vào.
+ */
+export async function downloadArticleVideos(
+  article: Article,
+  onLog: (msg: string) => void = () => {},
+): Promise<{ videos: LocalVideo[]; failedThumbs: string[] }> {
+  const key = createHash("sha256").update(article.url).digest("hex").slice(0, 12);
+  const rel = `articles/${key}`;
+  const dir = path.resolve(process.cwd(), "public", rel);
+  await fs.mkdir(dir, { recursive: true });
+
+  const videos: LocalVideo[] = [];
+  const failedThumbs: string[] = [];
+  for (const [i, v] of article.videos.entries()) {
+    const id = `video-${i + 1}`;
+    const finalAbs = path.join(dir, `${id}.mp4`);
+    try {
+      if (!existsSync(finalAbs)) {
+        const res = await fetch(v.url, {
+          headers: { "User-Agent": UA, Referer: article.url },
+          signal: AbortSignal.timeout(120000),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rawAbs = path.join(dir, `${id}.raw${path.extname(new URL(v.url).pathname) || ".mp4"}`);
+        await fs.writeFile(rawAbs, Buffer.from(await res.arrayBuffer()));
+        if (normalizeArticleVideo(rawAbs, finalAbs)) {
+          await fs.rm(rawAbs, { force: true });
+        } else if (rawAbs.endsWith(".mp4")) {
+          await fs.rename(rawAbs, finalAbs); // không có ffmpeg: dùng tạm file gốc
+          onLog(`[bài báo] ⚠ không có ffmpeg → dùng video gốc, có thể lỗi khi render`);
+        } else {
+          await fs.rm(rawAbs, { force: true });
+          throw new Error("cần ffmpeg để đổi video sang mp4");
+        }
+      }
+      const info = probeVideo(finalAbs);
+      if (!info) throw new Error("không đọc được kích thước/độ dài");
+      videos.push({ src: `${rel}/${id}.mp4`, id, ...info, caption: v.caption });
+      onLog(`[bài báo] video ${i + 1}/${article.videos.length} ✓ ${info.width}x${info.height}, ${info.durationSec.toFixed(1)}s`);
+    } catch (err) {
+      onLog(`[bài báo] bỏ video ${i + 1}: ${(err as Error).message}`);
+      if (v.thumb) failedThumbs.push(v.thumb);
+    }
+  }
+  return { videos, failedThumbs };
+}
+
 /**
  * Ảnh DỌC → lấp kín khung (cover) vì tỉ lệ đã gần 9:16. Ảnh NGANG → hiện nguyên ảnh
  * (contain): phóng ảnh ngang cho kín khung dọc là cắt mất hai phần ba, mặt người trong ảnh
@@ -475,13 +630,23 @@ export function fitFor(width: number, height: number): "cover" | "contain" {
   return height / width >= 1.25 ? "cover" : "contain";
 }
 
-/** Đọc link + tải ảnh — một bước cho server/CLI. */
+/** Đọc link + tải ảnh và video — một bước cho server/CLI. */
 export async function loadArticle(url: string, onLog: (msg: string) => void = () => {}): Promise<ArticleSource> {
   onLog(`[bài báo] đang đọc ${url}`);
   const article = await fetchArticle(url);
-  onLog(`[bài báo] "${article.title}" — ${article.paragraphs.length} đoạn, ${article.images.length} ảnh`);
-  const images = await downloadArticleImages(article, onLog);
-  return { article, images };
+  onLog(
+    `[bài báo] "${article.title}" — ${article.paragraphs.length} đoạn, ` +
+      `${article.images.length} ảnh, ${article.videos.length} video`,
+  );
+  const { videos, failedThumbs } = await downloadArticleVideos(article, onLog);
+  // Video nào tải hỏng thì lấy ảnh đại diện của nó bù vào — thà có ảnh tĩnh ở đoạn đó
+  // còn hơn mất hẳn một khoảnh khắc của bài.
+  const withThumbs: Article = failedThumbs.length
+    ? { ...article, images: [...article.images, ...failedThumbs.map((url) => ({ url, caption: "" }))] }
+    : article;
+  const images = await downloadArticleImages(withThumbs, onLog);
+  onLog(`[bài báo] dùng được ${images.length} ảnh + ${videos.length} video`);
+  return { article, images, videos };
 }
 
 /** Thư mục ảnh bài báo có tồn tại (dùng cho dọn rác). */

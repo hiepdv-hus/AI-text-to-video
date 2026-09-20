@@ -1,0 +1,202 @@
+{
+  "meta": {
+    "title": "5 cảnh nóng 13 phút ở The Scandal",
+    "template": "StoryHook",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech",
+    "visualStyle": "article"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Tâm điểm chú ý của khán giả yêu phim Hàn hiện tại đang đổ dồn vào The Scandal, tác phẩm 19+ gây xôn xao bởi hàng loạt phân cảnh nóng vô cùng táo bạo.",
+      "layout": "hook",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-1.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "The Scandal đang gây tiếng vang lớn trên MXH (ảnh: Netflix)"
+      },
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s2",
+      "narration": "Lấy bối cảnh thời Joseon, câu chuyện xoay quanh Lady Cho do Son Ye Jin thủ vai, người phụ nữ bất mãn với xã hội phong kiến gò bó nên đã đề nghị một trò chơi tình ái.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-2.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "Cảnh nóng ở tập 4 để khắc họa sự phong lưu và nỗi buồn trong lòng Cho Won (ảnh: Netflix)"
+      },
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s3",
+      "narration": "Người nhận lời thách thức là Cho Won do Ji Chang Wook đóng, một gã phong lưu chấp nhận thử thách chinh phục góa phụ An Hui Yeon do Nana thể hiện.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-1.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "The Scandal đang gây tiếng vang lớn trên MXH (ảnh: Netflix)"
+      },
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s4",
+      "narration": "Hui Yeon ban đầu khước từ, nhưng sự kiên trì của Cho Won đã dần làm thức tỉnh những cảm xúc tưởng như đã ngủ yên trong lòng cô góa phụ thề thủ tiết.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-2.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "Cảnh nóng ở tập 4 để khắc họa sự phong lưu và nỗi buồn trong lòng Cho Won (ảnh: Netflix)"
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s5",
+      "narration": "Bộ phim gây bàn luận lớn khi sở hữu năm cảnh nóng với tổng thời lượng mười ba phút, khắc họa rõ nét bước ngoặt tâm lý của các nhân vật.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-1.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "The Scandal đang gây tiếng vang lớn trên MXH (ảnh: Netflix)"
+      },
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s6",
+      "narration": "Cảnh đầu tiên ở tập bốn giữa Cho Won và kỹ nữ lột tả sự trần trụi cùng nỗi buồn khi không thể ở bên chị họ. Tập này cũng có đoạn thân mật của hai người hầu Eun Sil và người của Cho Won.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-2.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "Cảnh nóng ở tập 4 để khắc họa sự phong lưu và nỗi buồn trong lòng Cho Won (ảnh: Netflix)"
+      },
+      "transitionIn": "blur",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s7",
+      "narration": "Sang tập năm, Cho Won có cảnh nóng ba phút rưỡi với So Ok do Shin Yoon Ha đóng, khi cô gái trẻ rơi vào bẫy tình và coi anh như ý trung nhân Kwon In Ho.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-1.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "The Scandal đang gây tiếng vang lớn trên MXH (ảnh: Netflix)"
+      },
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s8",
+      "narration": "Tập bảy đánh dấu bùng nổ tình cảm giữa Cho Won và An Hui Yeon với hai phân cảnh táo bạo, khi cả hai chính thức rơi vào tình yêu chân thành.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-2.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "Cảnh nóng ở tập 4 để khắc họa sự phong lưu và nỗi buồn trong lòng Cho Won (ảnh: Netflix)"
+      },
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s9",
+      "narration": "Hui Yeon chấp nhận từ bỏ lời thề thủ tiết, còn Cho Won lần đầu tiên vượt qua ám ảnh về Lady Cho để biết yêu một người phụ nữ trọn vẹn.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-1.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "The Scandal đang gây tiếng vang lớn trên MXH (ảnh: Netflix)"
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s10",
+      "narration": "Đến tập tám, Ji Chang Wook và Nana tiếp tục có cảnh thân mật êm đềm, nằm bên nhau tận hưởng sự bình yên trước khi giông bão biến cố ập đến.",
+      "layout": "image",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-2.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "Cảnh nóng ở tập 4 để khắc họa sự phong lưu và nỗi buồn trong lòng Cho Won (ảnh: Netflix)"
+      },
+      "transitionIn": "blur",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s11",
+      "narration": "Loạt cảnh nóng trong The Scandal được thực hiện đầy nghệ thuật nhằm phục vụ nội dung câu chuyện chứ không dung tục. Theo Kênh 14.",
+      "layout": "cta",
+      "media": {
+        "kind": "image",
+        "src": "articles/001c0466b458/anh-1.jpg",
+        "fit": "contain",
+        "focus": "center",
+        "caption": "The Scandal đang gây tiếng vang lớn trên MXH (ảnh: Netflix)"
+      },
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    }
+  ],
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.5,
+    "pronunciations": {
+      "The Scandal": "Thơ Sờ gân đôn",
+      "Son Ye Jin": "Son Dê Jin",
+      "Ji Chang Wook": "Chi Chang Úc",
+      "Nana": "Na na",
+      "Lady Cho": "Lê đi Cho",
+      "Cho Won": "Cho Oăn",
+      "An Hui Yeon": "An Huy Yên",
+      "So Ok": "Xô Ốc",
+      "Kwon In Ho": "Cuôn In Hô",
+      "Eun Sil": "Ưn Xin",
+      "Shin Yoon Ha": "Xin Dún Ha",
+      "Joseon": "Chô xơn"
+    }
+  },
+  "captions": {
+    "style": "auto",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#FFD400"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.3,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": true,
+    "volume": 0.35
+  }
+}
