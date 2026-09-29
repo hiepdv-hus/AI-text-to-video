@@ -99,7 +99,7 @@ const SIZE = {
   heading: 64, // tiêu đề các cảnh còn lại
   subhead: 40,
   card: 42, // chữ trong labels của mọi widget (thẻ, checklist, bước…)
-  caption: 60, // phụ đề karaoke chạy theo giọng đọc
+  caption: 44, // phụ đề karaoke chạy theo giọng đọc (nhỏ, không lấn nội dung)
   small: 32,
   // Nhãn nhỏ (eyebrow, vd "Lỗi số 1") — nó viết HOA + giãn chữ 2.4 và tô màu nhấn mảnh
   // trên nền tối, nên phải to hơn cảm giác ban đầu mới đọc ra là CHỮ chứ không phải

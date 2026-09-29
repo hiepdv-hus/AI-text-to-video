@@ -148,7 +148,8 @@ export const SceneWrapper: React.FC<{
   // "Phủ kín khung" = video, hoặc ảnh ở chế độ photo — hai trường hợp này xử lý y hệt nhau.
   const coversBg = coversFrame(scene.media, imageIsBackdrop);
   // Chế độ "Chỉ ảnh" KHÔNG có mưa nhị phân — kể cả lớp mưa mờ phủ lên nền.
-  const rainOverVideo = !imageIsBackdrop && isTech(theme) && coversBg;
+  // Chỉ rắc mưa lên VIDEO thật; nền 3D (gfx3d) đã là đồ hoạ riêng, không cần mưa đè lên.
+  const rainOverVideo = !imageIsBackdrop && isTech(theme) && scene.media?.kind === "video";
   const sfxCue = SFX_BY_TRANSITION[scene.transitionIn];
 
   /**

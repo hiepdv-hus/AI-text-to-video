@@ -12,6 +12,7 @@ import {
 import type { Media } from "../schema";
 import { useTheme, type Palette } from "../theme/claude";
 import { useDrift } from "./motion";
+import { Gfx3dBackdrop } from "./Gfx3dBackdrop";
 
 /**
  * SceneBackdrop — NỀN TOÀN MÀN HÌNH của một scene.
@@ -48,9 +49,9 @@ import { useDrift } from "./motion";
 export const ImageBackdropContext = React.createContext(false);
 export const useImageIsBackdrop = () => React.useContext(ImageBackdropContext);
 
-/** Media của cảnh có phủ KÍN khung hình (video, hoặc ảnh ở chế độ photo) không. */
+/** Media của cảnh có phủ KÍN khung hình (video, nền 3D gfx3d, hoặc ảnh ở chế độ photo) không. */
 export const coversFrame = (media: Media | undefined, imageIsBackdrop: boolean): boolean =>
-  media?.kind === "video" || (imageIsBackdrop && media?.kind === "image");
+  media?.kind === "video" || media?.kind === "gfx3d" || (imageIsBackdrop && media?.kind === "image");
 
 function resolveSrc(src: string): string {
   if (/^https?:\/\//.test(src) || src.startsWith("data:")) return src;
@@ -109,6 +110,14 @@ export const SceneBackdrop: React.FC<{
 
   if (!media) return null;
   if (media.kind === "color") return <AbsoluteFill style={{ backgroundColor: media.src }} />;
+  // Nền đồ hoạ 3D toàn màn (hoạt hình, không cần ảnh) + scrim cho chữ đọc rõ.
+  if (media.kind === "gfx3d")
+    return (
+      <AbsoluteFill>
+        <Gfx3dBackdrop palette={p} variant={media.src} subject={media.subject} />
+        <Scrim p={p} />
+      </AbsoluteFill>
+    );
   // Chế độ "Chỉ ảnh": ảnh GỐC, không đụng gì — xem PhotoBackdrop.
   if (media.kind === "image" && imageIsBackdrop) return <PhotoBackdrop media={media} />;
   // Ảnh ở chế độ "mixed" → đóng khung trong layout, không làm nền.

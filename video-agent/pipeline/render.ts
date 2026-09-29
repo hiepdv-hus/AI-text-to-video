@@ -19,6 +19,28 @@ import { OUT_DIR } from "./build.ts";
 const BUNDLE_DIR = path.resolve(process.cwd(), ".cache", "bundle-serve");
 
 /**
+ * Backend WebGL cho Chrome headless. BẮT BUỘC để render widget 3D (@remotion/three):
+ * headless mặc định KHÔNG có ngữ cảnh WebGL, nên mọi <ThreeCanvas> ra KHUNG ĐEN mà không
+ * báo lỗi — rất khó lần ra vì render vẫn "thành công".
+ *
+ *   "angle"     → dùng GPU thật qua ANGLE/D3D11 (Windows). Nhanh nhất, cần GPU (kể cả iGPU).
+ *   "swangle"   → SwiftShader qua ANGLE: WebGL bằng PHẦN MỀM (CPU). Chạy ở mọi nơi kể cả
+ *                 máy không GPU / server CI, nhưng chậm hơn hẳn. Dùng khi "angle" ra đen.
+ *   "vulkan"/"egl"/null → các backend khác, hiếm khi cần trên Windows.
+ *
+ * Đổi bằng biến môi trường REMOTION_GL nếu "angle" không cho ra hình trên máy bạn.
+ * Đặt "" (rỗng) để trả về mặc định của Remotion (dùng khi video KHÔNG có cảnh 3D nào).
+ */
+const GL_RENDERER = (process.env.REMOTION_GL ?? "angle") as
+  | "angle"
+  | "swangle"
+  | "vulkan"
+  | "egl"
+  | "swiftshader"
+  | "";
+const chromiumOptions = GL_RENDERER ? { gl: GL_RENDERER } : undefined;
+
+/**
  * Thư mục public RỖNG đưa cho bundler.
  *
  * bundle() mặc định COPY toàn bộ public/ vào bundle. public/ ở đây chứa mọi clip
@@ -98,7 +120,7 @@ async function syncPublicIntoBundle(serveUrl: string, props: BuiltProps): Promis
 
   for (const scene of props.scenes) {
     add(scene.audioSrc);
-    if (scene.media && scene.media.kind !== "color") add(scene.media.src);
+    if (scene.media && scene.media.kind !== "color" && scene.media.kind !== "gfx3d") add(scene.media.src);
   }
   add(props.music?.src);
 
@@ -230,6 +252,7 @@ export async function renderVideo(slug: string, props: BuiltProps): Promise<Rend
     serveUrl,
     id: props.meta.template,
     inputProps: props,
+    chromiumOptions,
   });
 
   const outputPath = path.join(OUT_DIR, slug, "final.mp4");
@@ -245,6 +268,7 @@ export async function renderVideo(slug: string, props: BuiltProps): Promise<Rend
       crf: 23,
       concurrency,
       offthreadVideoThreads,
+      chromiumOptions,
       inputProps: props,
       outputLocation: outputPath,
       onProgress: ({ progress }) => {

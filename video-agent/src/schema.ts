@@ -28,6 +28,9 @@ export const layoutSchema = z.enum([
   "cta",
   "code", // cửa sổ code kiểu VS Code + panel console — dùng cho video lập trình
   "image", // ảnh minh họa khung gọn (sắc nét, không crop) + tiêu đề
+  "illus", // ảnh AI minh hoạ LỚN + làm "sống" (Ken Burns + parallax 2.5D + vệt sáng) — fallback mọi chủ đề
+  "shot", // KHUNG PHIM: ảnh AI điện ảnh FULL-BLEED + chuyển động máy quay thật (dolly/pan/crane/handheld) + grade
+  "gfx", // ĐỒ HOẠ 3D VẼ NỘI DUNG: media gfx3d là chủ thể chính (người gõ máy, tên lửa…) + nhãn nhỏ + phụ đề
   "graphic", // đồ hoạ neon minh hoạ khớp nội dung (timeline highlight, laptop editor, thẻ tính năng)
 ]);
 export type Layout = z.infer<typeof layoutSchema>;
@@ -42,6 +45,12 @@ export const graphicSchema = z.object({
     "device-editor",
     "feature-cards",
     "bar-chart",
+    "bar-chart-3d", // cột 3D thật (WebGL) — cùng dữ liệu với bar-chart, diện mạo có chiều sâu
+    "illus-orbit", // MINH HOẠ ĐỘNG: hub trung tâm + vệ tinh quay quanh (labels[0]=hub, còn lại=vệ tinh)
+    "illus-flow", // MINH HOẠ ĐỘNG: gói chạy qua các chặng A→B→C, mỗi chặng bừng sáng khi gói tới
+    "illus-compare", // MINH HOẠ ĐỘNG: vế cũ (mờ/✕) biến thành vế mới (sáng/✓) — labels đúng 2 phần tử
+    "illus-build", // MINH HOẠ ĐỘNG: các lớp bay vào xếp chồng thành khối, vệt sáng quét lên
+    "illus-hero", // MINH HOẠ ĐỘNG: chủ thể lớn ở giữa + bối cảnh trôi quanh (labels[0]=chủ thể)
     "chat-ai",
     "steps",
     "stat-big",
@@ -59,6 +68,49 @@ export const graphicSchema = z.object({
   timecode: z.string().optional(),
 });
 export type Graphic = z.infer<typeof graphicSchema>;
+
+/**
+ * cameraSchema — CÚ MÁY của một khung phim (layout "shot").
+ *   shot: cỡ cảnh (wide/medium/close/extreme-close) → vào prompt sinh ảnh.
+ *   move: chuyển động máy quay → renderer diễn hoạt (dolly/pan/crane/handheld/static).
+ * Đây là thứ biến ảnh tĩnh thành "cú quay", không phải slide.
+ */
+export const cameraSchema = z.object({
+  shot: z.enum(["wide", "medium", "close", "extreme-close"]).default("medium"),
+  move: z
+    .enum(["dolly-in", "dolly-out", "pan-left", "pan-right", "crane-up", "crane-down", "handheld", "static"])
+    .default("dolly-in"),
+});
+export type Camera = z.infer<typeof cameraSchema>;
+
+/**
+ * shotSchema — công thức KHUNG PHIM (dùng khi layout="shot"). Mỗi trường là một tầng của
+ * ngôn ngữ điện ảnh; pipeline ghép chúng thành prompt sinh ảnh, renderer đọc `camera.move`.
+ * (STORY nằm ở meta.story cho CẢ video, không lặp ở mỗi shot — xem storySchema.)
+ */
+export const shotSchema = z.object({
+  /** Shot này đẩy câu chuyện tới đâu (ghi chú cho người viết; không lên hình). */
+  beat: z.string().optional(),
+  subject: z.string().optional(), // ai/cái gì trong khung
+  action: z.string().optional(), // đang LÀM gì (động từ)
+  emotion: z.string().optional(), // cảm xúc chủ đạo
+  world: z.string().optional(), // bối cảnh, giờ, thời tiết
+  light: z.string().optional(), // nguồn + hướng + mood
+  composition: z.string().optional(), // bố cục (1/3, đối xứng, đường dẫn…)
+  camera: cameraSchema.default({}),
+});
+export type Shot = z.infer<typeof shotSchema>;
+
+/**
+ * storySchema — SỢI CHỈ xuyên cả video (meta.story). Đây là thứ giữ các shot thành một
+ * CÂU CHUYỆN thay vì cảnh rời: nhân vật + phong cách hình được TÁI DÙNG ở mọi shot.
+ */
+export const storySchema = z.object({
+  logline: z.string().optional(), // 1 câu: ai, muốn gì, vướng gì
+  protagonist: z.string().optional(), // mô tả nhân vật CỐ ĐỊNH (đưa vào mọi prompt shot)
+  look: z.string().optional(), // khoá phong cách hình: tông màu, kiểu phim, ống kính
+});
+export type Story = z.infer<typeof storySchema>;
 
 /** 1 token đã tô màu (do shiki sinh ở pipeline). */
 export const codeTokenSchema = z.object({ text: z.string(), color: z.string() });
@@ -87,9 +139,19 @@ export const mediaSchema = z.object({
    *   "video" chạy FULL-BLEED làm nền cả cảnh (nội dung đè lên trên);
    *   "image" được đóng khung gọn trong cột nội dung (không crop tràn màn).
    */
-  kind: z.enum(["image", "video", "color", "generate", "pexels", "pexels-video"]),
-  /** URL/path/màu / mô tả ảnh (generate) / từ khóa tìm (pexels, pexels-video). */
-  src: z.string(),
+  kind: z.enum(["image", "video", "color", "generate", "pexels", "pexels-video", "gfx3d"]),
+  /**
+   * URL/path/màu / mô tả ảnh (generate) / từ khóa tìm (pexels, pexels-video).
+   * Với "gfx3d": chọn KIỂU nền 3D — "float" (khối trôi, mặc định), "orbit", "grid".
+   * gfx3d KHÔNG cần file/ảnh — pipeline không tải gì, composition vẽ 3D trực tiếp.
+   */
+  src: z.string().default("float"),
+  /**
+   * CHỦ THỂ 3D vẽ literal (coder/walk/rocket/phone/brain/idea/money/gear/building) — CHỈ
+   * dùng với kind "gfx3d". Có `subject` → composition ghép: nền (`src`, đẩy lùi + mờ) +
+   * chủ thể (dịch xuống nửa dưới) → khung giàu: nền 3D + nhân vật 3D + chữ ở nửa trên.
+   */
+  subject: z.string().optional(),
   fit: z.enum(["cover", "contain"]).default("cover"),
   /** Điểm neo cho Ken Burns / crop. */
   focus: z.enum(["center", "top", "bottom", "left", "right"]).default("center"),
@@ -140,6 +202,10 @@ export const sceneSchema = z.object({
   /* --- Dành cho layout "graphic" --- */
   /** Cấu hình widget đồ hoạ neon (bắt buộc khi layout="graphic"). */
   graphic: graphicSchema.optional(),
+
+  /* --- Dành cho layout "shot" (khung phim) --- */
+  /** Công thức khung phim: subject/action/emotion/world/camera/light/composition. */
+  shot: shotSchema.optional(),
 });
 export type Scene = z.infer<typeof sceneSchema>;
 
@@ -235,6 +301,8 @@ export const metaSchema = z.object({
       hint: z.string().optional(),
     })
     .optional(),
+  /** Sợi chỉ câu chuyện dùng chung cho các layout "shot" (nhân vật + phong cách cố định). */
+  story: storySchema.optional(),
 });
 export type Meta = z.infer<typeof metaSchema>;
 

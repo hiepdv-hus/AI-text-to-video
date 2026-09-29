@@ -1856,6 +1856,9 @@
       bullet: 'Gạch đầu dòng',
       compare: 'So sánh sai / đúng',
       image: 'Ảnh minh hoạ',
+      illus: 'Ảnh AI động (Ken Burns + parallax)',
+      gfx: 'Đồ hoạ 3D vẽ nội dung + chữ',
+      shot: 'Khung phim (ảnh AI điện ảnh)',
       product: 'Giới thiệu sản phẩm',
       cta: 'Kết thúc — kêu gọi',
     };
@@ -1886,7 +1889,28 @@
         hint: 'Viết <code>Con số:Mô tả</code>. Chỉ dùng số liệu có nguồn.'
       },
       'bar-chart': { label: 'Biểu đồ cột', ph: 'Trước:35\nSau:92', hint: 'Viết <code>Tên:số</code>.' },
+      'bar-chart-3d': { label: 'Biểu đồ cột 3D', ph: 'Trước:48 s\nGiữa:22 s\nSau:6 s', hint: 'Như biểu đồ cột nhưng KHỐI 3D thật. Viết <code>Tên:số</code>. Cột cuối tự phát sáng.' },
       'range-bar': { label: 'Dải giá trị', ph: 'Junior:12-20 triệu\nSenior:35-60 triệu', hint: 'Viết <code>Tên:khoảng</code>.' },
+      'illus-orbit': {
+        label: '✨ Minh hoạ: lõi + vệ tinh quay', ph: '@brain Mô hình AI\n@code Viết code\n@bug Tìm lỗi\n@chat Trả lời',
+        hint: 'Dòng ĐẦU là lõi ở giữa; các dòng sau là vệ tinh quay quanh. <code>@tên Chữ</code>.', icons: true
+      },
+      'illus-flow': {
+        label: '✨ Minh hoạ: chạy qua các chặng', ph: '@file Code\n@boxes Staging\n@git Commit\n@cloud GitHub',
+        hint: 'Mỗi dòng một chặng (2–4); gói năng lượng chạy qua từng chặng. <code>@tên Chữ</code>.', icons: true
+      },
+      'illus-compare': {
+        label: '✨ Minh hoạ: cũ → mới', ph: '@x-circle Cách cũ: chậm\n@zap Cách mới: nhanh',
+        hint: 'ĐÚNG 2 dòng: dòng 1 = cũ (mờ, ✕), dòng 2 = mới (sáng, ✓). <code>@tên Chữ</code>.', icons: true
+      },
+      'illus-build': {
+        label: '✨ Minh hoạ: lắp ghép lớp', ph: '@monitor Giao diện\n@server Máy chủ\n@db Cơ sở dữ liệu',
+        hint: 'Mỗi dòng một lớp (2–4); bay vào xếp chồng thành khối. <code>@tên Chữ</code>.', icons: true
+      },
+      'illus-hero': {
+        label: '✨ Minh hoạ: chủ thể + bối cảnh', ph: '@mobile Điện thoại\n@idea Đèn\n@lock Khoá\n@eye Camera',
+        hint: 'Dòng ĐẦU là chủ thể ở giữa; các dòng sau trôi bồng bềnh quanh. <code>@tên Chữ</code>.', icons: true
+      },
       architecture: {
         label: 'Sơ đồ luồng', ph: '@mobile App\n@server API + @lock Auth\n@db Database',
         hint: 'Mỗi dòng một tầng, <code>@tên Chữ</code>. Hai thành phần cùng tầng nối bằng <code> + </code>.', icons: true
@@ -1910,6 +1934,7 @@
       { v: 'generate', label: '🎨 AI vẽ ảnh', photo: true, ph: 'Mô tả tiếng Anh — vd: cozy home office at sunset' },
       { v: 'image', label: '🖼️ Ảnh từ file / link', photo: true, ph: 'images/ten.jpg hoặc https://…' },
       { v: 'video', label: '🎞️ Video từ file / link', photo: false, ph: 'video/ten.mp4 hoặc https://…' },
+      { v: 'gfx3d', label: '🧊 Đồ hoạ 3D (không cần ảnh)', photo: false, ph: 'Nền: network/particles/bars3d/globe/orbit/float (chủ thể đặt ở field subject trong JSON)' },
       { v: 'color', label: '🎨 Màu phẳng', photo: false, ph: '#1e1e2e' },
     ];
 
@@ -2168,7 +2193,7 @@
       const kind = c.querySelector('.mediaKind').value;
       const src = c.querySelector('.mediaSrc').value.trim();
       const media = kind && src
-        ? { ...(extra.media ? Object.fromEntries(Object.entries(extra.media).filter(([k]) => k === 'fit' || k === 'focus')) : {}), kind, src }
+        ? { ...(extra.media ? Object.fromEntries(Object.entries(extra.media).filter(([k]) => k === 'fit' || k === 'focus' || k === 'subject')) : {}), kind, src }
         : null;
 
       if (photo) {
@@ -2261,7 +2286,7 @@
         scenes,
       };
       if ($('#musicSrc').value) {
-        spec.music = { ...(base.music || {}), src: $('#musicSrc').value, volume: parseFloat($('#musicVol').value), duck: parseFloat($('#musicDuck').value) };
+        spec.music = { ...(base.music || {}), src: $('#musicSrc').value, volume: parseFloat($('#musicVol').value) || 0.3, duck: parseFloat($('#musicDuck').value) || 0.25 };
       } else {
         delete spec.music;
       }
@@ -2355,13 +2380,12 @@
       $('#speedVal').textContent = speed.toFixed(2) + '×';
       const pitch = parseInt($('#pitch').value, 10) || 0;
       $('#pitchVal').textContent = (pitch > 0 ? '+' : '') + pitch;
-      // Piper và Google (Chirp3-HD/Neural2) đều KHÔNG đổi được cao độ qua API hiện tại.
+      // Piper giờ đổi được cao độ (dịch ở hậu kỳ bằng ffmpeg — xem pipeline/tts.ts).
+      // Chỉ Google (Chirp3-HD/Neural2) là vẫn chưa đổi được qua API.
       const prov = $('#voiceId').selectedOptions[0]?.dataset.provider;
-      const noPitch = prov === 'piper' || prov === 'google';
+      const noPitch = prov === 'google';
       $('#pitch').disabled = noPitch;
-      $('#pitchNote').textContent = prov === 'google'
-        ? 'Giọng Google không đổi được cao độ.'
-        : 'Giọng Piper không đổi được cao độ.';
+      $('#pitchNote').textContent = 'Giọng Google không đổi được cao độ.';
       $('#pitchNote').classList.toggle('hidden', !noPitch);
       const hasMusic = !!$('#musicSrc').value;
       $('#musicVol').disabled = !hasMusic;

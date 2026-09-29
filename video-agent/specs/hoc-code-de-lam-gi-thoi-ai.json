@@ -1,0 +1,202 @@
+{
+  "meta": {
+    "title": "Hoc code de lam gi thoi AI",
+    "template": "StoryHook",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "tech"
+  },
+  "voice": {
+    "provider": "piper",
+    "voiceId": "tranthanh3870",
+    "speed": 1.5,
+    "pitch": 2,
+    "pronunciations": { "AI": "ây ai", "code": "cốt", "bug": "bấc", "debug": "đi bấc" }
+  },
+  "captions": { "style": "clean-minimal", "position": "lower-third", "maxWordsPerLine": 5, "highlightColor": "#3BE8A0" },
+  "music": { "src": "sfx/ambient-tech.wav", "volume": 0.22, "duck": 0.3 },
+  "sfx": { "enabled": true, "volume": 0.28 },
+  "scenes": [
+    {
+      "id": "s1",
+      "layout": "gfx",
+      "heading": "2026 — AI viết cả hệ thống",
+      "emphasis": ["cả hệ thống"],
+      "narration": "Năm 2026 rồi. Bạn học code sáu tháng, vừa viết xong cái nút đăng nhập thì AI đã viết luôn cả hệ thống.",
+      "chips": ["@code 6 tháng học", "@ai AI viết cả hệ thống"],
+      "media": { "kind": "gfx3d", "src": "particles", "subject": "coder" },
+      "transitionIn": "zoom"
+    },
+    {
+      "id": "s2",
+      "layout": "gfx",
+      "heading": "Học code để làm gì?",
+      "emphasis": ["để làm gì"],
+      "narration": "Bạn ngồi nhìn màn hình và tự hỏi: ủa, vậy mình học code để làm gì?",
+      "media": { "kind": "gfx3d", "src": "particles", "subject": "coder" },
+      "transitionIn": "fade"
+    },
+    {
+      "id": "s3",
+      "layout": "graphic",
+      "heading": "AI cướp việc của ai?",
+      "emphasis": ["của ai"],
+      "narration": "Bình tĩnh. AI chưa cướp việc của lập trình viên. Nó chỉ cướp những người không chịu học cách dùng AI thôi.",
+      "graphic": {
+        "kind": "illus-compare",
+        "labels": ["@x-circle Không chịu học dùng AI", "@check Biết dùng AI để làm việc"]
+      },
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s4",
+      "layout": "code",
+      "heading": "Ngày xưa — code từng dòng",
+      "narration": "Ngày xưa, muốn làm một chức năng đăng nhập, lập trình viên phải ngồi gõ từng dòng một.",
+      "codeTitle": "login.js",
+      "codeLang": "javascript",
+      "code": "async function login(user, pass) {\n  checkUser(user)\n  checkPass(pass)\n  const t = signJWT(user)\n  return { token: t }\n}",
+      "codeHighlight": [2, 3, 4],
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s5",
+      "layout": "code",
+      "heading": "Lỗi: quên dấu chấm phẩy",
+      "emphasis": ["một ký tự"],
+      "narration": "Kiểm tra tên, mật khẩu, gọi máy chủ, xử lý phiên. Debug xong mới phát hiện: quên một dấu chấm phẩy. Ngồi hai tiếng, sửa đúng một ký tự.",
+      "codeTitle": "auth.js",
+      "codeLang": "javascript",
+      "code": "const token = signJWT(user)\nreturn { token }",
+      "codeHighlight": [1],
+      "output": "SyntaxError: missing ;\n2 tiếng chỉ để sửa 1 ký tự",
+      "transitionIn": "fade"
+    },
+    {
+      "id": "s6",
+      "layout": "gfx",
+      "heading": "Thủ phạm là… chính mình",
+      "narration": "Cảm giác lúc đó y như thám tử phá án ba ngày, để rồi phát hiện thủ phạm chính là mình.",
+      "media": { "kind": "gfx3d", "src": "particles", "subject": "coder" },
+      "transitionIn": "fade"
+    },
+    {
+      "id": "s7",
+      "layout": "graphic",
+      "heading": "Bây giờ thì sao?",
+      "narration": "Còn bây giờ, bạn chỉ cần nói yêu cầu của mình cho AI, phần còn lại nó lo.",
+      "graphic": {
+        "kind": "chat-ai",
+        "labels": ["u:Viết đăng nhập React + Node, có JWT, validation, xử lý lỗi", "a:Được 👍"]
+      },
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s8",
+      "layout": "code",
+      "heading": "5 giây sau…",
+      "emphasis": ["5 giây"],
+      "narration": "Năm giây sau, một đống code hiện ra. Bạn nhìn vào và thốt lên: quá đỉnh!",
+      "codeTitle": "useAuth.js",
+      "codeLang": "javascript",
+      "code": "export function useAuth() {\n  const [user, setUser] = useState()\n  const login = async () => {}\n  const logout = () => {}\n  return { user, login, logout }\n}",
+      "output": "// 500 dòng, chạy ngon ✨",
+      "transitionIn": "zoom"
+    },
+    {
+      "id": "s9",
+      "layout": "gfx",
+      "heading": "Khoan… chạy kiểu gì?",
+      "emphasis": ["chạy kiểu gì"],
+      "narration": "Nhưng mười giây sau: khoan đã. Cái đống code này chạy kiểu gì vậy?",
+      "media": { "kind": "gfx3d", "src": "particles", "subject": "coder" },
+      "transitionIn": "blur"
+    },
+    {
+      "id": "s10",
+      "layout": "gfx",
+      "heading": "Vấn đề lớn nhất",
+      "emphasis": ["không hiểu code"],
+      "narration": "Đây mới là vấn đề lớn nhất của người mới thời AI. Không phải AI quá giỏi, mà là bạn không hiểu code nhưng vẫn dùng AI để code.",
+      "chips": ["@warn Copy mà không hiểu", "@brain Thiếu nền tảng"],
+      "media": { "kind": "gfx3d", "src": "network", "subject": "brain" },
+      "transitionIn": "zoom"
+    },
+    {
+      "id": "s11",
+      "layout": "graphic",
+      "heading": "Vòng lặp chết người",
+      "narration": "AI viết năm trăm dòng. Bạn copy, chạy được, bạn vui. Hôm sau khách đòi thêm tính năng, AI viết thêm một nghìn dòng nữa.",
+      "graphic": {
+        "kind": "illus-flow",
+        "subtitle": "Càng copy càng mất kiểm soát",
+        "labels": ["@ai AI viết", "@code Bạn copy", "@check Chạy được", "@warn Rối tung"]
+      },
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s12",
+      "layout": "graphic",
+      "heading": "Fix một, đẻ ba",
+      "narration": "Đến lúc lỗi, bạn copy nguyên đống lỗi cho AI. Nó bảo được. Fix xong một lỗi, đẻ ra ba lỗi mới.",
+      "graphic": {
+        "kind": "chat-ai",
+        "labels": ["u:Fix giúp tôi cái lỗi này", "a:Được! (âm thầm sinh thêm 3 lỗi)"]
+      },
+      "transitionIn": "fade"
+    },
+    {
+      "id": "s13",
+      "layout": "gfx",
+      "heading": "Bug biết sinh sản 😱",
+      "emphasis": ["sinh sản"],
+      "narration": "Lúc này bạn mới thấm cảm giác làm nghề: không sợ bug. Chỉ sợ bug biết sinh sản.",
+      "media": { "kind": "gfx3d", "src": "network", "subject": "brain" },
+      "transitionIn": "zoom"
+    },
+    {
+      "id": "s14",
+      "layout": "graphic",
+      "heading": "Phải hiểu cả hệ thống",
+      "narration": "Học nghề thời AI không phải là khỏi học. Ngược lại, bạn phải hiểu cả hệ thống ăn khớp với nhau thế nào.",
+      "graphic": {
+        "kind": "architecture",
+        "subtitle": "Từ giao diện tới dữ liệu và bảo mật",
+        "labels": ["@monitor Frontend", "@server Backend + @network API", "@db Database", "@lock Authentication"]
+      },
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s15",
+      "layout": "gfx",
+      "heading": "Ai thắng thời AI?",
+      "emphasis": ["biết mình làm gì"],
+      "narration": "Người thắng không phải người code nhanh nhất, mà là người biết mình đang làm gì và biết cách bắt AI làm cùng mình.",
+      "chips": ["@target Hiểu bản chất", "@zap Dùng AI đúng cách"],
+      "media": { "kind": "gfx3d", "src": "network", "subject": "coder" },
+      "transitionIn": "zoom"
+    },
+    {
+      "id": "s16",
+      "layout": "graphic",
+      "heading": "Học sao cho đúng?",
+      "narration": "Đừng học kiểu: tìm trên mạng, copy, gặp lỗi, hỏi AI, rồi lại lỗi. Hãy học đúng nền tảng, rồi dùng AI để tăng tốc.",
+      "graphic": {
+        "kind": "illus-compare",
+        "labels": ["@x-circle Google, copy, lỗi, hỏi AI, lỗi tiếp", "@rocket Nền tảng vững, AI tăng tốc"]
+      },
+      "transitionIn": "slide-up"
+    },
+    {
+      "id": "s17",
+      "layout": "gfx",
+      "heading": "Ib nhận lộ trình miễn phí 🚀",
+      "emphasis": ["miễn phí"],
+      "narration": "Nếu muốn học lập trình mà chưa biết bắt đầu từ đâu, nhắn tin cho mình. Mình gửi bạn lộ trình học miễn phí.",
+      "media": { "kind": "gfx3d", "src": "particles", "subject": "rocket" },
+      "transitionIn": "zoom"
+    }
+  ]
+}

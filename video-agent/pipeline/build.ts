@@ -13,7 +13,7 @@ import { getProvider, getAudioDurationSec, PIPER_SENTENCE_SILENCE } from "./tts.
 import { alignWords } from "./align.ts";
 import { cacheKey, readCache, writeCache } from "./cache.ts";
 import { downloadAsset } from "./assets.ts";
-import { generateImage } from "./imagegen.ts";
+import { generateImage, applyIllustrationStyle, compileCinematicPrompt } from "./imagegen.ts";
 import { fetchStockImage, fetchStockVideo } from "./stock.ts";
 import { highlightCode } from "./highlight.ts";
 import { ensureSfx } from "./sfx.ts";
@@ -109,7 +109,10 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
     const ext = provider.audioFormat; // "wav" | "mp3"
     // Với piper, khoảng lặng giữa câu là một phần "chất giọng" → đưa vào khóa cache để đổi
     // PIPER_SENTENCE_SILENCE là tự re-TTS, không dính audio cũ đọc liền.
-    const silenceSalt = provider.name === "piper" ? `:ss${PIPER_SENTENCE_SILENCE}` : "";
+    // `:pfx` = pitch giờ được dịch ở hậu kỳ (ffmpeg); thêm vào khóa để audio piper cũ
+    //   (sinh khi pitch còn bị bỏ qua) không bị dùng lại → tự re-TTS ra bản đã đổi cao độ.
+    const pitchSalt = provider.name === "piper" && spec.voice.pitch ? ":pfx" : "";
+    const silenceSalt = provider.name === "piper" ? `:ss${PIPER_SENTENCE_SILENCE}${pitchSalt}` : "";
     const key = cacheKey(
       normalized,
       `${provider.name}:${spec.voice.voiceId}:p${spec.voice.pitch ?? 0}${silenceSalt}`,
@@ -165,7 +168,17 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
     // ở đây thành file thật trong public/ + kind thật ("video" / "image") để composition
     // không bao giờ phải biết chúng từ đâu ra.
     let media = scene.media;
-    if (media && media.kind === "pexels-video") {
+    if (scene.layout === "shot" && (!media || media.kind === "generate")) {
+      // KHUNG PHIM: ghép prompt điện ảnh từ công thức shot (KHÔNG dùng flat-vector style),
+      // sinh ảnh FULL-BLEED 9:16 để chạy tràn khung. Chuyển động máy do renderer lo.
+      const prompt = compileCinematicPrompt(scene.shot, spec.meta.story);
+      const imgPath = await generateImage(prompt, { width: 832, height: 1472 });
+      const rel = `images/${slug}/${scene.id}.jpg`;
+      const abs = path.join(PUBLIC_DIR, rel);
+      await copyIntoPublic(imgPath, abs);
+      console.log(`[build]   scene "${scene.id}" → khung phim (ảnh AI điện ảnh)`);
+      media = { kind: "image", src: rel, fit: media?.fit ?? "cover", focus: media?.focus ?? "center" };
+    } else if (media && media.kind === "pexels-video") {
       // Video LUÔN dọc: nó chạy full-bleed làm nền cả khung 1080x1920.
       const clip = await fetchStockVideo(media.src, { orientation: "portrait" });
       const rel = `video/${slug}/${scene.id}.mp4`;
@@ -186,7 +199,9 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
       const portrait = spec.meta.visualStyle === "photo" || scene.layout !== "image";
       let imgPath: string;
       if (media.kind === "generate") {
-        imgPath = await generateImage(media.src, portrait ? { width: 896, height: 1216 } : { width: 1216, height: 832 });
+        // Khoá style theo theme → mọi ảnh AI trong video ăn cùng một tông (xem applyIllustrationStyle).
+        const styledPrompt = applyIllustrationStyle(media.src, spec.meta.background);
+        imgPath = await generateImage(styledPrompt, portrait ? { width: 896, height: 1216 } : { width: 1216, height: 832 });
         console.log(`[build]   scene "${scene.id}" → ảnh AI`);
       } else {
         imgPath = await fetchStockImage(media.src, { orientation: portrait ? "portrait" : "landscape" });
@@ -196,7 +211,8 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
       const abs = path.join(PUBLIC_DIR, rel);
       await copyIntoPublic(imgPath, abs);
       media = { kind: "image", src: rel, fit: media.fit, focus: media.focus };
-    } else if (media && media.kind !== "color") {
+    } else if (media && media.kind !== "color" && media.kind !== "gfx3d") {
+      // gfx3d không có file (vẽ 3D lúc render) → bỏ qua, giữ nguyên media.
       const rel = await downloadAsset(media.src, media.kind === "video" ? ".mp4" : ".jpg");
       media = { ...media, src: rel };
     }

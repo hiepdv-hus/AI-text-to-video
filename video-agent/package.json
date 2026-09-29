@@ -12,6 +12,7 @@
     "test": "tsx --test pipeline/*.test.ts"
   },
   "dependencies": {
+    "@react-three/fiber": "9.8.1",
     "@remotion/bundler": "4.0.515",
     "@remotion/captions": "4.0.515",
     "@remotion/cli": "4.0.515",
@@ -21,6 +22,7 @@
     "@remotion/media-utils": "4.0.515",
     "@remotion/paths": "4.0.515",
     "@remotion/renderer": "4.0.515",
+    "@remotion/three": "4.0.515",
     "@remotion/transitions": "4.0.515",
     "@remotion/zod-types": "4.0.515",
     "lucide-react": "^1.40.0",
@@ -29,11 +31,13 @@
     "react-dom": "19.0.0",
     "remotion": "4.0.515",
     "shiki": "^4.4.3",
+    "three": "0.186.1",
     "zod": "3.23.8"
   },
   "devDependencies": {
     "@types/node": "22.10.5",
     "@types/react": "19.0.2",
+    "@types/three": "0.186.0",
     "tsx": "4.19.2",
     "typescript": "5.7.2"
   },

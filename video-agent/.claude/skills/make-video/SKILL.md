@@ -41,7 +41,9 @@ nền, nhạc, số cảnh, widget: **không bao giờ hỏi**, đã có mặc �
 ```
 
 Piper chạy local, miễn phí, offline, dùng thương mại được — đó là lý do nó là mặc định.
-Đổi lại phải chấp nhận hai giới hạn, và **luôn phải bù bằng `pronunciations`**:
+**`pitch` CÓ tác dụng với piper**: engine piper không tự đổi cao độ, nhưng pipeline dịch cao
+độ ở hậu kỳ bằng ffmpeg (cần ffmpeg trên máy — máy này đã có). Đổi lại phải chấp nhận hai
+giới hạn, và **luôn phải bù bằng `pronunciations`**:
 
 - Piper **không trả timing từng từ** → phụ đề karaoke bị chia đều máy móc, trôi lệch dần
   so với giọng trong câu dài. Viết câu ngắn thì lệch ít hơn.
@@ -51,6 +53,10 @@ Piper chạy local, miễn phí, offline, dùng thương mại được — đó
 Vì lý do thứ hai: **hạn chế nhét từ tiếng Anh vào `narration`**. Ưu tiên viết bằng tiếng
 Việt, để tên tiếng Anh nằm ở `heading`, `chips` hay cửa sổ `code` — chỗ chỉ HIỆN chứ
 không ĐỌC.
+
+Cần phụ đề khớp giọng CHÍNH XÁC (word-timing thật) → dùng `edge` (miễn phí, cần mạng,
+`vi-VN-NamMinhNeural`) hoặc `elevenlabs` (trả phí). Cả hai cũng đổi được `pitch`. Nhưng
+`edge` KHÔNG có giấy phép thương mại rõ ràng — video kiếm tiền thì ở lại với piper/elevenlabs.
 
 Kèm theo: **7 cảnh, ~40 giây**, `pexels-video` làm nền cho cảnh `hook` và `cta`, cảnh cuối
 dẫn sang tập sau nếu chủ đề nằm trong một series.
@@ -126,11 +132,12 @@ VideoSpec {
               maxWordsPerLine=4, highlightColor="#3BE8A0" }
   scenes: [{
     id, narration,                       // narration = lời đọc, bắt buộc
-    layout: "hook"|"bullet"|"product"|"compare"|"cta"|"code"|"graphic"|"image",
+    layout: "hook"|"bullet"|"product"|"compare"|"cta"|"code"|"graphic"|"image"|"illus"|"shot"|"gfx",
+    //   "gfx" = ĐỒ HOẠ 3D VẼ NỘI DUNG là chính (media gfx3d) + nhãn nhỏ, ít chữ.
     heading?, icon?,                     // icon = 1 emoji (vd "🚀","🤖") → huy hiệu cạnh tiêu đề
     chips?: string[],                    // hàng nhãn nhỏ dưới tiêu đề — xem mục CHIP bên dưới
     bullets?: string[],                  // bullet có thể mở đầu bằng emoji, vd "🐳 Docker"
-    media?: { kind:"pexels-video"|"pexels"|"generate"|"image"|"video"|"color", src, fit?, focus? },
+    media?: { kind:"pexels-video"|"pexels"|"generate"|"image"|"video"|"color"|"gfx3d", src, fit?, focus? },
     //   "pexels-video"/"video" → chạy FULL-BLEED làm nền cả cảnh (nội dung đè lên trên)
     //   "pexels"/"generate"/"image" → khung ảnh gọn dưới tiêu đề, KHÔNG tràn màn
     emphasis?: string[],                 // cụm từ khoá → tô tím phát sáng trong heading (hook/graphic)
@@ -168,6 +175,12 @@ WIDGET ĐỒ HOẠ (layout `graphic`) — chọn theo BẢN CHẤT dữ liệu, 
 |---|---|---|
 | `stat-big` | MỘT số liệu đáng nhớ | `"giá trị:diễn giải"` — vd `"73%:Tin tuyển dụng yêu cầu AI"`, `"3.5x:Nhanh hơn"` |
 | `bar-chart` | So sánh SỐ LIỆU giữa các mục | `"Tên:giá trị đơn vị"` — vd `"Trước tối ưu:48 s"`, `"Tốc độ:92%"` |
+| `bar-chart-3d` | Như `bar-chart` nhưng CỘT 3D THẬT (WebGL, có chiều sâu + đổ bóng) | Y HỆT `bar-chart` (`"Tên:giá trị đơn vị"`). Dùng khi muốn cảnh số liệu "nặng đô" hơn; cột cuối tự phát sáng |
+| `illus-orbit` | MINH HOẠ ĐỘNG: một thứ ở TRUNG TÂM nối/điều khiển nhiều thứ khác (quay liên tục, năng lượng chạy) | `labels[0]` = hub giữa, `labels[1..]` = vệ tinh (3–6). Vd `["@brain Mô hình AI","@code Viết code","@bug Tìm lỗi","@chat Trả lời"]`. Dùng khi nội dung là "một cái lõi, nhiều nhánh" — thứ chữ/bullet nói không gọn |
+| `illus-flow` | MINH HOẠ ĐỘNG: một thứ DI CHUYỂN qua các chặng A→B→C (gói chạy dọc ray, chặng bừng sáng khi gói tới) | mỗi chặng một nhãn (2–4), vd `["@file Code","@boxes Staging","@git Commit","@cloud GitHub"]`. Hợp quy trình/hành trình. Khác `steps` (đánh số, tĩnh) và `architecture` (sơ đồ tĩnh) ở chỗ có VẬT di chuyển |
+| `illus-compare` | MINH HOẠ ĐỘNG: vế cũ/vấn đề BIẾN THÀNH vế mới/giải pháp (cũ mờ+✕, mới sáng+✓, mũi tên ở giữa) | ĐÚNG 2 nhãn: `labels[0]`=cũ, `labels[1]`=mới. Vd `["@x-circle Cách cũ: chậm","@zap Cách mới: nhanh"]`. Hợp trước/sau, vấn đề/giải pháp |
+| `illus-build` | MINH HOẠ ĐỘNG: các lớp/mảnh GHÉP LẠI thành một khối (bay vào xen kẽ + vệt sáng quét lên) | mỗi lớp một nhãn (2–4), viết trên→dưới. Vd `["@monitor Giao diện","@server Máy chủ","@db Cơ sở dữ liệu"]`. Hợp "X gồm những gì / cấu thành từ gì" |
+| `illus-hero` | MINH HOẠ ĐỘNG: một CHỦ THỂ lớn ở giữa + bối cảnh trôi quanh (gần cảm giác "cảnh phim") | `labels[0]`=chủ thể, `labels[1..]`=bối cảnh (3–5). Vd `["@mobile Điện thoại","@idea Đèn","@lock Khoá","@eye Camera"]`. Hợp "một thứ và thế giới quanh nó" |
 | `range-bar` | Giá trị là một KHOẢNG | `"Tên:min-max đơn vị"` — vd `"Junior:12-20 triệu"` |
 | `checklist` | Nên / KHÔNG nên | `"+ Việc nên làm"` · `"- Việc nên tránh"` |
 | `steps` | Quy trình CÓ THỨ TỰ | mỗi bước một chuỗi; nút tự đánh số 01/02/03 |
@@ -182,6 +195,19 @@ CHỌN GIỮA MẤY CÁI HAY NHẦM:
   min–max → `range-bar` (đừng ép về bar-chart, làm thế là vứt mất biên độ).
 - Có thứ tự thời gian/bước → `steps`. Có phán xét đúng-sai → `checklist`. Ngang hàng,
   không thứ tự → `feature-cards`. Nối với nhau bằng luồng dữ liệu → `architecture`.
+
+MINH HOẠ ĐỘNG (`illus-*`) — ƯU TIÊN dùng khi cảnh nói về một KHÁI NIỆM/QUAN HỆ chứ không
+phải số liệu hay danh sách. Đây là cách làm video "như hoạt hình để minh hoạ" thay vì chỉ
+hiện chữ: chúng CHUYỂN ĐỘNG LIÊN TỤC (quay/chảy/lắp ghép/trôi) nên mắt xem ra ngay là
+video, không phải slide. Bản đồ chọn nhanh:
+- "một lõi, nhiều nhánh / kết nối" → `illus-orbit`
+- "đi qua từng chặng, một thứ di chuyển" → `illus-flow`
+- "trước vs sau, vấn đề → giải pháp" → `illus-compare`
+- "X gồm/được tạo từ những phần nào" → `illus-build`
+- "một chủ thể cụ thể và mọi thứ quanh nó" → `illus-hero`
+Một video tốt nên XEN KẼ cảnh minh hoạ động (`illus-*`) với cảnh số liệu (`stat-big`,
+`bar-chart`…) và cảnh chữ — đừng để cả video chỉ toàn một loại. Icon trong `labels` dùng
+cú pháp `"@tên Chữ"` (xem bảng icon), nó tự tô theo màu nhấn của theme.
 
 CHIP (`scene.chips`) — HÀNG NHÃN NHỎ dưới tiêu đề, dùng được ở MỌI layout:
 
@@ -267,6 +293,43 @@ Anh (map/filter/const…) nên thêm `voice.pronunciations` để đọc đỡ t
 
 Dòng code KHÔNG tự xuống dòng — dòng dài quá 37 ký tự sẽ bị cắt cụt ở mép phải.
 
+NỀN ĐỒ HOẠ 3D (`media.kind: "gfx3d"`) — ĐỒ HOẠ 3D TOÀN MÀN, HOẠT HÌNH, KHÔNG cần ảnh:
+Dùng cho cảnh KHÁI NIỆM (không cần ảnh/video thật) mà vẫn muốn nền động, dày, hiện đại. Đặt
+dưới BẤT KỲ layout nhiều chữ nào (`bullet`, `graphic`, `hook`, `cta`) → nền 3D chạy sau, chữ
+đè lên. `src` CHỌN SCENE KHỚP NỘI DUNG đang nói (đây là điểm mấu chốt — đừng chọn bừa):
+
+| `src` | Dùng khi nội dung nói về | Scene |
+|---|---|---|
+| `"network"` | kết nối, hệ thống, mạng lưới, "mọi thứ liên quan nhau" | đồ thị 3D nhiều nút nối nhau |
+| `"particles"` | dữ liệu, quy mô lớn, dòng chảy, "hàng triệu…" | biển hạt trôi |
+| `"bars3d"` | tăng trưởng, so sánh, số liệu theo thời gian | rừng cột 3D mọc theo sóng |
+| `"globe"` | toàn cầu, phủ rộng, quốc tế, nhiều nơi | quả cầu lưới xoay |
+| `"orbit"` | một lõi điều phối/kết nối nhiều thứ quay quanh | lõi + vành + vệ tinh 3D |
+| `"float"` | chung chung (không scene nào khớp hơn) | khối toon trôi |
+
+CHỦ THỂ VẼ ĐÚNG NỘI DUNG (3D dựng tay, literal — dùng khi nói tới đúng vật/người đó):
+
+| `src` | Vẽ ra | Dùng khi nói về |
+|---|---|---|
+| `"coder"` | người ngồi gõ laptop (màn sáng, tay gõ) | lập trình, làm việc máy tính, dân IT |
+| `"walk"` | người đi bộ (nhìn nghiêng, sải bước) | hành trình, tìm việc, bước tiếp, đi làm |
+| `"rocket"` | tên lửa phóng (lửa + khói) | bứt phá, khởi nghiệp, tăng tốc, ra mắt |
+| `"phone"` | điện thoại (màn sáng + icon bay) | app, mạng xã hội, thông báo, mobile |
+| `"brain"` | bộ não phát sáng + nơ-ron | tư duy, AI, kỹ năng, học hỏi |
+| `"idea"` | bóng đèn sáng + tia | ý tưởng, sáng tạo, giải pháp, "à há" |
+| `"money"` | chồng xu vàng + đồng bay | lương, tiền, thu nhập, tài chính |
+| `"gear"` | hai bánh răng lồng nhau quay | quy trình, cơ chế, cách vận hành |
+| `"building"` | dãy toà nhà văn phòng đèn sáng | công ty, doanh nghiệp, thành phố, công sở |
+
+Chủ thể literal hợp nhất với **`layout: "gfx"`** (3D là chính + 1 nhãn nhỏ + phụ đề, ít chữ).
+Muốn kèm nhiều chữ thì đặt gfx3d dưới `bullet`/`graphic` như các `src` trừu tượng ở trên.
+
+- KHÔNG cần `src` là từ khoá/ảnh — chỉ là TÊN scene ở trên. Không tải gì, vẽ 3D lúc render.
+- Màu tự lấy theo theme (`meta.background`). Khung nên DÀY: kèm `heading` + `bullets` (2–3) +
+  `chips` để không trống. Mẫu: `specs/demo-gfx3d-lib.json`.
+- KHÁC ảnh AI/khung phim: gfx3d là đồ hoạ 3D thuần, miễn phí, không cần mạng, không lệ thuộc
+  Pollinations. Cần ẢNH THẬT thì mới dùng `pexels`/`pexels-video`.
+
 VIDEO NỀN (cách làm hình ảnh MẶC ĐỊNH — ưu tiên hơn ảnh tĩnh):
 - `media.kind: "pexels-video"`, `src` = TỪ KHÓA tiếng **Anh** (vd "programmer typing code closeup").
   Pipeline tự tìm & tải clip dọc thật từ Pexels, đặt làm nền TOÀN MÀN của cảnh đó.
@@ -290,22 +353,80 @@ VIDEO NỀN (cách làm hình ảnh MẶC ĐỊNH — ưu tiên hơn ảnh tĩnh
   cụ thể, tránh từ đa nghĩa (vd "map" → dễ ra bản đồ; hãy tả rõ cảnh cần vẽ). Pipeline tự sinh
   ảnh (Pollinations, miễn phí, không key) khớp nội dung scene rồi nhúng vào. Khi làm video, NÊN
   tự viết `generate` prompt cho mỗi cảnh cần minh họa để ảnh khớp nội dung. Dùng với layout
-  `image` (khung) hoặc `product` (nền toàn màn).
+  `image` (khung), `illus` (khung lớn ĐỘNG — xem dưới) hoặc `product` (nền toàn màn).
+  - **KHÔNG cần tả style/màu trong prompt**: pipeline TỰ KHOÁ style theo `meta.background`
+    (tech → nền tối xanh teal; claude → nâu ấm) và tự cấm chữ trong ảnh, nên MỌI ảnh AI trong
+    một video ăn cùng một tông. Chỉ tả NỘI DUNG cảnh (ai, làm gì, ở đâu).
+
+- **`illus` — MINH HOẠ ẢNH AI LÀM "SỐNG" (fallback cho MỌI chủ đề ngoài thư viện `illus-*`)**:
+  `layout: "illus"` + `media.kind: "generate"` (prompt tiếng Anh tả cảnh). Ảnh AI hiện to,
+  được làm động bằng Ken Burns + nghiêng parallax 2.5D + vệt sáng quét + khung glow → đọc ra
+  là video chứ không phải ảnh dán. Dùng khi cảnh cần MINH HOẠ một cảnh/tình huống cụ thể mà
+  không có widget `illus-*` vẽ tay nào hợp (vd "một người ngồi lo lắng trước màn hình phỏng
+  vấn"). Đây là cách "minh hoạ như hoạt hình" cho chủ đề tự do. XEN KẼ với `illus-*` vẽ tay
+  và cảnh số liệu để video không đơn điệu. Mẫu: `specs/demo-illus-ai.json`.
 
 - `bullet`: `bullets[]` hiện lần lượt. 2–4 dòng, mỗi dòng ngắn.
 - `compare`: chia đôi trên/dưới, dùng `bullets[0]` vs `bullets[1]`.
 - `cta`: nút kêu gọi — `heading` có emoji càng tốt.
 
-Provider giọng đọc:
-- `"piper"` — **MẶC ĐỊNH của dự án này**. Chạy local, miễn phí, offline, không key, và
-  **dùng thương mại được**. Giọng nằm ở `tools/piper/voices/<voiceId>.onnx`; máy này đã cài:
-  `tranthanh3870` (đang dùng), `adam1`, `maiphuong`, `ngochuyen`, `ngochuyennew`,
-  `phuongtrang`, `vi_VN-vais1000-medium`, `vi_VN-25hours_single-low`, `vi_VN-vivos-x_low`.
+KHUNG PHIM (`layout: "shot"`) — KỂ CHUYỆN kiểu ĐIỆN ẢNH thay vì "slide đồ hoạ":
+Dùng khi muốn video *có chất phim* (chủ thể, cảm xúc, cú máy) chứ không phải infographic.
+Ảnh AI điện ảnh chạy FULL-BLEED + máy quay chuyển động thật + grade + vignette + phụ đề tối
+giản (KHÔNG tiêu đề to / bullet). Có HAI tầng:
+
+1) **`meta.story`** — SỢI CHỈ cho CẢ video (thứ biến các shot rời thành CÂU CHUYỆN):
+```jsonc
+"story": {
+  "logline": "1 câu: ai, muốn gì, vướng gì",
+  "protagonist": "mô tả nhân vật CỐ ĐỊNH bằng tiếng Anh — đưa vào mọi shot cho nhất quán.
+                  MẸO: tả 'seen from behind' / bóng đổ / bàn tay để khỏi lệ thuộc khuôn mặt
+                  (model free không giữ được mặt giống nhau)",
+  "look": "khoá phong cách hình tiếng Anh: tông màu + kiểu phim + ống kính
+           (vd 'teal and amber grade, 35mm anamorphic, film grain')"
+}
+```
+
+2) **`scene.shot`** — công thức từng khung (mô tả bằng **tiếng Anh** để sinh ảnh):
+```jsonc
+{ "id": "s1", "layout": "shot",
+  "narration": "lời kể tiếng Việt (TTS + phụ đề)",
+  "shot": {
+    "beat": "shot này đẩy chuyện tới đâu (ghi chú, không lên hình)",
+    "subject": "ai/cái gì trong khung",
+    "action": "đang LÀM gì (động từ)",
+    "emotion": "cảm xúc chủ đạo",
+    "world": "bối cảnh, giờ, thời tiết",
+    "light": "nguồn + hướng + mood (vd 'golden sunrise backlight, lens flare')",
+    "composition": "bố cục (vd 'subject small in lower third, leading lines')",
+    "camera": { "shot": "wide|medium|close|extreme-close",
+                "move": "dolly-in|dolly-out|pan-left|pan-right|crane-up|crane-down|handheld|static" }
+  },
+  "transitionIn": "fade" }
+```
+- KHÔNG cần tả style/màu trong từng shot — `meta.story.look` + `protagonist` tự nhét vào.
+- CUNG CẢM XÚC bằng ÁNH SÁNG: lạnh (áp lực) → xám (bế tắc) → vàng ấm (hy vọng). Đây là
+  cách "kể" mạnh nhất, mạnh hơn mọi dòng chữ.
+- Chọn `camera.move` theo cảm xúc: `dolly-in` dồn nén, `handheld` bất an, `crane-up` mở ra
+  hy vọng, `static`/`dolly-out` tĩnh lặng.
+- Ít chữ: để `heading` trống, chỉ có phụ đề. Nên đặt `captions.style:"clean-minimal"`,
+  `sfx.enabled:false` (dissolve phim không cần tiếng whoosh).
+- Đây là ẢNH TĨNH được diễn hoạt (chưa phải video quay thật) — nhân vật đứng yên, chỉ máy
+  quay động. Mẫu đầy đủ: `specs/demo-cinematic.json`.
+
+Provider giọng đọc (pitch = có đổi được cao độ không):
+- `"piper"` — **MẶC ĐỊNH**. Local, miễn phí, offline, không key, **dùng thương mại được**.
+  **Đổi được pitch** (dịch hậu kỳ bằng ffmpeg). Không có word-timing (phụ đề chia đều →
+  viết câu ngắn). Giọng ở `tools/piper/voices/`: `tranthanh3870` (đang dùng), `adam1`,
+  `maiphuong`, `ngochuyen`, `ngochuyennew`, `phuongtrang`, `vi_VN-vais1000-medium`,
+  `vi_VN-25hours_single-low`, `vi_VN-vivos-x_low`.
+- `"edge"` — miễn phí, không key, giọng vi-VN tự nhiên, **đổi được pitch**, có word-timing
+  (phụ đề khớp chuẩn). Cần mạng. ⚠️ Không có giấy phép thương mại rõ ràng — **đừng dùng cho
+  video kiếm tiền**. `vi-VN-NamMinhNeural`, `vi-VN-HoaiMyNeural`.
+- `"elevenlabs"` — chất lượng cao nhất, có timestamp + **đổi được pitch**. Cần key (trả phí).
+- `"azure"` — giọng vi-VN tốt, **đổi được pitch**. Cần key+region.
 - `"mock"` — giọng im lặng; CHỈ để test nhanh timing/caption offline, đừng giao bản mock.
-- `"elevenlabs"` — chất lượng cao nhất, có timestamp sẵn. Cần key.
-- `"edge"` — miễn phí không cần key, NHƯNG nó gọi endpoint nội bộ của Microsoft Edge, không
-  có giấy phép thương mại. **Đừng dùng cho video sẽ đem kiếm tiền.**
-- `"azure"`/`"google"` — cần API key (xem `.env.example`).
+- `"google"` — giọng vi-VN ổn, KHÔNG đổi được pitch, KHÔNG có timestamp. Cần key.
 
 Xem danh sách: `pnpm video voices`.
 

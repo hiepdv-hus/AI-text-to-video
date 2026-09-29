@@ -2,7 +2,8 @@ import { promises as fs, existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import type { WordTiming, Voice } from "../src/schema.ts";
-import { writeSilentWav, getAudioDurationSec } from "./audio.ts";
+import { writeSilentWav, getAudioDurationSec, readWavInfo } from "./audio.ts";
+import { ffmpegExe, ffmpegBinDir } from "./ffmpeg.ts";
 import { toNFC } from "./normalize.ts";
 
 /**
@@ -269,8 +270,44 @@ class GoogleProvider implements TTSProvider {
  * Không kèm word timing → align đều theo duration (đọc từ header WAV, khỏi ffprobe).
  * Cần cài sẵn: tools/piper (binary) + tools/piper/voices/<voiceId>.onnx.
  * voiceId mặc định: "vi_VN-vais1000-medium".
+ *
+ * CAO ĐỘ (pitch): engine piper KHÔNG tự đổi được. Nên nếu spec có `pitch`, ta dịch cao độ
+ * ở HẬU KỲ bằng ffmpeg — xem pitchShiftWavInPlace(). Cần có ffmpeg (đã có sẵn trên máy
+ * này); không có thì bỏ qua và cảnh báo, chứ không làm hỏng cả lần render.
  */
 const PIPER_DIR = process.env.PIPER_DIR ?? path.join(process.cwd(), "tools", "piper");
+
+/**
+ * Dịch CAO ĐỘ file WAV `n` nửa cung mà GIỮ NGUYÊN tốc độ/độ dài, bằng ffmpeg:
+ *   asetrate = SR·R  → đọc mẫu nhanh hơn R lần: cao độ ×R, nhưng ngắn lại 1/R;
+ *   aresample = SR   → đưa sample-rate về gốc (không đụng cao độ nữa);
+ *   atempo   = 1/R   → kéo tốc độ về như cũ → cao độ ×R, độ dài không đổi.
+ * R = 2^(n/12). Với n ∈ [-12,12] thì R ∈ [0.5,2] và 1/R ∈ [0.5,2] — nằm trong dải hợp lệ
+ * của atempo, nên một tầng atempo là đủ (khỏi phải xâu chuỗi).
+ *
+ * Sửa TẠI CHỖ: ghi ra file tạm rồi đổi tên đè lên — an toàn nếu ffmpeg lỗi giữa chừng.
+ */
+async function pitchShiftWavInPlace(wavPath: string, semitones: number): Promise<void> {
+  if (ffmpegBinDir() === null) {
+    console.warn(`[tts] Không thấy ffmpeg → bỏ qua chỉnh cao độ piper (đặt FFMPEG_BIN hoặc cài ffmpeg lên PATH).`);
+    return;
+  }
+  const { sampleRate } = await readWavInfo(wavPath);
+  const R = Math.pow(2, semitones / 12);
+  const tmp = `${wavPath}.pitch.wav`;
+  const filter = `asetrate=${Math.round(sampleRate * R)},aresample=${sampleRate},atempo=${(1 / R).toFixed(6)}`;
+  const args = ["-hide_banner", "-loglevel", "error", "-y", "-i", wavPath, "-af", filter, tmp];
+
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(ffmpegExe(), args);
+    let err = "";
+    child.stderr.on("data", (d) => (err += d.toString()));
+    child.on("error", reject);
+    child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg chỉnh cao độ lỗi (code ${code}): ${err.slice(-300)}`))));
+  });
+  await fs.rename(tmp, wavPath);
+  console.log(`[tts]   piper: đã dịch cao độ ${semitones > 0 ? "+" : ""}${semitones} nửa cung`);
+}
 
 /**
  * Khoảng lặng (giây) piper chèn SAU MỖI CÂU (mỗi dấu chấm/?/!). Mặc định của piper là 0.2
@@ -324,6 +361,11 @@ class PiperProvider implements TTSProvider {
       child.stdin.write(text);
       child.stdin.end();
     });
+
+    // Piper không tự đổi cao độ → dịch ở hậu kỳ bằng ffmpeg nếu spec yêu cầu.
+    if (opts.pitch && opts.pitch !== 0) {
+      await pitchShiftWavInPlace(opts.outPath, opts.pitch);
+    }
 
     return { audioPath: opts.outPath }; // không có words → align đều theo duration WAV
   }

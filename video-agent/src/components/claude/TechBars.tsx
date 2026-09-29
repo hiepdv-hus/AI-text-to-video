@@ -19,13 +19,18 @@ import { BEAT, useEnter, useFloatPx, useSweep } from "../motion";
  * đồ luôn "đầy khung" dù số liệu là 3/5/8 hay 60/80/95 — đây là so sánh tương đối.
  */
 
-interface Row {
+export interface Row {
   name: string;
   value: number;
   unit: string;
 }
 
-function parseRows(labels?: string[]): Row[] {
+/**
+ * Phân tích nhãn "Tên:giá trị đơn vị". Export ra để widget 3D (TechBars3D) dùng CHUNG —
+ * cùng một cách đọc dữ liệu thì `bar-chart` và `bar-chart-3d` nhận labels y hệt nhau,
+ * đổi kind là đổi được diện mạo mà không phải viết lại spec.
+ */
+export function parseRows(labels?: string[]): Row[] {
   const src = labels?.length ? labels : ["Trước:35", "Sau:92"];
   return src.map((raw) => {
     const m = raw.match(/^(.*?):\s*([\d.,]+)\s*(.*)$/);
@@ -39,7 +44,7 @@ function parseRows(labels?: string[]): Row[] {
 }
 
 /** Đếm số lên theo tiến trình, làm tròn giống cách viết của người dùng (2 → "2", 2.5 → "2.5"). */
-function formatValue(target: number, progress: number): string {
+export function formatValue(target: number, progress: number): string {
   const v = target * progress;
   return Number.isInteger(target) ? String(Math.round(v)) : v.toFixed(1);
 }
