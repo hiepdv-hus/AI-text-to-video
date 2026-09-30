@@ -46,8 +46,15 @@ import { Gfx3dBackdrop } from "./Gfx3dBackdrop";
  * prop qua SceneWrapper → Layout vì có ba nơi cần biết (nền, layout, lớp kính mờ của
  * thẻ) và cả ba đều nằm sâu bên dưới; quên luồn ở một chỗ là ảnh hiện hai lần.
  */
-export const ImageBackdropContext = React.createContext(false);
-export const useImageIsBackdrop = () => React.useContext(ImageBackdropContext);
+/** Kiểu hình ảnh của cả video (meta.visualStyle) — cấp từ VideoComposition, đọc ở nhiều nơi. */
+export const VisualStyleContext = React.createContext<string>("mixed");
+/** Ảnh phủ KÍN khung (không đóng khung gọn) khi visualStyle là "photo" hoặc "article". */
+export const useImageIsBackdrop = () => {
+  const v = React.useContext(VisualStyleContext);
+  return v === "photo" || v === "article";
+};
+/** true khi đang ở kiểu "báo" (article) — phủ thêm giao diện news (măng sét/tiêu đề/nguồn) lên ảnh. */
+export const useNewsLook = () => React.useContext(VisualStyleContext) === "article";
 
 /** Media của cảnh có phủ KÍN khung hình (video, nền 3D gfx3d, hoặc ảnh ở chế độ photo) không. */
 export const coversFrame = (media: Media | undefined, imageIsBackdrop: boolean): boolean =>

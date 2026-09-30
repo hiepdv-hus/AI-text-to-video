@@ -196,7 +196,8 @@ export async function buildSpec(specPath: string): Promise<BuildResult> {
       // Ảnh DỌC cho mọi nền toàn màn (hook/cta/product…); NGANG chỉ cho khung "image" gọn.
       // Chế độ photo: ảnh nào cũng là nền toàn màn 1080x1920 → luôn dọc, kể cả layout
       // "image" (ảnh ngang phóng cho kín khung dọc sẽ bị cắt mất hai phần ba).
-      const portrait = spec.meta.visualStyle === "photo" || scene.layout !== "image";
+      const fullBleed = spec.meta.visualStyle === "photo" || spec.meta.visualStyle === "article";
+      const portrait = fullBleed || scene.layout !== "image";
       let imgPath: string;
       if (media.kind === "generate") {
         // Khoá style theo theme → mọi ảnh AI trong video ăn cùng một tông (xem applyIllustrationStyle).

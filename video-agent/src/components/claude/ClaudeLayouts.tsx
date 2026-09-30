@@ -19,6 +19,8 @@ import { IllusBuild } from "./IllusBuild";
 import { IllusHero } from "./IllusHero";
 import { AnimatedIllus } from "./IllusImage";
 import { CinematicShot } from "./CinematicShot";
+import { HackScene } from "./HackScene";
+import { StatementScene } from "./StatementScene";
 import { TechTimeline } from "./TechTimeline";
 import { TechDevice } from "./TechDevice";
 import { StatBig } from "./StatBig";
@@ -518,5 +520,7 @@ export const CLAUDE_LAYOUTS: Record<BuiltScene["layout"], React.FC<LProps>> = {
   illus: IllusL,
   shot: CinematicShot,
   gfx: GfxL,
+  hack: HackScene,
+  statement: StatementScene,
   graphic: Graphic,
 };

@@ -21,22 +21,18 @@
   "scenes": [
     {
       "id": "s1",
-      "layout": "gfx",
-      "heading": "2026 — AI viết cả hệ thống",
-      "emphasis": ["cả hệ thống"],
+      "layout": "hack",
+      "heading": "AI viết cả hệ thống",
       "narration": "Năm 2026 rồi. Bạn học code sáu tháng, vừa viết xong cái nút đăng nhập thì AI đã viết luôn cả hệ thống.",
-      "chips": ["@code 6 tháng học", "@ai AI viết cả hệ thống"],
-      "media": { "kind": "gfx3d", "src": "particles", "subject": "coder" },
-      "transitionIn": "zoom"
+      "code": "// ai_agent: building entire system…\nimport express from 'express'\nimport jwt from 'jsonwebtoken'\n\nconst app = express()\n\napp.post('/auth/login', async (req, res) => {\n  const { user, pass } = req.body\n  if (!user || !pass) return res.status(400)\n  const token = signAccess(user)\n  const refresh = signRefresh(user)\n  return res.json({ token, refresh })\n})\n\nfunction signAccess(u) {\n  return jwt.sign({ u }, SECRET, '15m')\n}\n\napp.listen(3000, () => log('online'))",
+      "transitionIn": "fade"
     },
     {
       "id": "s2",
-      "layout": "gfx",
+      "layout": "statement",
       "heading": "Học code để làm gì?",
       "emphasis": ["để làm gì"],
-      "narration": "Bạn ngồi nhìn màn hình và tự hỏi: ủa, vậy mình học code để làm gì?",
-      "media": { "kind": "gfx3d", "src": "particles", "subject": "coder" },
-      "transitionIn": "fade"
+      "narration": "Bạn ngồi nhìn màn hình và tự hỏi: ủa, vậy mình học code để làm gì?",      "transitionIn": "fade"
     },
     {
       "id": "s3",
@@ -76,11 +72,9 @@
     },
     {
       "id": "s6",
-      "layout": "gfx",
+      "layout": "statement",
       "heading": "Thủ phạm là… chính mình",
-      "narration": "Cảm giác lúc đó y như thám tử phá án ba ngày, để rồi phát hiện thủ phạm chính là mình.",
-      "media": { "kind": "gfx3d", "src": "particles", "subject": "coder" },
-      "transitionIn": "fade"
+      "narration": "Cảm giác lúc đó y như thám tử phá án ba ngày, để rồi phát hiện thủ phạm chính là mình.",      "transitionIn": "fade"
     },
     {
       "id": "s7",
@@ -107,22 +101,18 @@
     },
     {
       "id": "s9",
-      "layout": "gfx",
+      "layout": "statement",
       "heading": "Khoan… chạy kiểu gì?",
       "emphasis": ["chạy kiểu gì"],
-      "narration": "Nhưng mười giây sau: khoan đã. Cái đống code này chạy kiểu gì vậy?",
-      "media": { "kind": "gfx3d", "src": "particles", "subject": "coder" },
-      "transitionIn": "blur"
+      "narration": "Nhưng mười giây sau: khoan đã. Cái đống code này chạy kiểu gì vậy?",      "transitionIn": "blur"
     },
     {
       "id": "s10",
-      "layout": "gfx",
+      "layout": "statement",
       "heading": "Vấn đề lớn nhất",
       "emphasis": ["không hiểu code"],
       "narration": "Đây mới là vấn đề lớn nhất của người mới thời AI. Không phải AI quá giỏi, mà là bạn không hiểu code nhưng vẫn dùng AI để code.",
-      "chips": ["@warn Copy mà không hiểu", "@brain Thiếu nền tảng"],
-      "media": { "kind": "gfx3d", "src": "network", "subject": "brain" },
-      "transitionIn": "zoom"
+      "chips": ["@warn Copy mà không hiểu", "@brain Thiếu nền tảng"],      "transitionIn": "zoom"
     },
     {
       "id": "s11",
@@ -149,12 +139,10 @@
     },
     {
       "id": "s13",
-      "layout": "gfx",
+      "layout": "statement",
       "heading": "Bug biết sinh sản 😱",
       "emphasis": ["sinh sản"],
-      "narration": "Lúc này bạn mới thấm cảm giác làm nghề: không sợ bug. Chỉ sợ bug biết sinh sản.",
-      "media": { "kind": "gfx3d", "src": "network", "subject": "brain" },
-      "transitionIn": "zoom"
+      "narration": "Lúc này bạn mới thấm cảm giác làm nghề: không sợ bug. Chỉ sợ bug biết sinh sản.",      "transitionIn": "zoom"
     },
     {
       "id": "s14",
@@ -170,13 +158,11 @@
     },
     {
       "id": "s15",
-      "layout": "gfx",
+      "layout": "statement",
       "heading": "Ai thắng thời AI?",
       "emphasis": ["biết mình làm gì"],
       "narration": "Người thắng không phải người code nhanh nhất, mà là người biết mình đang làm gì và biết cách bắt AI làm cùng mình.",
-      "chips": ["@target Hiểu bản chất", "@zap Dùng AI đúng cách"],
-      "media": { "kind": "gfx3d", "src": "network", "subject": "coder" },
-      "transitionIn": "zoom"
+      "chips": ["@target Hiểu bản chất", "@zap Dùng AI đúng cách"],      "transitionIn": "zoom"
     },
     {
       "id": "s16",
@@ -191,12 +177,10 @@
     },
     {
       "id": "s17",
-      "layout": "gfx",
+      "layout": "statement",
       "heading": "Ib nhận lộ trình miễn phí 🚀",
       "emphasis": ["miễn phí"],
-      "narration": "Nếu muốn học lập trình mà chưa biết bắt đầu từ đâu, nhắn tin cho mình. Mình gửi bạn lộ trình học miễn phí.",
-      "media": { "kind": "gfx3d", "src": "particles", "subject": "rocket" },
-      "transitionIn": "zoom"
+      "narration": "Nếu muốn học lập trình mà chưa biết bắt đầu từ đâu, nhắn tin cho mình. Mình gửi bạn lộ trình học miễn phí.",      "transitionIn": "zoom"
     }
   ]
 }

@@ -137,23 +137,38 @@ export type VisualStyle = VideoSpec["meta"]["visualStyle"];
  * giữ nguyên giữa mọi lượt gọi, phần thay đổi theo lựa chọn thì để ở phần thay đổi.
  */
 function styleBrief(style: VisualStyle, fromArticle = false): string {
-  if (style === "photo") {
+  if (style === "photo" || style === "article") {
     const lines = [
-      '## Kiểu hình ảnh: CHỈ ẢNH — đặt `meta.visualStyle: "photo"`',
+      style === "article"
+        ? '## Kiểu hình ảnh: BÀI BÁO — đặt `meta.visualStyle: "article"`'
+        : '## Kiểu hình ảnh: CHỈ ẢNH — đặt `meta.visualStyle: "photo"`',
       "",
       "Trên màn hình CHỈ CÓ ẢNH GỐC + PHỤ ĐỀ LỜI KỂ. Không tiêu đề chữ to, không gạch đầu dòng,",
       "không thẻ, không đồ hoạ. Video là một CÂU CHUYỆN được KỂ qua giọng đọc, mỗi cảnh một ảnh.",
       "Luật:",
       fromArticle
-        ? '- MỌI cảnh đều có `media: { "kind": "image", "src": "<mã ảnh của bài>" }`.'
+        ? '- MỌI cảnh đều có `media: { "kind": "image", "src": "<mã ảnh của bài>" }` — hoặc' +
+          ' `{ "kind": "video", "src": "<mã video của bài>" }` nếu bài có video (xem danh sách bên dưới).'
         : '- MỌI cảnh đều có `media: { "kind": "pexels", "src": "<từ khoá tiếng Anh>" }`.',
-      "- KHÔNG dùng `pexels-video` hay `video`.",
+      fromArticle
+        ? "- KHÔNG dùng `pexels`, `pexels-video` hay `generate`: chỉ dùng ảnh/video CỦA BÀI."
+        : "- KHÔNG dùng `pexels-video` hay `video`.",
       "- Layout: cảnh đầu `hook`, cảnh cuối `cta`, các cảnh giữa `image`. KHÔNG dùng layout khác.",
       "- KHÔNG có `bullets`, `chips`, `icon`, `graphic`, `code`. Không cần `heading` (không hiển thị).",
       "- TOÀN BỘ nội dung nằm trong `narration`: văn KỂ CHUYỆN liền mạch, cảnh sau nối tiếp cảnh",
       "  trước như một người đang kể — không liệt kê kiểu \"thứ nhất, thứ hai\". Mỗi cảnh 1–3 câu.",
       "- Không cần `emphasis`: nó chỉ tô màu TIÊU ĐỀ, mà chế độ này không có tiêu đề.",
     ];
+    if (style === "article") {
+      lines.push(
+        "",
+        "Chương trình TỰ vẽ thêm lớp giao diện báo lên hình: măng sét tên báo + ngày đăng,",
+        "tiêu đề bài ở cảnh mở, chú thích ảnh ở các cảnh giữa, khối nguồn ở cảnh kết. Bạn",
+        "KHÔNG phải viết những thứ đó vào spec và cũng không được viết lại chúng trong",
+        "`narration` — nói lại y nguyên tiêu đề bài ở cảnh mở là người xem nghe một đằng,",
+        "đọc một nẻo cùng một câu.",
+      );
+    }
     if (!fromArticle) {
       lines.push(
         '- Từ khoá ảnh 2–5 từ tiếng Anh, CỤ THỂ, đúng ý cảnh đó (vd "comedian on stage spotlight").',
@@ -176,8 +191,21 @@ function styleBrief(style: VisualStyle, fromArticle = false): string {
   ].join("\n");
 }
 
-/** Bài báo dài cỡ nào cũng chỉ gửi chừng này ký tự — đủ cho 6–12 cảnh, không đốt token vô ích. */
-const MAX_ARTICLE_CHARS = 14000;
+/**
+ * Bài báo dài cỡ nào cũng chỉ gửi chừng này ký tự. Đủ cho một video 2–3 phút kể gần hết
+ * bài; bài dài hơn thế là bài nhiều kỳ, cắt bớt vẫn còn thừa nội dung.
+ */
+const MAX_ARTICLE_CHARS = 22000;
+
+/**
+ * Độ dài mong muốn của video TỪ BÀI BÁO.
+ *
+ * Con số này phải ghi THẲNG vào lời nhắn, và phải nói rõ là nó GHI ĐÈ, vì system prompt
+ * (SKILL.md) dặn "tổng 30–45 giây, khoảng 7 cảnh" cho video ngắn thường. Không ghi đè thì
+ * AI nghe theo system prompt và tóm tắt cả bài báo xuống còn ~500 ký tự — đó chính là lý
+ * do video từ bài báo trước đây chỉ dài ~35 giây và bỏ mất hai phần ba nội dung bài.
+ */
+const ARTICLE_SCENES = { min: 18, max: 30 } as const;
 
 /**
  * Chỉ dẫn khi nguồn là BÀI BÁO: nội dung lấy từ bài, ảnh lấy từ bài.
@@ -187,14 +215,14 @@ const MAX_ARTICLE_CHARS = 14000;
  * thước ảnh — hai thứ AI không nhìn thấy nên không nên để nó quyết.
  */
 function articleBrief(src: ArticleSource): string {
-  const { article, images } = src;
+  const { article, images, videos } = src;
   let body = article.paragraphs.join("\n\n");
   if (body.length > MAX_ARTICLE_CHARS) body = body.slice(0, MAX_ARTICLE_CHARS) + "\n\n[…bài còn tiếp, đã lược bớt]";
   const outlet = article.siteName;
   const credit = article.source ? `${outlet} (theo ${article.source})` : outlet;
 
   return [
-    "## Nguồn: MỘT BÀI BÁO — dựng video tóm tắt đúng bài này",
+    "## Nguồn: MỘT BÀI BÁO — dựng video KỂ LẠI bài này",
     "",
     `Link: ${article.url}`,
     `Tiêu đề: ${article.title}`,
@@ -204,22 +232,55 @@ function articleBrief(src: ArticleSource): string {
     body,
     '"""',
     "",
-    "### Ảnh của bài (CHỈ được dùng những ảnh này)",
+    `### Ảnh của bài — ${images.length} tấm (CHỈ được dùng những ảnh này)`,
     "",
     ...images.map((im) => {
       const shape = im.height / im.width >= 1.25 ? "dọc" : im.width / im.height >= 1.25 ? "ngang" : "vuông";
       return `- ${im.id} (${shape}): ${im.caption || "(không có chú thích)"}`;
     }),
     "",
+    ...(videos.length
+      ? [
+          `### Video của bài — ${videos.length} clip`,
+          "",
+          ...videos.map((v) => `- ${v.id} (${v.durationSec.toFixed(0)} giây): ${v.caption || "(không có chú thích)"}`),
+          "",
+          "Dùng y hệt ảnh: `media: { \"kind\": \"video\", \"src\": \"video-N\" }`. Clip chạy TOÀN MÀN, tự lặp",
+          "nếu cảnh dài hơn clip, và bị TẮT TIẾNG (giọng đọc của bạn mới là lời kể).",
+          "ĐẶT VIDEO VÀO ĐÚNG ĐOẠN BÀI NÓI VỀ NÓ — đây là phần động nhất của bài, để nhầm chỗ",
+          "là phí. Mỗi clip dùng 1–2 cảnh; các cảnh còn lại dùng ảnh.",
+          "",
+        ]
+      : []),
     "Luật cho video từ bài báo:",
-    "- Kể lại NỘI DUNG CHÍNH của bài theo đúng trình tự hợp lý: mở bằng điều gây tò mò nhất, sau đó",
-    "  diễn biến, chi tiết đáng chú ý, cuối cùng là kết/ý nghĩa. 6–12 cảnh tuỳ độ dài bài.",
+    "",
+    `### ĐỘ DÀI — GHI ĐÈ luật chung ở phần trên`,
+    "",
+    `Phần luật chung nói video dài **30–45 giây, khoảng 7 cảnh**. Câu đó KHÔNG áp dụng ở đây.`,
+    `Video từ bài báo phải có **${ARTICLE_SCENES.min}–${ARTICLE_SCENES.max} cảnh**, tổng **2–3 phút**.`,
+    "",
+    "- Đây là video KỂ LẠI CẢ BÀI, không phải video tóm tắt. Người xem xem xong phải biết",
+    "  mọi thứ mà người đọc bài báo biết: đủ diễn biến, đủ chi tiết, đủ con số, đủ lời trích.",
+    "- Đi TUẦN TỰ theo bài từ đầu đến cuối. Mỗi đoạn/ý đáng kể của bài được một cảnh riêng.",
+    "  Chỉ bỏ qua phần quảng cáo, link bài liên quan, hoặc câu lặp lại ý đã kể.",
+    "- Cảnh mở vẫn phải GIẬT (điều gây tò mò nhất của bài), nhưng sau đó thì kể đủ, đừng vội",
+    "  chốt. Cảnh kết là ý nghĩa/kết cục + nguồn.",
+    "- Mỗi cảnh 25–50 từ (khoảng 2–3 câu). Dưới 20 từ là cảnh trôi quá nhanh, quá 60 từ là lỗi.",
+    "- Đừng gộp nhiều sự việc vào một cảnh cho ngắn bớt — thà nhiều cảnh, mỗi cảnh một ý.",
+    "",
+    "### Nội dung",
+    "",
+    "- Kể theo đúng trình tự của bài: mở bằng điều gây tò mò nhất, sau đó diễn biến, chi tiết",
+    "  đáng chú ý, cuối cùng là kết/ý nghĩa.",
     "- CHỈ dùng thông tin CÓ TRONG BÀI. Không thêm số liệu, tên, ngày tháng, lời trích dẫn nào bài",
     "  không nói. Tên riêng, con số giữ ĐÚNG như bài.",
     "- Viết lại bằng lời văn kể chuyện của bạn, KHÔNG chép nguyên câu dài của bài.",
     '- Ảnh: `media: { "kind": "image", "src": "anh-N" }` — ghi đúng MÃ ảnh ở danh sách trên. Không',
-    "  dùng pexels / pexels-video / generate. Chọn ảnh có chú thích khớp nội dung cảnh. Ưu tiên",
-    "  mỗi cảnh một ảnh khác nhau; bài ít ảnh hơn số cảnh thì mới dùng lại.",
+    "  dùng pexels / pexels-video / generate. Chọn ảnh có chú thích khớp nội dung cảnh.",
+    "- Video dài hơn số ảnh của bài nên PHẢI dùng lại ảnh — điều đó bình thường. Chỉ có MỘT luật:",
+    "  KHÔNG dùng cùng một ảnh cho hai cảnh LIỀN NHAU (màn hình sẽ đứng im suốt hai cảnh, người",
+    "  xem tưởng video bị treo). Xoay vòng đều qua các ảnh, và ảnh nào khớp nội dung cảnh nhất",
+    "  thì ưu tiên ảnh đó.",
     `- Cảnh cuối (cta) nhắc nguồn trong narration, vd "Theo ${credit}."`,
     `- meta.title: tiêu đề ngắn gọn cho video, dựa trên tiêu đề bài.`,
   ]
@@ -240,7 +301,9 @@ function resolveArticleImages(parsed: unknown, src: ArticleSource): string[] {
   const problems: string[] = [];
   const byId = new Map(src.images.map((im) => [im.id, im]));
   const byPath = new Map(src.images.map((im) => [im.src, im]));
-  const ids = src.images.map((im) => im.id).join(", ");
+  const vidById = new Map(src.videos.map((v) => [v.id, v]));
+  const vidByPath = new Map(src.videos.map((v) => [v.src, v]));
+  const ids = [...src.images.map((im) => im.id), ...src.videos.map((v) => v.id)].join(", ");
   const scenes = (parsed as { scenes?: unknown })?.scenes;
   if (!Array.isArray(scenes)) return problems;
 
@@ -248,9 +311,26 @@ function resolveArticleImages(parsed: unknown, src: ArticleSource): string[] {
     const media = scene?.media as Record<string, unknown> | undefined;
     if (!media || typeof media !== "object") continue;
     const sid = String(scene.id ?? "?");
-    if (media.kind === "pexels" || media.kind === "generate" || media.kind === "image") {
-      const key = String(media.src ?? "").trim().replace(/\.(jpe?g|png|webp)$/i, "");
-      const im = byId.get(key) ?? byPath.get(String(media.src ?? "").trim());
+    const raw = String(media.src ?? "").trim();
+
+    // Mã VIDEO ("video-1") — nhận ra theo MÃ chứ không theo `kind` AI ghi: nó hay ghi
+    // kind "image" cho một mã video và ngược lại, mà thứ quyết định cách render là file
+    // thật, không phải chữ nó gõ.
+    const vid = vidById.get(raw.replace(/\.(mp4|mov|webm)$/i, "")) ?? vidByPath.get(raw);
+    if (vid) {
+      media.kind = "video";
+      media.src = vid.src;
+      media.durationSec = vid.durationSec;
+      media.fit = fitFor(vid.width, vid.height);
+      media.focus = "center";
+      if (vid.caption.trim()) media.caption = vid.caption.trim();
+      else delete media.caption;
+      continue;
+    }
+
+    if (media.kind === "pexels" || media.kind === "generate" || media.kind === "image" || media.kind === "video") {
+      const key = raw.replace(/\.(jpe?g|png|webp)$/i, "");
+      const im = byId.get(key) ?? byPath.get(raw);
       if (!im) {
         problems.push(`scene "${sid}": ảnh "${media.src}" không có trong bài — chỉ dùng media { "kind": "image", "src": "<mã>" } với mã trong: ${ids}.`);
         continue;
@@ -259,9 +339,36 @@ function resolveArticleImages(parsed: unknown, src: ArticleSource): string[] {
       media.src = im.src;
       media.fit = fitFor(im.width, im.height);
       media.focus = media.fit === "cover" ? "top" : "center";
+      // Chú thích đi kèm ẢNH, không đi kèm cảnh: AI chọn ảnh nào thì cảnh đó nhận đúng
+      // chú thích của ảnh đó. Để AI tự gõ lại chú thích là mở đường cho nó viết sai tên
+      // người trong ảnh — thứ tệ nhất có thể sai trong một video dẫn lại báo.
+      if (im.caption.trim()) media.caption = im.caption.trim();
+      else delete media.caption;
     }
   }
   return problems;
+}
+
+/**
+ * Siêu dữ liệu bài báo cho `meta.article` — thứ renderer vẽ thành măng sét, khối tiêu đề
+ * và dòng nguồn.
+ *
+ * Ngày đăng đổi từ ISO sang dd/mm/yyyy ngay tại đây: renderer chỉ nên vẽ chữ đã sẵn sàng,
+ * còn định dạng ngày là chuyện của locale, thuộc về pipeline.
+ */
+export function articleMeta(src: ArticleSource): Record<string, string> {
+  const a = src.article;
+  const d = a.publishedAt ? new Date(a.publishedAt) : null;
+  const day =
+    d && !Number.isNaN(d.getTime())
+      ? `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`
+      : "";
+  const out: Record<string, string> = { siteName: a.siteName, title: a.title };
+  if (a.sapo.trim()) out.sapo = a.sapo.trim();
+  if (a.source) out.source = a.source;
+  if (day) out.publishedAt = day;
+  if (a.url) out.url = a.url;
+  return out;
 }
 
 /** Một lượt kiểm: Zod trước (kiểu), lint sau (cách dùng). Trả về danh sách vấn đề. */
@@ -276,7 +383,15 @@ function check(jsonText: string, style: VisualStyle, article?: ArticleSource): {
   // bắt nó tốn một lượt chỉ để sửa đúng một trường. Lint bên dưới vẫn kiểm NỘI DUNG có
   // khớp kiểu đã chọn không (vd chế độ photo mà cảnh thiếu ảnh).
   const meta = (parsed as { meta?: unknown } | null)?.meta;
-  if (meta && typeof meta === "object") (meta as Record<string, unknown>).visualStyle = style;
+  if (meta && typeof meta === "object") {
+    (meta as Record<string, unknown>).visualStyle = style;
+    // Siêu dữ liệu bài báo do CHƯƠNG TRÌNH điền, không hỏi AI: tên báo, tiêu đề, ngày
+    // đăng, link — AI chép lại là sai chính tả tên báo hoặc bịa ngày. Chỉ điền khi kiểu
+    // hình ảnh là "article", vì chỉ kiểu đó mới vẽ chúng lên hình.
+    if (article && style === "article") {
+      (meta as Record<string, unknown>).article = articleMeta(article);
+    }
+  }
   const refProblems = article ? resolveArticleImages(parsed, article) : [];
   const res = videoSpecSchema.safeParse(parsed);
   if (!res.success) {

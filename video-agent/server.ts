@@ -257,8 +257,9 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "POST" && pathname === "/api/generate") {
       if (generating) return sendJson(res, 429, { error: "Đang viết kịch bản khác, đợi chút." });
       const body = JSON.parse(await readBody(req)) as { brief?: string; llm?: unknown; visualStyle?: string };
-      // Chỉ nhận hai giá trị đã biết; gửi lạ thì về mặc định chứ không để AI nhận rác.
-      const visualStyle = body.visualStyle === "photo" ? "photo" : "mixed";
+      // Chỉ nhận các giá trị đã biết; gửi lạ thì về mặc định chứ không để AI nhận rác.
+      const visualStyle =
+        body.visualStyle === "photo" ? "photo" : body.visualStyle === "article" ? "article" : "mixed";
       const brief = body.brief?.trim();
       if (!brief) return sendJson(res, 400, { error: "Thiếu nội dung yêu cầu." });
       let llm;
@@ -286,6 +287,7 @@ const server = http.createServer(async (req, res) => {
             siteName: article.article.siteName,
             url: article.article.url,
             images: article.images.length,
+            videos: article.videos.length,
           },
         });
       } catch (err) {

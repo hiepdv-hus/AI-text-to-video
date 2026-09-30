@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@react-three/fiber": "9.8.1",
+    "@react-three/postprocessing": "3.1.3",
     "@remotion/bundler": "4.0.515",
     "@remotion/captions": "4.0.515",
     "@remotion/cli": "4.0.515",
@@ -27,6 +28,7 @@
     "@remotion/zod-types": "4.0.515",
     "lucide-react": "^1.40.0",
     "msedge-tts": "^2.0.7",
+    "postprocessing": "6.39.5",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "remotion": "4.0.515",

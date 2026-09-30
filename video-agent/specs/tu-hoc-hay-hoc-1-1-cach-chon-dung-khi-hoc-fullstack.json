@@ -1,0 +1,277 @@
+{
+  "meta": {
+    "title": "Tự học hay học 1/1? Cách chọn đúng khi học Fullstack",
+    "template": "CodeExplainer",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "claude-cream",
+    "visualStyle": "mixed"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Bạn có từng rơi vào tình trạng hôm nay học HTML, ngày mai học JavaScript, vài hôm sau lại xem React, rồi thấy AI hot lại muốn học AI?",
+      "layout": "hook",
+      "heading": "HỌC IT MÃI NHƯNG VẪN KHÔNG BIẾT LÀM APP?",
+      "media": {
+        "kind": "pexels-video",
+        "src": "frustrated developer night keyboard",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "KHÔNG BIẾT LÀM APP"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.5
+    },
+    {
+      "id": "s2",
+      "narration": "Sáu tháng trôi qua, nhưng khi tự mở một project mới thì lại không biết bắt đầu từ đâu.",
+      "layout": "image",
+      "heading": "6 THÁNG SAU VẪN Ở VẠCH XUẤT PHÁT",
+      "media": {
+        "kind": "pexels",
+        "src": "tired programmer laptop late night",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "transitionIn": "blur",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s3",
+      "narration": "Thực ra vấn đề không hẳn nằm ở việc bạn lười. Rất nhiều người học lập trình bị mắc ở một điểm: không có một lộ trình rõ ràng và không có người chỉ ra chính xác mình đang sai ở đâu.",
+      "layout": "graphic",
+      "heading": "VẤN ĐỀ KHÔNG PHẢI BẠN KHÔNG THÔNG MINH",
+      "transitionIn": "blur",
+      "tailPadSec": 0.5,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Người mới thường gặp 3 vấn đề",
+        "labels": [
+          "Không biết học gì trước",
+          "Code lỗi nhưng không biết sửa từ đâu",
+          "Học rất nhiều nhưng thiếu project hoàn chỉnh"
+        ]
+      }
+    },
+    {
+      "id": "s4",
+      "narration": "Và lúc này nhiều bạn sẽ hỏi: vậy có nhất thiết phải học kèm một kèm một không? Câu trả lời là không.",
+      "layout": "image",
+      "heading": "TỰ HỌC CÓ ĐƯỢC KHÔNG?",
+      "media": {
+        "kind": "pexels",
+        "src": "student studying programming books laptop",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s5",
+      "narration": "Nếu bạn có khả năng tự tìm tài liệu, tự debug, có tính kỷ luật và biết mình cần học gì thì tự học hoàn toàn có thể đi rất xa.",
+      "layout": "graphic",
+      "heading": "TỰ HỌC HỢP VỚI AI?",
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.5,
+      "graphic": {
+        "kind": "checklist",
+        "subtitle": "Tự học phù hợp nếu bạn có",
+        "labels": [
+          "Khả năng tự tìm tài liệu",
+          "Kỷ luật học tập tốt",
+          "Biết tự debug khi gặp lỗi",
+          "Có roadmap rõ ràng"
+        ]
+      }
+    },
+    {
+      "id": "s6",
+      "narration": "Nhưng nếu bạn mới bắt đầu, đây thường là đoạn khó nhất. Một lỗi mất hai tiếng, bạn không biết mình sai ở HTML, JavaScript hay logic. Xem thêm mười video YouTube thì lại có mười cách giải thích khác nhau.",
+      "layout": "image",
+      "heading": "MỘT LỖI — HAI TIẾNG KHÔNG RA",
+      "media": {
+        "kind": "pexels",
+        "src": "confused developer looking at computer screen",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "HAI TIẾNG"
+      ],
+      "transitionIn": "blur",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s7",
+      "narration": "Và cuối cùng, thứ bạn thiếu không phải là tài liệu, mà là người nhìn vào bài của bạn và nói: chỗ này đang sai, sửa như thế này.",
+      "layout": "code",
+      "heading": "ĐÂY LÀ LÚC HỌC 1/1 CÓ GIÁ TRỊ",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.5,
+      "code": "const student = {\n  problem: 'Code mãi không chạy',\n  question: 'Sai ở đâu?',\n  solution: 'Có người review trực tiếp'\n};",
+      "codeLang": "javascript",
+      "codeTitle": "learning.js",
+      "codeHighlight": [
+        2,
+        3,
+        4
+      ],
+      "output": "Tìm đúng lỗi → hiểu bản chất → tự sửa được"
+    },
+    {
+      "id": "s8",
+      "narration": "Học một kèm một không phải là thầy làm code thay bạn. Mục tiêu là rút ngắn thời gian mò đường.",
+      "layout": "image",
+      "heading": "1/1 KHÔNG PHẢI HỌC HỘ",
+      "media": {
+        "kind": "pexels",
+        "src": "mentor teaching student computer together",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "HỌC HỘ"
+      ],
+      "transitionIn": "slide-left",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s9",
+      "narration": "Bạn học một kiến thức, tự code, gặp lỗi thì được phân tích lỗi, sau đó tự sửa và tiếp tục. Cứ như vậy, kiến thức đi cùng với project thật thay vì chỉ nằm trong video.",
+      "layout": "graphic",
+      "heading": "MỘT BUỔI HỌC DIỄN RA THẾ NÀO?",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.5,
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Một buổi học có thể đi theo quy trình",
+        "labels": [
+          "Học kiến thức cần thiết",
+          "Tự code bài tập / project",
+          "Review và tìm lỗi",
+          "Hiểu cách sửa và tự làm lại"
+        ]
+      }
+    },
+    {
+      "id": "s10",
+      "narration": "Ví dụ với Fullstack Web, thay vì học mỗi thứ một ít, bạn có thể đi theo một đường rõ ràng: tư duy lập trình, HTML CSS, JavaScript, ReactJS, Node.js, Database, API, Authentication, rồi cuối cùng là một project hoàn chỉnh có thể đưa lên web và dùng làm portfolio.",
+      "layout": "graphic",
+      "heading": "HỌC THEO MỘT CON ĐƯỜNG RÕ RÀNG",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.5,
+      "graphic": {
+        "kind": "steps",
+        "subtitle": "Từ số 0 đến một sản phẩm hoàn chỉnh",
+        "labels": [
+          "Tư duy → HTML/CSS → JavaScript",
+          "ReactJS → Frontend",
+          "Node.js → API → Database",
+          "Auth → Deploy → Project thực tế"
+        ]
+      }
+    },
+    {
+      "id": "s11",
+      "narration": "Điểm quan trọng nhất là sau mỗi giai đoạn, bạn phải làm được một thứ gì đó. Không phải học xong một khóa rồi mới bắt đầu làm project. Học đến đâu, code đến đó. Sai ở đâu, sửa ở đó.",
+      "layout": "graphic",
+      "heading": "HỌC ĐỂ LÀM, KHÔNG PHẢI HỌC ĐỂ NHỚ",
+      "transitionIn": "zoom",
+      "tailPadSec": 0.5,
+      "graphic": {
+        "kind": "feature-cards",
+        "subtitle": "Mục tiêu cuối cùng",
+        "labels": [
+          "Hiểu bản chất",
+          "Tự viết code",
+          "Tự debug",
+          "Có project thực tế"
+        ]
+      }
+    },
+    {
+      "id": "s12",
+      "narration": "Và khi kết thúc, bạn có một sản phẩm thật thay vì một danh sách công nghệ trong CV.",
+      "layout": "image",
+      "heading": "KẾT THÚC BẰNG MỘT SẢN PHẨM THẬT",
+      "media": {
+        "kind": "pexels",
+        "src": "web developer working on laptop project",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "SẢN PHẨM THẬT"
+      ],
+      "transitionIn": "glow",
+      "tailPadSec": 0.4
+    },
+    {
+      "id": "s13",
+      "narration": "Nếu bạn đang phân vân giữa tự học và học một kèm một, hãy thử tự hỏi một câu: mình đang thiếu tài liệu, hay mình đang thiếu người định hướng và review code? Nếu chỉ thiếu tài liệu, tự học là đủ. Nhưng nếu bạn đã học mãi mà vẫn không biết mình sai ở đâu, học 1/1 có thể giúp bạn đi nhanh và có định hướng hơn.",
+      "layout": "graphic",
+      "heading": "TỰ HỌC HAY 1/1?",
+      "transitionIn": "blur",
+      "tailPadSec": 0.5,
+      "graphic": {
+        "kind": "checklist",
+        "subtitle": "Hãy xác định đúng vấn đề của bạn",
+        "labels": [
+          "Thiếu tài liệu → Tự học",
+          "Thiếu roadmap → Cần định hướng",
+          "Hay bị kẹt khi code → Cần review",
+          "Muốn làm project bài bản → Có người đồng hành"
+        ]
+      }
+    },
+    {
+      "id": "s14",
+      "narration": "Mình hiện có nhận học Fullstack Web một kèm một, tập trung vào việc hiểu bản chất, sửa code trực tiếp và xây project từ đầu đến lúc deploy. Nếu bạn muốn biết lộ trình có phù hợp với mình hay không, cứ Inbox cho mình chữ LỘ TRÌNH. Mình gửi thông tin và trao đổi trước, phù hợp thì học.",
+      "layout": "cta",
+      "heading": "MUỐN HỌC FULLSTACK 1/1?",
+      "chips": [
+        "@star Fullstack Web 1/1",
+        "Roadmap rõ ràng",
+        "Học bằng project thực tế"
+      ],
+      "media": {
+        "kind": "pexels-video",
+        "src": "developer coding modern office sunset",
+        "fit": "cover",
+        "focus": "center"
+      },
+      "emphasis": [
+        "Inbox chữ LỘ TRÌNH"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.5
+    }
+  ],
+  "voice": {
+    "provider": "edge",
+    "voiceId": "vi-VN-NamMinhNeural",
+    "speed": 1,
+    "pitch": -1
+  },
+  "captions": {
+    "style": "auto",
+    "position": "lower-third",
+    "maxWordsPerLine": 4,
+    "highlightColor": "#3BE8A0"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.05,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": false,
+    "volume": 0.35
+  }
+}

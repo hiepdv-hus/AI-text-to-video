@@ -278,80 +278,103 @@ const OrbitScene: React.FC<{ colors: string[]; t: number }> = ({ colors, t }) =>
  * kể" — khác hẳn nền trừu tượng. Mỗi CHỦ THỂ cần một scene riêng như thế này.
  */
 const DESK = "#2b3a45"; // màu đồ vật (bàn/laptop/ghế) — trung tính, đọc ra là nội thất
+/** Các dòng "code" phát sáng trên màn — độ rộng + thụt đầu dòng khác nhau cho giống editor. */
+const CODE_LINES: [number, number, number][] = [
+  // [y, width, indent]
+  [0.3, 0.62, -0.32], [0.18, 0.42, -0.22], [0.06, 0.5, -0.12], [-0.06, 0.34, -0.12],
+  [-0.18, 0.54, -0.22], [-0.3, 0.4, -0.32],
+];
 const CoderScene: React.FC<{ colors: string[]; t: number }> = ({ colors, t }) => {
   const body = colors[1]!;
-  const skin = colors[2]!;
-  const screen = colors[0]!;
-  const sway = Math.sin(t * 0.35) * 0.06;
-  const headBob = Math.sin(t * 2) * 0.03;
-  const hL = Math.sin(t * 9) * 0.04; // tay trái gõ
-  const hR = Math.sin(t * 9 + 1.6) * 0.04; // tay phải lệch pha
-  const flick = 0.55 + Math.sin(t * 7) * 0.08;
+  const head = "#dbe4e8";
+  const dark = "#18232c";
+  const sway = Math.sin(t * 0.3) * 0.05;
+  const headBob = Math.sin(t * 1.6) * 0.02;
+  const flick = 0.6 + Math.sin(t * 6) * 0.06;
   return (
-    <group rotation={[0, sway, 0]} position={[0, -0.3, 0]}>
-      {/* Ghế */}
-      <mesh position={[0, 0.5, -0.7]}>
-        <boxGeometry args={[1.5, 1.9, 0.18]} />
-        <meshToonMaterial color={DESK} />
+    <group rotation={[0, sway, 0]} position={[0, -0.2, 0]}>
+      {/* Mặt bàn (bo cạnh nhẹ nhờ dùng standard material, đổ bóng mềm) */}
+      <mesh position={[0, -0.42, 0.85]} castShadow>
+        <boxGeometry args={[3.6, 0.14, 1.5]} />
+        <meshStandardMaterial color={dark} roughness={0.7} metalness={0.1} />
       </mesh>
-      {/* Thân người */}
-      <mesh position={[0, 0.7, -0.05]}>
-        <boxGeometry args={[1.15, 1.4, 0.62]} />
-        <meshToonMaterial color={body} />
+
+      {/* NGƯỜI (nhìn từ trước, tối giản — đầu cân đối, có tai nghe, KHÔNG mặt hề) */}
+      {/* vai/thân */}
+      <mesh position={[0, 0.28, -0.15]}>
+        <capsuleGeometry args={[0.5, 0.5, 8, 20]} />
+        <meshStandardMaterial color={body} roughness={0.55} metalness={0.1} />
       </mesh>
-      {/* Cổ + đầu */}
-      <mesh position={[0, 1.5, -0.02]}>
-        <cylinderGeometry args={[0.16, 0.18, 0.25, 16]} />
-        <meshToonMaterial color={skin} />
+      {/* cổ */}
+      <mesh position={[0, 0.82, -0.12]}>
+        <cylinderGeometry args={[0.13, 0.15, 0.2, 16]} />
+        <meshStandardMaterial color={head} roughness={0.6} />
       </mesh>
-      <mesh position={[0, 1.78 + headBob, 0]}>
-        <sphereGeometry args={[0.42, 24, 24]} />
-        <meshToonMaterial color={skin} />
+      {/* đầu */}
+      <mesh position={[0, 1.12 + headBob, -0.1]}>
+        <sphereGeometry args={[0.36, 32, 32]} />
+        <meshStandardMaterial color={head} roughness={0.6} />
       </mesh>
-      {/* Tóc (chỏm) */}
-      <mesh position={[0, 1.95 + headBob, -0.02]}>
-        <sphereGeometry args={[0.44, 24, 24, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshToonMaterial color={DESK} />
+      {/* tóc */}
+      <mesh position={[0, 1.22 + headBob, -0.12]} rotation={[-0.15, 0, 0]}>
+        <sphereGeometry args={[0.375, 32, 32, 0, Math.PI * 2, 0, Math.PI / 1.7]} />
+        <meshStandardMaterial color={dark} roughness={0.8} />
       </mesh>
-      {/* Vai + cánh tay đưa xuống bàn phím (mỗi bên: bắp tay + cẳng tay + bàn tay gõ) */}
-      {([-1, 1] as const).map((sgn, i) => {
-        const hb = sgn < 0 ? hL : hR;
-        return (
-          <group key={i}>
-            {/* bắp tay */}
-            <mesh position={[sgn * 0.66, 0.95, 0.15]} rotation={[0.5, 0, sgn * 0.25]}>
-              <capsuleGeometry args={[0.16, 0.5, 6, 12]} />
-              <meshToonMaterial color={body} />
-            </mesh>
-            {/* cẳng tay chếch tới bàn phím */}
-            <mesh position={[sgn * 0.5, 0.5, 0.6]} rotation={[1.15, 0, sgn * 0.1]}>
-              <capsuleGeometry args={[0.13, 0.55, 6, 12]} />
-              <meshToonMaterial color={body} />
-            </mesh>
-            {/* bàn tay gõ (nhấp nhô) */}
-            <mesh position={[sgn * 0.42, 0.28 + hb, 1.0]}>
-              <boxGeometry args={[0.26, 0.12, 0.3]} />
-              <meshToonMaterial color={skin} />
-            </mesh>
-          </group>
-        );
-      })}
-      {/* Mặt bàn */}
-      <mesh position={[0, 0.12, 0.9]}>
-        <boxGeometry args={[3.4, 0.16, 1.5]} />
-        <meshToonMaterial color={DESK} />
+      {/* tai nghe: chụp hai bên + băng trên */}
+      {([-1, 1] as const).map((s) => (
+        <mesh key={s} position={[s * 0.36, 1.1 + headBob, -0.1]}>
+          <capsuleGeometry args={[0.09, 0.12, 6, 12]} />
+          <meshStandardMaterial color={dark} roughness={0.5} emissive={body} emissiveIntensity={0.25} toneMapped={false} />
+        </mesh>
+      ))}
+      <mesh position={[0, 1.42 + headBob, -0.1]} rotation={[0, 0, 0]}>
+        <torusGeometry args={[0.37, 0.035, 8, 24, Math.PI]} />
+        <meshStandardMaterial color={dark} roughness={0.5} />
       </mesh>
-      {/* Laptop: đế + màn hình phát sáng (quay về phía người → hắt sáng lên mặt) */}
-      <mesh position={[0, 0.24, 0.95]}>
-        <boxGeometry args={[1.5, 0.06, 0.95]} />
-        <meshToonMaterial color={DESK} />
+
+      {/* LAPTOP — ngôi sao: màn hình tối + dòng code phát sáng hướng về camera */}
+      {/* đế + bàn phím */}
+      <mesh position={[0, -0.3, 1.05]} rotation={[0, 0, 0]}>
+        <boxGeometry args={[1.7, 0.07, 1.0]} />
+        <meshStandardMaterial color="#20303b" roughness={0.4} metalness={0.4} />
       </mesh>
-      <mesh position={[0, 0.72, 0.5]} rotation={[-0.32, 0, 0]}>
-        <boxGeometry args={[1.5, 0.95, 0.06]} />
-        <meshStandardMaterial color={screen} emissive={screen} emissiveIntensity={flick} toneMapped={false} />
+      {/* màn hình (bezel) nghiêng về sau, mặt hướng camera */}
+      <group position={[0, 0.28, 0.62]} rotation={[-0.26, 0, 0]}>
+        <mesh>
+          <boxGeometry args={[1.72, 1.08, 0.06]} />
+          <meshStandardMaterial color="#16212a" roughness={0.35} metalness={0.5} />
+        </mesh>
+        {/* nền panel tối */}
+        <mesh position={[0, 0, 0.035]}>
+          <boxGeometry args={[1.54, 0.92, 0.02]} />
+          <meshStandardMaterial color="#0a1016" roughness={0.3} emissive={colors[0]} emissiveIntensity={0.12 * flick} toneMapped={false} />
+        </mesh>
+        {/* dòng code phát sáng */}
+        {CODE_LINES.map(([y, w, indent], i) => (
+          <mesh key={i} position={[indent + w / 2, y, 0.05]}>
+            <boxGeometry args={[w, 0.055, 0.015]} />
+            <meshStandardMaterial
+              color={i % 3 === 0 ? colors[0] : colors[1]}
+              emissive={i % 3 === 0 ? colors[0] : colors[1]}
+              emissiveIntensity={1.4 * flick}
+              toneMapped={false}
+            />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Cốc cà phê bên bàn */}
+      <mesh position={[1.35, -0.18, 1.0]}>
+        <cylinderGeometry args={[0.16, 0.14, 0.32, 20]} />
+        <meshStandardMaterial color={head} roughness={0.5} />
       </mesh>
-      {/* Quầng sáng hắt từ màn hình */}
-      <pointLight position={[0, 0.9, 1.1]} intensity={6} color={screen} distance={5} />
+      <mesh position={[1.58, -0.16, 1.0]} rotation={[0, 0, Math.PI / 2]}>
+        <torusGeometry args={[0.09, 0.03, 8, 20]} />
+        <meshStandardMaterial color={head} roughness={0.5} />
+      </mesh>
+
+      {/* Ánh sáng màn hình hắt lên mặt + không khí */}
+      <pointLight position={[0, 0.5, 1.4]} intensity={5} color={colors[0]} distance={5} />
     </group>
   );
 };
@@ -361,57 +384,64 @@ const CoderScene: React.FC<{ colors: string[]; t: number }> = ({ colors, t }) =>
  *  chân sải rộng có bàn chân, thân nhún theo bước — đọc ra ngay là đang bước đi. */
 const WalkScene: React.FC<{ colors: string[]; t: number }> = ({ colors, t }) => {
   const body = colors[1]!;
-  const skin = colors[2]!;
+  const head = "#dbe4e8";
+  const dark = "#18232c";
   const s = Math.sin(t * 3.5);
   const bob = Math.abs(Math.cos(t * 3.5)) * 0.1;
+  const limbMat = (color: string) => <meshStandardMaterial color={color} roughness={0.55} metalness={0.1} />;
   const leg = (rotZ: number, z: number, r: number, len: number) => (
     <group position={[0, 0.62, z]} rotation={[0, 0, rotZ]}>
       <mesh position={[0, -len / 2, 0]}>
-        <capsuleGeometry args={[r, len, 6, 12]} />
-        <meshToonMaterial color={body} />
+        <capsuleGeometry args={[r, len, 8, 16]} />
+        {limbMat(body)}
       </mesh>
-      <mesh position={[0.09, -len - 0.02, 0]}>
-        <boxGeometry args={[0.3, 0.13, 0.2]} />
-        <meshToonMaterial color={DESK} />
+      <mesh position={[0.1, -len - 0.02, 0]}>
+        <boxGeometry args={[0.32, 0.14, 0.2]} />
+        {limbMat(dark)}
       </mesh>
     </group>
   );
   const arm = (rotZ: number, z: number, color: string) => (
-    <group position={[0, 1.38, z]} rotation={[0, 0, rotZ]}>
+    <group position={[0, 1.36, z]} rotation={[0, 0, rotZ]}>
       <mesh position={[0, -0.34, 0]}>
-        <capsuleGeometry args={[0.1, 0.62, 6, 12]} />
-        <meshToonMaterial color={color} />
+        <capsuleGeometry args={[0.1, 0.62, 8, 16]} />
+        {limbMat(color)}
       </mesh>
     </group>
   );
   return (
     <group position={[0, -0.35 + bob, 0]} rotation={[0, 0, 0.04]}>
-      {arm(s * 0.6, -0.3, body)} {/* tay xa (sau thân) */}
+      {arm(s * 0.6, -0.3, body)} {/* tay xa */}
       {leg(-s * 0.7, -0.15, 0.15, 0.82)} {/* chân xa */}
       {leg(s * 0.7, 0.15, 0.16, 0.84)} {/* chân gần */}
+      {/* balô sau lưng — vibe "lên đường" */}
+      <mesh position={[-0.34, 1.1, 0]} rotation={[0, 0, 0.05]}>
+        <capsuleGeometry args={[0.26, 0.42, 8, 16]} />
+        {limbMat(dark)}
+      </mesh>
       {/* thân */}
-      <mesh position={[0, 1.08, 0]}>
-        <capsuleGeometry args={[0.32, 0.78, 8, 16]} />
-        <meshToonMaterial color={body} />
+      <mesh position={[0, 1.06, 0]}>
+        <capsuleGeometry args={[0.32, 0.78, 8, 20]} />
+        {limbMat(body)}
       </mesh>
-      {arm(-s * 0.6, 0.32, skin)} {/* tay GẦN — màu sáng, vung rõ trước thân */}
-      {/* đầu + mũi (+X) + tóc */}
-      <mesh position={[0, 1.9, 0]}>
-        <sphereGeometry args={[0.33, 24, 24]} />
-        <meshToonMaterial color={skin} />
+      {arm(-s * 0.6, 0.32, head)} {/* tay GẦN — sáng, vung rõ trước thân */}
+      {/* đầu + mũi (hướng đi +X) + tóc */}
+      <mesh position={[0, 1.88, 0]}>
+        <sphereGeometry args={[0.33, 32, 32]} />
+        {limbMat(head)}
       </mesh>
-      <mesh position={[0.28, 1.88, 0]}>
-        <coneGeometry args={[0.07, 0.15, 12]} />
-        <meshToonMaterial color={skin} />
+      <mesh position={[0.29, 1.86, 0]}>
+        <coneGeometry args={[0.06, 0.14, 12]} />
+        {limbMat(head)}
       </mesh>
-      <mesh position={[-0.02, 2.05, 0]} rotation={[0, 0, -0.15]}>
-        <sphereGeometry args={[0.35, 20, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshToonMaterial color={DESK} />
+      <mesh position={[-0.04, 2.02, 0]} rotation={[0, 0, -0.2]}>
+        <sphereGeometry args={[0.35, 28, 28, 0, Math.PI * 2, 0, Math.PI / 1.8]} />
+        {limbMat(dark)}
       </mesh>
       {/* mặt đất */}
       <mesh position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[12, 5]} />
-        <meshBasicMaterial color={colors[0]} transparent opacity={0.06} />
+        <meshBasicMaterial color={colors[0]} transparent opacity={0.07} />
       </mesh>
     </group>
   );
@@ -737,7 +767,13 @@ export const Gfx3dBackdrop: React.FC<{ palette: Palette; variant?: string; subje
   const colors = [palette.accent, palette.accent2, palette.text];
   return (
     <AbsoluteFill>
-      <ThreeCanvas width={width} height={height} camera={{ position: [0, 0, 9], fov: 46 }} style={{ backgroundColor: palette.bg }}>
+      <ThreeCanvas
+        width={width}
+        height={height}
+        camera={{ position: [0, 0, 9], fov: 46 }}
+        gl={{ antialias: true }}
+        style={{ backgroundColor: palette.bg }}
+      >
         <SceneByVariant variant={variant ?? "float"} subject={subject} colors={colors} bg={palette.bg} />
       </ThreeCanvas>
     </AbsoluteFill>

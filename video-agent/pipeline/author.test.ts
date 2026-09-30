@@ -510,3 +510,49 @@ test("lint photo: tiêu đề không hiển thị ở chế độ ảnh nên kh�
   assert.ok(photoStory().every((s) => !("heading" in s)));
   assert.deepEqual(lintSpec(mkPhoto(photoStory())), []);
 });
+
+/* ---------------- Trần số cảnh: video ngắn vs video từ bài báo ---------------- */
+
+/** n cảnh hợp lệ kiểu ảnh: mở → (n-2) cảnh kể → kết. */
+const photoStoryOf = (n: number) =>
+  Array.from({ length: n }, (_, i) =>
+    photoScene(`s${i + 1}`, i === 0 ? "hook" : i === n - 1 ? "cta" : "image"),
+  );
+
+function mkArticle(scenes: Record<string, unknown>[]) {
+  return videoSpecSchema.parse({
+    meta: {
+      title: "Thử",
+      template: "StoryHook",
+      background: "claude-dark",
+      visualStyle: "article",
+      article: { siteName: "Kênh 14", title: "Nhà vườn của Beckham" },
+    },
+    voice: { provider: "edge", voiceId: "vi-VN-NamMinhNeural" },
+    captions: {},
+    scenes,
+  });
+}
+
+test("lint: video ngắn thường vẫn chặn ở 14 cảnh", () => {
+  assert.deepEqual(lintSpec(mkPhoto(photoStoryOf(14))), []);
+  assert.ok(lintSpec(mkPhoto(photoStoryOf(15))).some((x) => x.includes("tối đa 14")));
+});
+
+test("lint: video từ bài báo được kể dài — 26 cảnh vẫn hợp lệ", () => {
+  // Đây là điểm mấu chốt của kiểu "article": trần 14 cảnh ép nó tóm tắt cả bài báo
+  // xuống còn vài câu, đúng thứ làm video ra cụt lủn.
+  assert.deepEqual(lintSpec(mkArticle(photoStoryOf(26))), []);
+  assert.ok(lintSpec(mkArticle(photoStoryOf(35))).some((x) => x.includes("tối đa 34")));
+});
+
+test('lint: kiểu "article" vẫn cấm đồ hoạ/bullet như kiểu ảnh', () => {
+  const spec = mkArticle([
+    photoScene("s1", "hook"),
+    photoScene("s2", "bullet", { bullets: ["một", "hai"] }),
+    photoScene("s3", "cta"),
+  ]);
+  const p = lintSpec(spec).join("\n");
+  assert.match(p, /scene "s2".*layout "bullet"/);
+  assert.match(p, /scene "s2".*bullets/);
+});

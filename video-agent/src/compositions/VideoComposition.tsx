@@ -9,7 +9,8 @@ import { SpiderBackground } from "../components/SpiderBackground";
 import { ClaudeBackground } from "../components/ClaudeBackground";
 import { FilmGrain } from "../components/FilmGrain";
 import { ThemeContext, paletteFor } from "../theme/claude";
-import { ImageBackdropContext, coversFrame } from "../components/SceneBackdrop";
+import { VisualStyleContext, coversFrame } from "../components/SceneBackdrop";
+import { ArticleContext, NewsBar } from "../components/NewsChrome";
 
 /**
  * VideoComposition — renderer chung cho mọi template. Nền do meta.background quyết định.
@@ -50,7 +51,10 @@ export const VideoComposition: React.FC<BuiltProps> = ({
    * opacity động), nên phải tự cắt ở đây. Chỉ cắt khi lớp che đã ĐỤC HOÀN TOÀN → hình ra
    * không đổi một pixel nào.
    */
-  const imageIsBackdrop = meta.visualStyle === "photo";
+  // "photo" và "article" dùng chung một cách dựng hình: ảnh gốc phủ kín khung. Khác nhau
+  // ở chỗ "article" còn phủ thêm lớp giao diện báo (măng sét, tiêu đề, nguồn) lên trên.
+  const imageIsBackdrop = meta.visualStyle === "photo" || meta.visualStyle === "article";
+  const newsChrome = meta.visualStyle === "article" ? meta.article : undefined;
   const backdropHidden = React.useMemo(
     () =>
       scenes.some(
@@ -64,7 +68,8 @@ export const VideoComposition: React.FC<BuiltProps> = ({
 
   return (
     <ThemeContext.Provider value={palette}>
-      <ImageBackdropContext.Provider value={imageIsBackdrop}>
+      <VisualStyleContext.Provider value={meta.visualStyle}>
+        <ArticleContext.Provider value={newsChrome}>
         <AbsoluteFill style={{ backgroundColor: palette.bg }}>
           {/* Backdrop tuỳ chọn — presentation (card/chữ) luôn theo style Claude bên trên.
               Kiểu "Chỉ ảnh" KHÔNG BAO GIỜ vẽ backdrop chung (mưa nhị phân, quầng sáng…):
@@ -127,8 +132,13 @@ export const VideoComposition: React.FC<BuiltProps> = ({
               loopVolumeCurveBehavior="extend"
             />
           )}
+          {/* Măng sét + vạch tiến trình kiểu bản tin. Vẽ SAU các Sequence nên nó nằm trên
+              ảnh, và vẽ ở ĐÂY (không phải trong SceneWrapper) vì `progress` là tiến độ của
+              cả video — trong Sequence thì frame đã đếm lại từ 0 cho mỗi cảnh. */}
+          {newsChrome && <NewsBar article={newsChrome} height={meta.height} progress={progress} />}
         </AbsoluteFill>
-      </ImageBackdropContext.Provider>
+        </ArticleContext.Provider>
+      </VisualStyleContext.Provider>
     </ThemeContext.Provider>
   );
 };
