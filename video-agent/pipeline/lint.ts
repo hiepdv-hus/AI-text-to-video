@@ -40,7 +40,7 @@ const loose = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-export function lintSpec(spec: VideoSpec): string[] {
+export function lintSpec(spec: VideoSpec, lineart = false): string[] {
   const problems: string[] = [];
   const add = (sceneId: string, msg: string) => problems.push(`scene "${sceneId}": ${msg}`);
 
@@ -49,7 +49,7 @@ export function lintSpec(spec: VideoSpec): string[] {
    * (2–3 phút), không phải giật một ý trong 40 giây như video ngắn thường. Ép nó về 14
    * cảnh là ép AI tóm tắt bài báo xuống còn vài câu — đúng thứ làm video ra "cụt".
    */
-  const maxScenes = spec.meta.visualStyle === "article" ? 34 : 14;
+  const maxScenes = spec.meta.visualStyle === "article" ? 34 : lineart ? 20 : 14;
   if (spec.scenes.length < 4) problems.push(`Chỉ có ${spec.scenes.length} cảnh — video quá ngắn, cần ít nhất 4.`);
   if (spec.scenes.length > maxScenes)
     problems.push(`Có ${spec.scenes.length} cảnh — quá dài, tối đa ${maxScenes}.`);
@@ -175,8 +175,15 @@ export function lintSpec(spec: VideoSpec): string[] {
   }
 
   // Cảnh đầu nên là hook, cảnh cuối nên là cta — đây là khung của mọi video ngắn.
-  if (spec.scenes[0]?.layout !== "hook") problems.push('Cảnh ĐẦU TIÊN phải có layout "hook".');
-  if (spec.scenes.at(-1)?.layout !== "cta") problems.push('Cảnh CUỐI CÙNG phải có layout "cta".');
+  // Line-art không dùng hook/cta (mọi cảnh là tranh nét "draw" hoặc chữ "statement").
+  if (lineart) {
+    const edge = new Set(["draw", "statement"]);
+    if (!edge.has(spec.scenes[0]?.layout as string)) problems.push('Cảnh ĐẦU TIÊN (line-art) phải là layout "draw" hoặc "statement".');
+    if (!edge.has(spec.scenes.at(-1)?.layout as string)) problems.push('Cảnh CUỐI CÙNG (line-art) phải là layout "draw" hoặc "statement".');
+  } else {
+    if (spec.scenes[0]?.layout !== "hook") problems.push('Cảnh ĐẦU TIÊN phải có layout "hook".');
+    if (spec.scenes.at(-1)?.layout !== "cta") problems.push('Cảnh CUỐI CÙNG phải có layout "cta".');
+  }
 
   return problems;
 }

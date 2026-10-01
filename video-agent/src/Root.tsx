@@ -6,7 +6,9 @@ import { VideoComposition } from "./compositions/VideoComposition";
 import { builtPropsSchema, type BuiltProps } from "./schema";
 import { DEFAULT_PROPS } from "./compositions/defaultProps";
 import { Gfx3dBackdrop } from "./components/Gfx3dBackdrop";
-import { TECH } from "./theme/claude";
+import { TECH, CLAUDE_CREAM, ThemeContext } from "./theme/claude";
+import { DrawScene } from "./components/claude/DrawScene";
+import type { BuiltScene } from "./schema";
 
 /**
  * Root.tsx — đăng ký compositions.
@@ -62,6 +64,28 @@ export const RemotionRoot: React.FC = () => {
         width={1080}
         height={1920}
         defaultProps={{ variant: "coder" }}
+      />
+
+      {/* Preview TRANH NÉT TỰ VẼ (layout "draw"). Render:
+          pnpm exec remotion still src/index.ts Draw out/draw.png --frame=70 --props={"art":"office-exodus"}
+          pnpm exec remotion render src/index.ts Draw out/draw.mp4 */}
+      <Composition
+        id="Draw"
+        component={({ art, heading, eyebrow, chips }: { art: string; heading: string; eyebrow: string; chips: string[] }) => (
+          <ThemeContext.Provider value={CLAUDE_CREAM}>
+            <DrawScene scene={{ art, heading, eyebrow, chips } as unknown as BuiltScene} height={1920} />
+          </ThemeContext.Provider>
+        )}
+        durationInFrames={120}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={{
+          art: "office-exodus",
+          heading: "Có một điều rất lạ đang xảy ra với người trẻ",
+          eyebrow: "Một nghịch lý đang xảy ra",
+          chips: ["Tại chỗ làm · 17:00"],
+        }}
       />
 
       {TEMPLATES.map((tpl) => (

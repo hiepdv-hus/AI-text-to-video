@@ -6,181 +6,218 @@
     "height": 1920,
     "fps": 30,
     "locale": "vi-VN",
-    "background": "tech"
+    "background": "claude-cream",
+    "visualStyle": "mixed"
   },
-  "voice": {
-    "provider": "piper",
-    "voiceId": "tranthanh3870",
-    "speed": 1.5,
-    "pitch": 2,
-    "pronunciations": { "AI": "ây ai", "code": "cốt", "bug": "bấc", "debug": "đi bấc" }
-  },
-  "captions": { "style": "clean-minimal", "position": "lower-third", "maxWordsPerLine": 5, "highlightColor": "#3BE8A0" },
-  "music": { "src": "sfx/ambient-tech.wav", "volume": 0.22, "duck": 0.3 },
-  "sfx": { "enabled": true, "volume": 0.28 },
   "scenes": [
     {
       "id": "s1",
-      "layout": "hack",
-      "heading": "AI viết cả hệ thống",
       "narration": "Năm 2026 rồi. Bạn học code sáu tháng, vừa viết xong cái nút đăng nhập thì AI đã viết luôn cả hệ thống.",
-      "code": "// ai_agent: building entire system…\nimport express from 'express'\nimport jwt from 'jsonwebtoken'\n\nconst app = express()\n\napp.post('/auth/login', async (req, res) => {\n  const { user, pass } = req.body\n  if (!user || !pass) return res.status(400)\n  const token = signAccess(user)\n  const refresh = signRefresh(user)\n  return res.json({ token, refresh })\n})\n\nfunction signAccess(u) {\n  return jwt.sign({ u }, SECRET, '15m')\n}\n\napp.listen(3000, () => log('online'))",
-      "transitionIn": "fade"
+      "layout": "draw",
+      "heading": "Bạn viết xong cái nút, AI viết cả hệ thống",
+      "emphasis": ["cả hệ thống"],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "art": "ai-builds-system",
+      "eyebrow": "Năm 2026 rồi"
     },
     {
       "id": "s2",
-      "layout": "statement",
-      "heading": "Học code để làm gì?",
+      "narration": "Bạn ngồi nhìn màn hình và tự hỏi: ủa, vậy mình học code để làm gì?",
+      "layout": "draw",
+      "heading": "Vậy học code để làm gì?",
       "emphasis": ["để làm gì"],
-      "narration": "Bạn ngồi nhìn màn hình và tự hỏi: ủa, vậy mình học code để làm gì?",      "transitionIn": "fade"
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "art": "question-screen",
+      "eyebrow": "Bạn ngồi tự hỏi"
     },
     {
       "id": "s3",
-      "layout": "graphic",
+      "narration": "Bình tĩnh. AI chưa cướp việc của lập trình viên. Nó chỉ cướp những người không chịu học cách dùng AI thôi.",
+      "layout": "draw",
       "heading": "AI cướp việc của ai?",
       "emphasis": ["của ai"],
-      "narration": "Bình tĩnh. AI chưa cướp việc của lập trình viên. Nó chỉ cướp những người không chịu học cách dùng AI thôi.",
-      "graphic": {
-        "kind": "illus-compare",
-        "labels": ["@x-circle Không chịu học dùng AI", "@check Biết dùng AI để làm việc"]
-      },
-      "transitionIn": "slide-up"
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "art": "replace-vs-thrive",
+      "eyebrow": "Bình tĩnh"
     },
     {
       "id": "s4",
-      "layout": "code",
-      "heading": "Ngày xưa — code từng dòng",
       "narration": "Ngày xưa, muốn làm một chức năng đăng nhập, lập trình viên phải ngồi gõ từng dòng một.",
-      "codeTitle": "login.js",
-      "codeLang": "javascript",
-      "code": "async function login(user, pass) {\n  checkUser(user)\n  checkPass(pass)\n  const t = signJWT(user)\n  return { token: t }\n}",
-      "codeHighlight": [2, 3, 4],
-      "transitionIn": "slide-up"
+      "layout": "draw",
+      "heading": "Ngày xưa: gõ từng dòng một",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "art": "old-typing",
+      "eyebrow": "Trước thời AI"
     },
     {
       "id": "s5",
-      "layout": "code",
-      "heading": "Lỗi: quên dấu chấm phẩy",
-      "emphasis": ["một ký tự"],
       "narration": "Kiểm tra tên, mật khẩu, gọi máy chủ, xử lý phiên. Debug xong mới phát hiện: quên một dấu chấm phẩy. Ngồi hai tiếng, sửa đúng một ký tự.",
-      "codeTitle": "auth.js",
-      "codeLang": "javascript",
-      "code": "const token = signJWT(user)\nreturn { token }",
-      "codeHighlight": [1],
-      "output": "SyntaxError: missing ;\n2 tiếng chỉ để sửa 1 ký tự",
-      "transitionIn": "fade"
+      "layout": "draw",
+      "heading": "2 tiếng, chỉ để sửa 1 ký tự",
+      "emphasis": ["1 ký tự"],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "art": "missing-semicolon",
+      "eyebrow": "Debug"
     },
     {
       "id": "s6",
-      "layout": "statement",
+      "narration": "Cảm giác lúc đó y như thám tử phá án ba ngày, để rồi phát hiện thủ phạm chính là mình.",
+      "layout": "draw",
       "heading": "Thủ phạm là… chính mình",
-      "narration": "Cảm giác lúc đó y như thám tử phá án ba ngày, để rồi phát hiện thủ phạm chính là mình.",      "transitionIn": "fade"
+      "emphasis": ["chính mình"],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "art": "culprit-mirror",
+      "eyebrow": "Y như phá án"
     },
     {
       "id": "s7",
-      "layout": "graphic",
-      "heading": "Bây giờ thì sao?",
       "narration": "Còn bây giờ, bạn chỉ cần nói yêu cầu của mình cho AI, phần còn lại nó lo.",
-      "graphic": {
-        "kind": "chat-ai",
-        "labels": ["u:Viết đăng nhập React + Node, có JWT, validation, xử lý lỗi", "a:Được 👍"]
-      },
-      "transitionIn": "slide-up"
+      "layout": "draw",
+      "heading": "Chỉ cần nói, AI lo phần còn lại",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "art": "ask-ai",
+      "eyebrow": "Còn bây giờ"
     },
     {
       "id": "s8",
-      "layout": "code",
-      "heading": "5 giây sau…",
-      "emphasis": ["5 giây"],
       "narration": "Năm giây sau, một đống code hiện ra. Bạn nhìn vào và thốt lên: quá đỉnh!",
-      "codeTitle": "useAuth.js",
-      "codeLang": "javascript",
-      "code": "export function useAuth() {\n  const [user, setUser] = useState()\n  const login = async () => {}\n  const logout = () => {}\n  return { user, login, logout }\n}",
-      "output": "// 500 dòng, chạy ngon ✨",
-      "transitionIn": "zoom"
+      "layout": "draw",
+      "heading": "5 giây sau, một đống code",
+      "emphasis": ["5 giây"],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "art": "five-seconds",
+      "eyebrow": "Bạn thốt lên: quá đỉnh"
     },
     {
       "id": "s9",
-      "layout": "statement",
-      "heading": "Khoan… chạy kiểu gì?",
+      "narration": "Nhưng mười giây sau: khoan đã. Cái đống code này chạy kiểu gì vậy?",
+      "layout": "draw",
+      "heading": "Khoan… cái này chạy kiểu gì?",
       "emphasis": ["chạy kiểu gì"],
-      "narration": "Nhưng mười giây sau: khoan đã. Cái đống code này chạy kiểu gì vậy?",      "transitionIn": "blur"
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "art": "how-run",
+      "eyebrow": "Mười giây sau"
     },
     {
       "id": "s10",
-      "layout": "statement",
-      "heading": "Vấn đề lớn nhất",
-      "emphasis": ["không hiểu code"],
       "narration": "Đây mới là vấn đề lớn nhất của người mới thời AI. Không phải AI quá giỏi, mà là bạn không hiểu code nhưng vẫn dùng AI để code.",
-      "chips": ["@warn Copy mà không hiểu", "@brain Thiếu nền tảng"],      "transitionIn": "zoom"
+      "layout": "draw",
+      "heading": "Copy mà không hiểu code",
+      "emphasis": ["không hiểu code"],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "art": "copy-no-understand",
+      "eyebrow": "Vấn đề lớn nhất thời AI"
     },
     {
       "id": "s11",
-      "layout": "graphic",
-      "heading": "Vòng lặp chết người",
       "narration": "AI viết năm trăm dòng. Bạn copy, chạy được, bạn vui. Hôm sau khách đòi thêm tính năng, AI viết thêm một nghìn dòng nữa.",
-      "graphic": {
-        "kind": "illus-flow",
-        "subtitle": "Càng copy càng mất kiểm soát",
-        "labels": ["@ai AI viết", "@code Bạn copy", "@check Chạy được", "@warn Rối tung"]
-      },
-      "transitionIn": "slide-up"
+      "layout": "draw",
+      "heading": "Vòng lặp chết người",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "art": "deadly-loop",
+      "eyebrow": "Càng copy càng mất kiểm soát"
     },
     {
       "id": "s12",
-      "layout": "graphic",
-      "heading": "Fix một, đẻ ba",
       "narration": "Đến lúc lỗi, bạn copy nguyên đống lỗi cho AI. Nó bảo được. Fix xong một lỗi, đẻ ra ba lỗi mới.",
-      "graphic": {
-        "kind": "chat-ai",
-        "labels": ["u:Fix giúp tôi cái lỗi này", "a:Được! (âm thầm sinh thêm 3 lỗi)"]
-      },
-      "transitionIn": "fade"
+      "layout": "draw",
+      "heading": "Fix một lỗi, đẻ ra ba lỗi",
+      "emphasis": ["ba lỗi"],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "art": "fix-one-spawn-three",
+      "eyebrow": "Đến lúc lỗi"
     },
     {
       "id": "s13",
-      "layout": "statement",
-      "heading": "Bug biết sinh sản 😱",
+      "narration": "Lúc này bạn mới thấm cảm giác làm nghề: không sợ bug. Chỉ sợ bug biết sinh sản.",
+      "layout": "draw",
+      "heading": "Sợ nhất là bug biết sinh sản",
       "emphasis": ["sinh sản"],
-      "narration": "Lúc này bạn mới thấm cảm giác làm nghề: không sợ bug. Chỉ sợ bug biết sinh sản.",      "transitionIn": "zoom"
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "art": "bugs-multiply",
+      "eyebrow": "Thấm cảm giác làm nghề"
     },
     {
       "id": "s14",
-      "layout": "graphic",
-      "heading": "Phải hiểu cả hệ thống",
       "narration": "Học nghề thời AI không phải là khỏi học. Ngược lại, bạn phải hiểu cả hệ thống ăn khớp với nhau thế nào.",
-      "graphic": {
-        "kind": "architecture",
-        "subtitle": "Từ giao diện tới dữ liệu và bảo mật",
-        "labels": ["@monitor Frontend", "@server Backend + @network API", "@db Database", "@lock Authentication"]
-      },
-      "transitionIn": "slide-up"
+      "layout": "draw",
+      "heading": "Phải hiểu cả hệ thống ăn khớp",
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "art": "whole-system",
+      "eyebrow": "Học nghề thời AI"
     },
     {
       "id": "s15",
-      "layout": "statement",
-      "heading": "Ai thắng thời AI?",
-      "emphasis": ["biết mình làm gì"],
       "narration": "Người thắng không phải người code nhanh nhất, mà là người biết mình đang làm gì và biết cách bắt AI làm cùng mình.",
-      "chips": ["@target Hiểu bản chất", "@zap Dùng AI đúng cách"],      "transitionIn": "zoom"
+      "layout": "draw",
+      "heading": "Người biết mình đang làm gì",
+      "emphasis": ["biết mình đang làm gì"],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "art": "who-wins",
+      "eyebrow": "Người thắng thời AI"
     },
     {
       "id": "s16",
-      "layout": "graphic",
-      "heading": "Học sao cho đúng?",
       "narration": "Đừng học kiểu: tìm trên mạng, copy, gặp lỗi, hỏi AI, rồi lại lỗi. Hãy học đúng nền tảng, rồi dùng AI để tăng tốc.",
-      "graphic": {
-        "kind": "illus-compare",
-        "labels": ["@x-circle Google, copy, lỗi, hỏi AI, lỗi tiếp", "@rocket Nền tảng vững, AI tăng tốc"]
-      },
-      "transitionIn": "slide-up"
+      "layout": "draw",
+      "heading": "Nền tảng vững, rồi để AI tăng tốc",
+      "emphasis": ["Nền tảng vững"],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "art": "learn-right",
+      "eyebrow": "Học sao cho đúng"
     },
     {
       "id": "s17",
-      "layout": "statement",
-      "heading": "Ib nhận lộ trình miễn phí 🚀",
+      "narration": "Nếu muốn học lập trình mà chưa biết bắt đầu từ đâu, nhắn tin cho mình. Mình gửi bạn lộ trình học miễn phí.",
+      "layout": "draw",
+      "heading": "Nhắn tin, nhận lộ trình miễn phí",
       "emphasis": ["miễn phí"],
-      "narration": "Nếu muốn học lập trình mà chưa biết bắt đầu từ đâu, nhắn tin cho mình. Mình gửi bạn lộ trình học miễn phí.",      "transitionIn": "zoom"
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "art": "roadmap-cta",
+      "eyebrow": "Chưa biết bắt đầu từ đâu?"
     }
-  ]
+  ],
+  "voice": {
+    "provider": "piper",
+    "voiceId": "ngochuyen",
+    "speed": 1.15,
+    "pronunciations": {
+      "AI": "ây ai",
+      "code": "cốt",
+      "bug": "bấc",
+      "debug": "đi bấc"
+    }
+  },
+  "captions": {
+    "style": "clean-minimal",
+    "position": "lower-third",
+    "maxWordsPerLine": 5,
+    "highlightColor": "#BE5A38"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.2,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": true,
+    "volume": 0.24
+  }
 }

@@ -56,7 +56,7 @@ function flagValue(flags: string[], name: string): string | undefined {
 }
 
 /**
- * pnpm video make "<chủ đề>" --ai gemini --key <key> [--style photo] [--model …] [--base-url …] [--spec-only]
+ * pnpm video make "<chủ đề>" --ai gemini --key <key> [--style photo] [--lineart] [--model …] [--base-url …] [--spec-only]
  *   --style photo  → mỗi cảnh một ảnh làm nền (mặc định: đầy đủ video + đồ hoạ)
  *   "<chủ đề>" là link bài báo (vd Kênh 14) → kể lại bài đó bằng chính ảnh trong bài
  *
@@ -75,12 +75,15 @@ async function cmdMake(brief?: string, ...flags: string[]) {
   });
 
   const visualStyle = flagValue(flags, "--style") === "photo" ? "photo" : "mixed";
+  // --lineart: tranh nét vẽ tay, nền giấy (layout "draw"). Không đi cùng bài báo.
+  const lineart = flags.includes("--lineart");
   // Brief chứa link bài báo → đọc bài + tải ảnh của bài, như trên giao diện.
   const link = splitArticleBrief(brief);
   const article = link ? await loadArticle(link.url, (m) => console.log(m)) : undefined;
   const { spec, attempts } = await authorSpec(link ? link.extra : brief, llm, (m) => console.log(m), {
     visualStyle,
     article,
+    lineart: lineart && !article,
   });
   const slug = slugify(spec.meta.title);
   const specPath = path.resolve(process.cwd(), "specs", `${slug}.json`);

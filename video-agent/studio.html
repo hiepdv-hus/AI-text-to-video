@@ -1405,6 +1405,12 @@
                 lớn</span></span>
           </label>
           <label class="style-opt">
+            <input type="radio" name="visualStyle" value="lineart" onchange="onStyleChange()" />
+            <span class="ico">✏️</span>
+            <span><b>Line-art (giấy)</b><span class="desc">Tranh nét vẽ tay tự hiện dần trên nền giấy ấm,
+                phong cách editorial — không ảnh, không code</span></span>
+          </label>
+          <label class="style-opt">
             <input type="radio" name="visualStyle" value="photo" onchange="onStyleChange()" />
             <span class="ico">🖼️</span>
             <span><b>Chỉ ảnh</b><span class="desc">Mỗi cảnh một ảnh gốc + phụ đề lời kể. Không tiêu đề, không đồ
@@ -1859,6 +1865,9 @@
       illus: 'Ảnh AI động (Ken Burns + parallax)',
       gfx: 'Đồ hoạ 3D vẽ nội dung + chữ',
       shot: 'Khung phim (ảnh AI điện ảnh)',
+      draw: 'Tranh nét tự vẽ (line-art)',
+      hack: 'Màn code chảy (hacking)',
+      statement: 'Câu chốt chữ lớn động',
       product: 'Giới thiệu sản phẩm',
       cta: 'Kết thúc — kêu gọi',
     };
@@ -1971,8 +1980,10 @@
     function lines(text) { return String(text || '').split('\n').map((x) => x.trim()).filter(Boolean); }
     /** Lựa chọn ở ô "Kiểu video": mixed | photo | article. */
     function currentMode() { return (document.querySelector('input[name="visualStyle"]:checked') || {}).value || 'mixed'; }
-    /** Kiểu HÌNH ẢNH ghi vào spec. Video từ bài báo dựng bằng ảnh của bài → "photo". */
-    function currentStyle() { return currentMode() === 'article' ? 'photo' : currentMode(); }
+    /** Kiểu HÌNH ẢNH ghi vào spec. Bài báo → "photo"; line-art dựng bằng layout draw nên spec vẫn "mixed". */
+    function currentStyle() { const m = currentMode(); if (m === 'article') return 'photo'; if (m === 'lineart') return 'mixed'; return m; }
+    /** Chế độ TRANH NÉT (layout draw + nền giấy) — gửi cờ riêng cho AI author. */
+    function isLineart() { return currentMode() === 'lineart'; }
     function speedValue() { return parseFloat($('#speed').value) || 1; }
     function estimateSec(text) {
       const n = String(text || '').trim().split(/\s+/).filter(Boolean).length;
@@ -2007,7 +2018,7 @@
     const STYLE_STORE = 'videoStudio.visualStyle';
 
     function setStyle(value) {
-      const v = ['photo', 'article'].includes(value) ? value : 'mixed';
+      const v = ['photo', 'article', 'lineart'].includes(value) ? value : 'mixed';
       const el = document.querySelector(`input[name="visualStyle"][value="${v}"]`);
       if (el) el.checked = true;
       onStyleChange();
@@ -2022,7 +2033,9 @@
       if (hint.className === 'notice') {
         hint.innerHTML = currentMode() === 'article'
           ? 'Dán link → bấm <b>Tạo video từ bài báo</b>. Video dựng bằng ảnh trong bài + phụ đề lời kể.'
-          : 'Mẹo: nhấn <b>Ctrl + Enter</b> trong ô trên để viết nhanh.';
+          : currentMode() === 'lineart'
+            ? 'Tranh nét vẽ tay (nền giấy). Thư viện bản vẽ có sẵn hợp nhất chủ đề <b>lập trình / học nghề / AI / công việc</b>; beat nào không có bản vẽ khớp sẽ hiện dạng chữ lớn.'
+            : 'Mẹo: nhấn <b>Ctrl + Enter</b> trong ô trên để viết nhanh.';
       }
       $$('#scenes .scene').forEach((c) => fillMediaKinds(c));
       refreshAll();
@@ -2864,7 +2877,7 @@
       try {
         const res = await fetch('/api/generate', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ brief, llm: loadAi(), visualStyle: currentStyle() }),
+          body: JSON.stringify({ brief, llm: loadAi(), visualStyle: currentStyle(), lineart: isLineart() }),
         });
         const data = await res.json();
         stop();

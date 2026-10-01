@@ -192,6 +192,61 @@ function styleBrief(style: VisualStyle, fromArticle = false): string {
 }
 
 /**
+ * TRANH NÉT TỰ VẼ (layout "draw") — thư viện bản vẽ CÓ SẴN. Mỗi khoá là một bức SVG vẽ tay
+ * trong `DrawScene.tsx` (LINE_SCENES). AI CHỈ được chọn `art` trong danh sách này; bản vẽ là
+ * thủ công nên không thể "vẽ nội dung bất kỳ". Beat nào không khớp bản nào → dùng layout
+ * "statement" (chữ lớn, cùng nền giấy). GIỮ ĐỒNG BỘ với LINE_SCENES trong DrawScene.tsx.
+ */
+const LINEART_ARTS: Record<string, string> = {
+  "office-exodus": "người tan làm / nghỉ việc (đồng hồ 17h, người lần lượt ra cửa)",
+  "ai-builds-system": "AI/robot tự viết ra cả hệ thống code (người nhỏ bên cạnh)",
+  "question-screen": "ngồi trước màn hình, dấu hỏi lớn — băn khoăn, không biết",
+  "replace-vs-thrive": "so sánh: người bị thay thế (✕) vs người biết dùng AI (✓)",
+  "old-typing": "ngồi gõ code từng dòng một — cách làm ngày xưa, thủ công",
+  "missing-semicolon": "soi kính lúp tìm lỗi nhỏ trong code + đồng hồ — debug mất thời gian",
+  "culprit-mirror": "thám tử cầm kính lúp soi vào gương thấy chính mình — thủ phạm là mình",
+  "ask-ai": "người ra lệnh/yêu cầu cho AI, AI đồng ý — giao việc cho AI",
+  "five-seconds": "đồng hồ bấm giờ 5 giây → một đống code hiện ra — AI làm cực nhanh",
+  "how-run": "người gãi đầu bối rối trước khối code + dấu hỏi — không hiểu nó chạy sao",
+  "copy-no-understand": "copy code từ màn hình nhưng đầu rỗng (dấu hỏi) — dùng mà không hiểu",
+  "deadly-loop": "vòng lặp: AI viết → copy → chạy → rối tung — mất kiểm soát",
+  "fix-one-spawn-three": "sửa 1 lỗi (✕) thì đẻ ra 3 lỗi mới — lỗi nhân lên",
+  "bugs-multiply": "bug sinh sản lan khắp màn hình — lỗi ngày càng nhiều",
+  "whole-system": "sơ đồ hệ thống: giao diện → máy chủ → cơ sở dữ liệu + bảo mật + bánh răng ăn khớp",
+  "who-wins": "người thắng đứng trên bục giơ tay, điều khiển AI làm cùng + cúp",
+  "learn-right": "so sánh: học sai (vòng lặp lỗi ✕) vs nền tảng vững → tên lửa bay lên (✓)",
+  "roadmap-cta": "lộ trình uốn lượn có mốc → tên lửa + bong bóng nhắn tin — kêu gọi bắt đầu",
+};
+
+/**
+ * Chỉ dẫn cho KIỂU LINE-ART (tranh nét tự vẽ, nền giấy). Khác `styleBrief`: ở đây TOÀN BỘ
+ * cảnh là layout "draw" (hoặc "statement" khi không có bản vẽ khớp), nền giấy cream, không
+ * ảnh/video/code. AI phải ÁNH XẠ mỗi beat vào một `art` trong thư viện có sẵn.
+ */
+function lineartBrief(): string {
+  const list = Object.entries(LINEART_ARTS)
+    .map(([k, v]) => `  - "${k}": ${v}`)
+    .join("\n");
+  return [
+    '## Kiểu hình ảnh: LINE-ART (tranh nét tự vẽ, nền giấy) — đặt `meta.background: "claude-cream"` và `meta.visualStyle: "mixed"`',
+    "",
+    "Mỗi cảnh là một BỨC TRANH NÉT vẽ tay (SVG) hiện dần, trên nền giấy ấm, phong cách editorial.",
+    "KHÔNG ảnh thật, KHÔNG video, KHÔNG cửa sổ code, KHÔNG đồ hoạ neon. Luật:",
+    "",
+    "- MỌI cảnh đặt `layout: \"draw\"` và chọn `art` TRONG danh sách bản vẽ có sẵn dưới đây",
+    "  (đây là tranh VẼ TAY — KHÔNG thể vẽ nội dung ngoài danh sách). Chọn bản SÁT NGHĨA beat nhất.",
+    "- Mỗi cảnh có thêm: `eyebrow` (nhãn nhỏ phía trên, 2–5 từ), `heading` (câu tiêu đề NGẮN, 4–8 từ),",
+    "  `narration` (lời đọc 1–3 câu), và `emphasis` (vài từ trong heading để tô nhấn). `chips` tuỳ chọn (nhãn nhỏ trong tranh).",
+    "- Nếu một beat KHÔNG có bản vẽ nào khớp, đặt cảnh đó `layout: \"statement\"` (chữ lớn động, cùng nền giấy) —",
+    "  KHÔNG bịa khoá `art` mới.",
+    "- Cố gắng để cảnh MỞ và cảnh KẾT có bản vẽ khớp (vd kết dùng \"roadmap-cta\" nếu là kêu gọi).",
+    "",
+    "Thư viện bản vẽ `art` có sẵn:",
+    list,
+  ].join("\n");
+}
+
+/**
  * Bài báo dài cỡ nào cũng chỉ gửi chừng này ký tự. Đủ cho một video 2–3 phút kể gần hết
  * bài; bài dài hơn thế là bài nhiều kỳ, cắt bớt vẫn còn thừa nội dung.
  */
@@ -372,7 +427,7 @@ export function articleMeta(src: ArticleSource): Record<string, string> {
 }
 
 /** Một lượt kiểm: Zod trước (kiểu), lint sau (cách dùng). Trả về danh sách vấn đề. */
-function check(jsonText: string, style: VisualStyle, article?: ArticleSource): { spec?: VideoSpec; problems: string[] } {
+function check(jsonText: string, style: VisualStyle, article?: ArticleSource, lineart = false): { spec?: VideoSpec; problems: string[] } {
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonText);
@@ -385,6 +440,26 @@ function check(jsonText: string, style: VisualStyle, article?: ArticleSource): {
   const meta = (parsed as { meta?: unknown } | null)?.meta;
   if (meta && typeof meta === "object") {
     (meta as Record<string, unknown>).visualStyle = style;
+    // Chế độ LINE-ART: ép nền giấy + sửa mọi cảnh về đúng khuôn (draw có art hợp lệ, còn lại
+    // thành statement) ngay tại đây — rẻ hơn bắt AI sửa, và đảm bảo video LUÔN ra line-art.
+    if (lineart) {
+      (meta as Record<string, unknown>).background = "claude-cream";
+      const scenes = (parsed as { scenes?: unknown }).scenes;
+      if (Array.isArray(scenes)) {
+        for (const sc of scenes) {
+          if (!sc || typeof sc !== "object") continue;
+          const s = sc as Record<string, unknown>;
+          // Line-art chỉ hỗ trợ 2 layout: "draw" (có bản vẽ) và "statement" (chữ lớn).
+          // Ép MỌI cảnh về đúng 2 loại này — kể cả khi AI lỡ dùng hook/cta/graphic…
+          const okArt = typeof s.art === "string" && s.art in LINEART_ARTS;
+          s.layout = okArt ? "draw" : "statement";
+          if (!okArt) delete s.art;
+          // dọn các field không thuộc kiểu line-art để khỏi vướng lint/hiển thị lạ
+          delete s.media; delete s.graphic; delete s.code; delete s.codeTitle;
+          delete s.codeLang; delete s.codeHighlight; delete s.output; delete s.bullets; delete s.shot;
+        }
+      }
+    }
     // Siêu dữ liệu bài báo do CHƯƠNG TRÌNH điền, không hỏi AI: tên báo, tiêu đề, ngày
     // đăng, link — AI chép lại là sai chính tả tên báo hoặc bịa ngày. Chỉ điền khi kiểu
     // hình ảnh là "article", vì chỉ kiểu đó mới vẽ chúng lên hình.
@@ -399,7 +474,7 @@ function check(jsonText: string, style: VisualStyle, article?: ArticleSource): {
       problems: [...refProblems, ...res.error.issues.map((i) => `${i.path.join(".") || "(gốc)"}: ${i.message}`)],
     };
   }
-  return { spec: res.data, problems: [...refProblems, ...lintSpec(res.data)] };
+  return { spec: res.data, problems: [...refProblems, ...lintSpec(res.data, lineart)] };
 }
 
 /**
@@ -412,15 +487,16 @@ export async function authorSpec(
   brief: string,
   llm: LlmConfig,
   onProgress: (msg: string) => void = () => {},
-  opts: { visualStyle?: VisualStyle; article?: ArticleSource } = {},
+  opts: { visualStyle?: VisualStyle; article?: ArticleSource; lineart?: boolean } = {},
 ): Promise<AuthorResult> {
   const style: VisualStyle = opts.visualStyle ?? "mixed";
-  const { article } = opts;
+  const { article, lineart = false } = opts;
   const system = await buildSystemPrompt();
+  // Chế độ line-art KHÔNG đi cùng bài báo (bài báo luôn dùng ảnh của bài).
   const request = article
     ? `${styleBrief(style, true)}\n\n${articleBrief(article)}` +
       (brief.trim() ? `\n\nYêu cầu thêm của người dùng:\n"""\n${brief.trim()}\n"""` : "")
-    : `Brief của người dùng:\n\n"""\n${brief.trim()}\n"""\n\n${styleBrief(style)}`;
+    : `Brief của người dùng:\n\n"""\n${brief.trim()}\n"""\n\n${lineart ? lineartBrief() : styleBrief(style)}`;
   let user = `${request}\n\nTrả về DUY NHẤT object JSON của VideoSpec.`;
 
   const seen: string[] = [];
@@ -431,7 +507,7 @@ export async function authorSpec(
     let problems: string[];
     let spec: VideoSpec | undefined;
     try {
-      ({ spec, problems } = check(extractJson(raw), style, article));
+      ({ spec, problems } = check(extractJson(raw), style, article, lineart));
     } catch (err) {
       problems = [(err as Error).message];
     }

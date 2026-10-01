@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "title": "IT luong 50 trieu hay gia tri",
+    "template": "StoryHook",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "locale": "vi-VN",
+    "background": "claude-cream",
+    "visualStyle": "mixed"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Anh ơi, nghe nói IT lương năm mươi triệu đúng không? Đúng. Nhưng có một vấn đề: không phải cứ học IT là tháng sau nhận năm mươi triệu.",
+      "layout": "draw",
+      "heading": "IT lương 50 triệu, đúng không?",
+      "emphasis": [
+        "50 triệu"
+      ],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "art": "ask-ai",
+      "eyebrow": "Hỏi thật"
+    },
+    {
+      "id": "s2",
+      "narration": "Nếu đơn giản như vậy, chắc bây giờ Việt Nam đã có thêm vài triệu lập trình viên rồi.",
+      "layout": "statement",
+      "heading": "Nếu dễ vậy, ai cũng giàu rồi",
+      "emphasis": [
+        "ai cũng giàu"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s3",
+      "narration": "Một bạn mới vào nghề hỏi: em học IT bao lâu thì được ba mươi triệu? Anh senior trả lời: khoảng vài năm.",
+      "layout": "draw",
+      "heading": "Bao lâu thì được 30 triệu?",
+      "emphasis": [
+        "30 triệu"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "art": "ask-ai",
+      "eyebrow": "Người mới hỏi"
+    },
+    {
+      "id": "s4",
+      "narration": "Vậy năm mươi triệu? Cần kinh nghiệm, kỹ năng tốt, tiếng Anh ổn. Còn một trăm triệu? Senior im lặng ba giây, rồi nói: đừng hỏi mức lương trước, hãy hỏi xem em tạo ra được bao nhiêu giá trị đã.",
+      "layout": "statement",
+      "heading": "Hỏi giá trị, đừng hỏi lương",
+      "emphasis": [
+        "giá trị"
+      ],
+      "transitionIn": "blur",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s5",
+      "narration": "Công ty không trả tiền chỉ vì bạn biết React. Cũng chẳng trả ba mươi triệu chỉ vì bạn thuộc lòng một trăm câu lệnh JavaScript.",
+      "layout": "draw",
+      "heading": "Biết cú pháp thôi, chưa đủ",
+      "emphasis": [
+        "chưa đủ"
+      ],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35,
+      "art": "copy-no-understand",
+      "eyebrow": "Sự thật"
+    },
+    {
+      "id": "s6",
+      "narration": "Công ty trả tiền cho khả năng giải quyết vấn đề. Website đang chậm? Bạn tìm ra nguyên nhân. API đang lỗi? Bạn debug được.",
+      "layout": "draw",
+      "heading": "Tìm ra lỗi, sửa được",
+      "emphasis": [
+        "Tìm ra lỗi"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "art": "missing-semicolon",
+      "eyebrow": "Giải quyết vấn đề"
+    },
+    {
+      "id": "s7",
+      "narration": "Hệ thống có cả trăm nghìn người dùng? Bạn biết cách tối ưu. Đó mới là thứ công ty thật sự cần.",
+      "layout": "draw",
+      "heading": "Trăm nghìn user, biết tối ưu",
+      "emphasis": [
+        "tối ưu"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "art": "whole-system",
+      "eyebrow": "Giá trị thật"
+    },
+    {
+      "id": "s8",
+      "narration": "AI viết code nhanh hơn bạn? Không sao. Nhưng nếu AI viết xong mà bạn không hiểu nó đang làm gì, thì mức lương cũng khó mà tăng nhanh.",
+      "layout": "draw",
+      "heading": "AI viết nhanh, bạn có hiểu?",
+      "emphasis": [
+        "có hiểu"
+      ],
+      "transitionIn": "blur",
+      "tailPadSec": 0.35,
+      "art": "ai-builds-system",
+      "eyebrow": "Thời AI"
+    },
+    {
+      "id": "s9",
+      "narration": "Có một điều khá buồn cười. Junior thường hỏi: công ty trả em bao nhiêu? Còn senior thường hỏi: công ty đang giải quyết vấn đề gì?",
+      "layout": "draw",
+      "heading": "Junior hỏi lương, Senior hỏi vấn đề",
+      "emphasis": [
+        "vấn đề"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "art": "replace-vs-thrive",
+      "eyebrow": "Khác biệt"
+    },
+    {
+      "id": "s10",
+      "narration": "Khi bạn giải quyết được vấn đề lớn hơn, giá trị của bạn tăng. Và khi giá trị tăng, lương thường sẽ đi theo.",
+      "layout": "draw",
+      "heading": "Giá trị tăng, lương đi theo",
+      "emphasis": [
+        "lương đi theo"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "art": "learn-right",
+      "eyebrow": "Quy luật"
+    },
+    {
+      "id": "s11",
+      "narration": "Chứ không phải học thêm ba framework là cộng mười triệu. Nếu vậy chắc tôi học hết npm luôn rồi.",
+      "layout": "statement",
+      "heading": "Học 3 framework = +10 triệu? 😂",
+      "emphasis": [
+        "+10 triệu"
+      ],
+      "transitionIn": "fade",
+      "tailPadSec": 0.35
+    },
+    {
+      "id": "s12",
+      "narration": "Nếu bạn đang học IT, đừng đặt mục tiêu phải kiếm ba mươi triệu. Hãy đặt mục tiêu trở thành người mà doanh nghiệp sẵn sàng trả ba mươi triệu để thuê.",
+      "layout": "draw",
+      "heading": "Thành người đáng giá 30 triệu",
+      "emphasis": [
+        "đáng giá"
+      ],
+      "transitionIn": "slide-up",
+      "tailPadSec": 0.35,
+      "art": "who-wins",
+      "eyebrow": "Mục tiêu đúng"
+    },
+    {
+      "id": "s13",
+      "narration": "Trong thời AI, người kiếm được nhiều tiền không nhất thiết là người code nhanh nhất. Mà là người biết dùng AI để giải quyết vấn đề nhanh hơn người khác.",
+      "layout": "draw",
+      "heading": "Dùng AI giải quyết vấn đề",
+      "emphasis": [
+        "giải quyết vấn đề"
+      ],
+      "transitionIn": "zoom",
+      "tailPadSec": 0.35,
+      "art": "roadmap-cta",
+      "eyebrow": "Chốt lại"
+    }
+  ],
+  "voice": {
+    "provider": "piper",
+    "voiceId": "ngochuyen",
+    "speed": 1.15,
+    "pronunciations": {
+      "AI": "ây ai",
+      "IT": "ai ti",
+      "code": "cốt",
+      "debug": "đi bấc",
+      "API": "ây pi ai",
+      "React": "ri-ác",
+      "JavaScript": "gia va sờ críp",
+      "npm": "en pê em",
+      "framework": "phrêm-uợc",
+      "senior": "xi ni ơ",
+      "junior": "giu ni ơ"
+    }
+  },
+  "captions": {
+    "style": "clean-minimal",
+    "position": "lower-third",
+    "maxWordsPerLine": 5,
+    "highlightColor": "#BE5A38"
+  },
+  "music": {
+    "src": "sfx/ambient-tech.wav",
+    "volume": 0.05,
+    "duck": 0.25
+  },
+  "sfx": {
+    "enabled": true,
+    "volume": 0.24
+  }
+}

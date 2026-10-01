@@ -256,8 +256,9 @@ const server = http.createServer(async (req, res) => {
     // người dùng ĐỌC LẠI và sửa trước khi tốn vài phút CPU render.
     if (req.method === "POST" && pathname === "/api/generate") {
       if (generating) return sendJson(res, 429, { error: "Đang viết kịch bản khác, đợi chút." });
-      const body = JSON.parse(await readBody(req)) as { brief?: string; llm?: unknown; visualStyle?: string };
+      const body = JSON.parse(await readBody(req)) as { brief?: string; llm?: unknown; visualStyle?: string; lineart?: boolean };
       // Chỉ nhận các giá trị đã biết; gửi lạ thì về mặc định chứ không để AI nhận rác.
+      const lineart = body.lineart === true;
       const visualStyle =
         body.visualStyle === "photo" ? "photo" : body.visualStyle === "article" ? "article" : "mixed";
       const brief = body.brief?.trim();
@@ -274,8 +275,8 @@ const server = http.createServer(async (req, res) => {
         // Có link trong ô yêu cầu → đọc bài báo + tải ảnh của bài, phần chữ còn lại là yêu cầu thêm.
         const link = splitArticleBrief(brief);
         const article = link ? await loadArticle(link.url, (m) => console.log(m)) : undefined;
-        console.log(`[serve] viết kịch bản (${visualStyle}) bằng ${llm.provider}/${llm.model}: "${(article?.article.title ?? brief).slice(0, 80)}"`);
-        const { spec, attempts } = await authorSpec(link ? link.extra : brief, llm, (m) => console.log(m), { visualStyle, article });
+        console.log(`[serve] viết kịch bản (${lineart ? "line-art" : visualStyle}) bằng ${llm.provider}/${llm.model}: "${(article?.article.title ?? brief).slice(0, 80)}"`);
+        const { spec, attempts } = await authorSpec(link ? link.extra : brief, llm, (m) => console.log(m), { visualStyle, article, lineart: lineart && !article });
         return sendJson(res, 200, {
           ok: true,
           spec,

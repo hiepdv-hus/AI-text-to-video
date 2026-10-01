@@ -33,6 +33,7 @@ export const layoutSchema = z.enum([
   "gfx", // ĐỒ HOẠ 3D VẼ NỘI DUNG: media gfx3d là chủ thể chính (người gõ máy, tên lửa…) + nhãn nhỏ + phụ đề
   "hack", // MÀN CODE CHẢY kiểu hacking, full-frame (dùng scene.code) — "AI viết/chiếm hệ thống"
   "statement", // KINETIC TYPOGRAPHY full-frame: câu chốt chữ lớn động + nền động (dùng heading + emphasis)
+  "draw", // TRANH NÉT TỰ VẼ (line-art editorial, nền giấy): bức vẽ SVG hiện dần theo lời kể (dùng scene.art)
   "graphic", // đồ hoạ neon minh hoạ khớp nội dung (timeline highlight, laptop editor, thẻ tính năng)
 ]);
 export type Layout = z.infer<typeof layoutSchema>;
@@ -210,6 +211,12 @@ export const sceneSchema = z.object({
   /* --- Dành cho layout "graphic" --- */
   /** Cấu hình widget đồ hoạ neon (bắt buộc khi layout="graphic"). */
   graphic: graphicSchema.optional(),
+
+  /* --- Dành cho layout "draw" (tranh nét tự vẽ) --- */
+  /** Khoá bức vẽ line-art (vd "office-exodus") trong LINE_SCENES. */
+  art: z.string().optional(),
+  /** Nhãn nhỏ trên tiêu đề (eyebrow, viết hoa giãn chữ) — vd "MỘT NGHỊCH LÝ ĐANG XẢY RA". */
+  eyebrow: z.string().optional(),
 
   /* --- Dành cho layout "shot" (khung phim) --- */
   /** Công thức khung phim: subject/action/emotion/world/camera/light/composition. */

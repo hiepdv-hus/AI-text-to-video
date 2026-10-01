@@ -3,6 +3,7 @@ import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } fr
 import type { BuiltScene } from "../../schema";
 import { TEXT_STACK } from "../textStack";
 import { useTheme, isTech } from "../../theme/claude";
+import { Glyph, parseLabel } from "./Icon";
 
 /**
  * StatementScene — layout "statement": KINETIC TYPOGRAPHY full-frame.
@@ -48,16 +49,51 @@ export const StatementScene: React.FC<{ scene: BuiltScene; height: number }> = (
         />
       )}
 
-      {/* CHỮ LỚN — kinetic */}
+      {/* BIỂU TƯỢNG CHỦ ĐỀ + CHỮ LỚN — xếp dọc, căn giữa, lấp khung */}
       <AbsoluteFill
         style={{
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          gap: 48,
           padding: `0 ${Math.round(height * 0.04)}px`,
           textAlign: "center",
         }}
       >
+        {scene.icon && (() => {
+          const parsed = parseLabel(`${scene.icon} .`);
+          const iconIn = spring({ frame: frame - 2, fps, config: { damping: 14, stiffness: 150 } });
+          const floatY = Math.sin(t * 0.9) * 10;
+          const pulse = (Math.sin(t * 2) + 1) / 2;
+          return (
+            <div
+              style={{
+                position: "relative",
+                width: 230,
+                height: 230,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transform: `translateY(${floatY}px) scale(${interpolate(iconIn, [0, 1], [0.4, 1])})`,
+                opacity: iconIn,
+              }}
+            >
+              {/* vòng sáng + quầng thở */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: 999,
+                  background: p.accentSoft,
+                  border: `2px solid ${p.accent}`,
+                  boxShadow: `0 0 ${40 + pulse * 46}px ${p.accent}, inset 0 0 40px ${p.accentSoft}`,
+                }}
+              />
+              <Glyph parsed={parsed} size={120} color={p.accent} p={p} />
+            </div>
+          );
+        })()}
         <div style={{ fontFamily: TEXT_STACK, fontSize: fs, fontWeight: 800, lineHeight: 1.12, maxWidth: "92%" }}>
           {words.map((w, i) => {
             const e = spring({ frame: frame - (4 + i * 3), fps, config: { damping: 16, stiffness: 150, mass: 0.8 } });
